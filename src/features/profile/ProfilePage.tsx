@@ -260,21 +260,20 @@ export function ProfilePage() {
             </button>
           </article>
 
-          <article className="toggle-card">
+          <article className="toggle-card toggle-card--soon">
             <div>
-              <h3>Criptografia avançada de dados</h3>
+              <h3>Criptografia E2E <span className="toggle-card__badge">Em breve</span></h3>
               <p>
-                Ative a criptografia ponta a ponta acelerada por hardware para todas as
-                conversas. Observação: isso pode afetar levemente a velocidade de sincronização
-                entre múltiplos dispositivos.
+                Criptografia ponta a ponta entre dispositivos. Disponível em versão futura do Leaf.
               </p>
             </div>
             <button
               type="button"
-              className={`switch ${encryptionDraft ? 'switch--on' : ''}`}
+              className="switch"
               role="switch"
-              aria-checked={encryptionDraft}
-              onClick={() => setEncryptionDraft((current) => !current)}
+              aria-checked={false}
+              disabled
+              title="Indisponível nesta versão"
             >
               <span />
             </button>
