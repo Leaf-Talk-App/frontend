@@ -1,3 +1,5 @@
+/* ── Wrapper externo ─────────────────────────────────────────────────────────
+   Só controla alinhamento (esquerda/direita). NÃO tem flex column.        */
 .message-bubble {
   display: flex;
   animation: bubbleIn 0.15s ease-out;
@@ -8,15 +10,15 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.message-bubble--sender  { justify-content: flex-end; }
+.message-bubble--sender   { justify-content: flex-end; }
 .message-bubble--receiver { justify-content: flex-start; }
 
-/* ── Corpo da bolha ────────────────────────────────────────────────────────── */
+/* ── Corpo da bolha ──────────────────────────────────────────────────────────
+   Inline-block para a bolha abraçar o conteúdo (sem stretching).
+   max-width impede bolhas gigantes.                                        */
 .message-bubble__body {
-  position: relative;
-  /* min-width garante que mensagens curtas ("oi") não fiquem aberrantes */
-  min-width: 80px;
-  max-width: min(520px, 72%);
+  display: inline-block;
+  max-width: min(480px, 72%);
   padding: 8px 12px 6px;
   border-radius: 18px;
   word-break: break-word;
@@ -38,47 +40,83 @@
   box-shadow: 0 2px 8px rgb(79 95 57 / 6%);
 }
 
-/* ── Texto ────────────────────────────────────────────────────────────────── */
+/* ── Texto ───────────────────────────────────────────────────────────────────
+   Exibe texto + footer num único bloco "table" para que o footer fique
+   alinhado ao final da última linha (truque do WhatsApp Web).              */
+.message-bubble__inner {
+  display: flex;
+  flex-direction: column;
+}
+
 .message-bubble__text {
-  margin: 0 0 2px;
+  margin: 0;
   font-size: 15px;
-  line-height: 1.45;
+  line-height: 1.5;
   white-space: pre-wrap;
-  /* Espaço reservado para o footer não sobrepor a última linha de texto */
-  padding-right: 48px;
 }
 
 .message-bubble__deleted {
+  margin: 0;
   color: inherit;
   opacity: 0.6;
   font-size: 14px;
   font-style: italic;
-  padding-right: 48px;
 }
 
-/* ── Imagem ───────────────────────────────────────────────────────────────── */
-.message-bubble__image-link {
-  display: block;
-  margin: -8px -12px 4px;   /* sangra até as bordas do padding */
-  border-radius: 16px 16px 0 0;
+/* ── Footer (timestamp + status) ─────────────────────────────────────────── */
+.message-bubble__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 11px;
+  white-space: nowrap;
+  line-height: 1;
+  /* padding-left cria separação do texto na mesma linha quando couber */
+  padding-left: 8px;
+}
+
+.message-bubble--sender   .message-bubble__footer { color: rgba(255 255 255 / 0.72); }
+.message-bubble--receiver .message-bubble__footer { color: #8a9183; }
+
+.message-bubble__time   { font-weight: 500; }
+.message-bubble__edited { font-style: italic; opacity: 0.75; }
+
+.message-bubble__status {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(255 255 255 / 0.85);
+}
+
+/* ── Imagem ──────────────────────────────────────────────────────────────────
+   Bolha sem padding lateral; imagem preenche a bolha arredondada.         */
+.message-bubble--image .message-bubble__body {
+  padding: 0;
   overflow: hidden;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
-.message-bubble--sender .message-bubble__image-link {
-  border-radius: 18px 18px 0 18px;
-}
-
-.message-bubble--receiver .message-bubble__image-link {
-  border-radius: 18px 18px 18px 0;
+.message-bubble--image.message-bubble--sender .message-bubble__body {
+  box-shadow: 0 4px 12px rgb(107 146 58 / 20%);
 }
 
 .message-bubble__image {
   display: block;
-  max-width: 100%;
+  max-width: 280px;
   max-height: 280px;
   width: auto;
-  object-fit: cover;
+  height: auto;
+  border-radius: 14px;
   cursor: zoom-in;
+  object-fit: cover;
+}
+
+.message-bubble--image .message-bubble__footer {
+  padding: 4px 8px 6px;
+  justify-content: flex-end;
 }
 
 /* ── Áudio ────────────────────────────────────────────────────────────────── */
@@ -92,43 +130,6 @@
 
 .message-bubble--receiver .message-bubble__audio {
   accent-color: #4b760f;
-}
-
-/* ── Footer (timestamp + status) ─────────────────────────────────────────── */
-.message-bubble__footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  /* Posição absoluta no canto inferior direito da bolha */
-  position: absolute;
-  bottom: 5px;
-  right: 10px;
-  font-size: 11px;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-/* Sobre imagem: fundo semi-transparente */
-.message-bubble__footer--over-image {
-  background: rgb(0 0 0 / 35%);
-  color: #fff !important;
-  padding: 2px 5px;
-  border-radius: 8px;
-  bottom: 8px;
-  right: 8px;
-}
-
-.message-bubble--sender  .message-bubble__footer { color: rgba(255 255 255 / 0.75); }
-.message-bubble--receiver .message-bubble__footer { color: #8a9183; }
-
-.message-bubble__time   { font-weight: 500; }
-.message-bubble__edited { font-style: italic; opacity: 0.75; }
-
-.message-bubble__status {
-  display: inline-flex;
-  align-items: center;
-  color: rgba(255 255 255 / 0.85);
 }
 
 /* ── Dark mode ────────────────────────────────────────────────────────────── */
@@ -148,5 +149,6 @@
 [data-theme='dark'] .message-bubble--receiver .message-bubble__footer { color: #7a8672; }
 
 @media (max-width: 768px) {
-  .message-bubble__body { max-width: 86%; }
+  .message-bubble__body  { max-width: 86%; }
+  .message-bubble__image { max-width: 220px; max-height: 220px; }
 }

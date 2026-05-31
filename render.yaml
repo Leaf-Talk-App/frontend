@@ -6,9 +6,9 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://leaftalk-backend.onrender.com
+        value: https://leaftalk-app.onrender.com
       - key: VITE_WS_BASE_URL
-        value: wss://leaftalk-backend.onrender.com
+        value: wss://leaftalk-app.onrender.com
     routes:
       - type: rewrite
         source: /*

@@ -9,7 +9,7 @@
   font-size: 16px;
   font-weight: 700;
   background: #e7e8e2;
-  border: 0;
+  border: 1.5px solid transparent;
   border-radius: var(--leaf-radius-sm);
   cursor: pointer;
   transition: background 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
@@ -29,6 +29,18 @@
   font-weight: 700;
 }
 
+/* Dark mode — fundo escuro, borda sutil */
+[data-theme='dark'] .google-sign-in {
+  background: #1c2119;
+  color: #dfe6d4;
+  border-color: rgb(110 150 65 / 22%);
+}
+
+[data-theme='dark'] .google-sign-in:hover:not(:disabled) {
+  background: #232b1e;
+  border-color: rgb(110 150 65 / 40%);
+}
+
 @media (max-width: 767px) {
   .google-sign-in {
     height: 64px;
@@ -39,5 +51,11 @@
 
   .google-sign-in:hover:not(:disabled) {
     background: rgb(255 255 255 / 62%);
+  }
+
+  [data-theme='dark'] .google-sign-in {
+    background: rgb(28 33 25 / 80%);
+    border-color: rgb(110 150 65 / 20%);
+    color: #dfe6d4;
   }
 }

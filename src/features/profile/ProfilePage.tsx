@@ -72,6 +72,14 @@ export function ProfilePage() {
     setInitialized(true);
   }, [currentBio, currentDisplayName, currentSearchable, initialized, user]);
 
+  // Limpa o preview assim que a query sincronizar com a URL nova —
+  // evita o "pisca" de volta para a foto antiga
+  useEffect(() => {
+    if (avatarPreview && user?.avatar && user.avatar === avatarPreview) {
+      setAvatarPreview(null);
+    }
+  }, [user?.avatar, avatarPreview]);
+
   const hasChanges = useMemo(() => {
     return (
       displayNameDraft !== currentDisplayName ||
@@ -92,25 +100,29 @@ export function ProfilePage() {
     if (!file || !accessToken) return;
     setAvatarError('');
 
-    // Preview imediato antes do upload
-    const previewUrl = URL.createObjectURL(file);
-    setAvatarPreview(previewUrl);
+    // Preview local imediato
+    const localUrl = URL.createObjectURL(file);
+    setAvatarPreview(localUrl);
     setAvatarUploading(true);
+    const inputEl = event.target;
 
-    const inputEl = event.target; // captura antes do async
     try {
       const form = new FormData();
       form.append('file', file);
       const { url } = await uploadsApi.avatar(form, accessToken);
+      // Atualiza preview para URL final ANTES de invalidar cache —
+      // elimina o "flash" entre preview local → sem foto → URL nova
+      setAvatarPreview(url);
       await updateProfileMutation.mutateAsync({ avatar: url });
-      setAvatarPreview(null); // usa a URL do servidor agora
+      // Mantém avatarPreview = url até a query re-renderizar com o novo valor.
+      // O useEffect abaixo limpa quando user.avatar sincronizar.
     } catch {
       setAvatarError('Não foi possível enviar a foto. Tente novamente.');
       setAvatarPreview(null);
     } finally {
       setAvatarUploading(false);
       inputEl.value = '';
-      URL.revokeObjectURL(previewUrl);
+      URL.revokeObjectURL(localUrl);
     }
   };
 

@@ -14,9 +14,28 @@ interface MessageBubbleProps {
 }
 
 function StatusIcon({ status }: { status: MessageStatus }) {
-  if (status === 'read') return <CheckCheck size={13} aria-label="Lida" />;
-  if (status === 'delivered') return <CheckCheck size={13} aria-label="Entregue" style={{ opacity: 0.6 }} />;
-  return <Check size={13} aria-label="Enviada" />;
+  if (status === 'read') return <CheckCheck size={12} aria-label="Lida" />;
+  if (status === 'delivered') return <CheckCheck size={12} aria-label="Entregue" style={{ opacity: 0.55 }} />;
+  return <Check size={12} aria-label="Enviada" />;
+}
+
+function Footer({
+  timestamp,
+  status,
+  edited,
+  isSender,
+}: Pick<MessageBubbleProps, 'timestamp' | 'status' | 'edited' | 'isSender'>) {
+  return (
+    <div className="message-bubble__footer">
+      {edited && <span className="message-bubble__edited">editado</span>}
+      {timestamp && <time className="message-bubble__time">{timestamp}</time>}
+      {isSender && status && (
+        <span className="message-bubble__status">
+          <StatusIcon status={status} />
+        </span>
+      )}
+    </div>
+  );
 }
 
 export function MessageBubble({
@@ -29,42 +48,55 @@ export function MessageBubble({
   edited,
   deleted,
 }: MessageBubbleProps) {
-  const cls = `message-bubble ${isSender ? 'message-bubble--sender' : 'message-bubble--receiver'}`;
+  const senderCls = isSender ? 'message-bubble--sender' : 'message-bubble--receiver';
+  const isImage = type === 'image' && fileUrl && !deleted;
+  const isAudio = type === 'audio' && fileUrl && !deleted;
 
-  return (
-    <div className={cls}>
-      <div className="message-bubble__body">
-        {deleted ? (
-          <em className="message-bubble__deleted">Mensagem apagada</em>
-        ) : type === 'image' && fileUrl ? (
-          <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="message-bubble__image-link">
+  /* ── Imagem ────────────────────────────────────────────────────────────── */
+  if (isImage) {
+    return (
+      <div className={`message-bubble message-bubble--image ${senderCls}`}>
+        <div className="message-bubble__body">
+          <a href={fileUrl} target="_blank" rel="noopener noreferrer">
             <img
               src={fileUrl}
-              alt="Imagem"
+              alt=""
               className="message-bubble__image"
               loading="lazy"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = 'none';
+              }}
             />
           </a>
-        ) : type === 'audio' && fileUrl ? (
-          <audio
-            src={fileUrl}
-            controls
-            className="message-bubble__audio"
-            preload="metadata"
-          />
-        ) : (
-          content && <p className="message-bubble__text">{content}</p>
-        )}
+          <Footer timestamp={timestamp} status={status} edited={edited} isSender={isSender} />
+        </div>
+      </div>
+    );
+  }
 
-        {/* Footer sempre dentro da bolha — estilo WhatsApp */}
-        <div className={`message-bubble__footer ${(type === 'image' && fileUrl && !deleted) ? 'message-bubble__footer--over-image' : ''}`}>
-          {edited && !deleted && <span className="message-bubble__edited">editado</span>}
-          {timestamp && <time className="message-bubble__time">{timestamp}</time>}
-          {isSender && status && (
-            <span className="message-bubble__status">
-              <StatusIcon status={status} />
-            </span>
+  /* ── Áudio ─────────────────────────────────────────────────────────────── */
+  if (isAudio) {
+    return (
+      <div className={`message-bubble ${senderCls}`}>
+        <div className="message-bubble__body">
+          <audio src={fileUrl} controls className="message-bubble__audio" preload="metadata" />
+          <Footer timestamp={timestamp} status={status} edited={edited} isSender={isSender} />
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Texto (padrão) ─────────────────────────────────────────────────────── */
+  return (
+    <div className={`message-bubble ${senderCls}`}>
+      <div className="message-bubble__body">
+        <div className="message-bubble__inner">
+          {deleted ? (
+            <p className="message-bubble__deleted">Mensagem apagada</p>
+          ) : (
+            <p className="message-bubble__text">{content}</p>
           )}
+          <Footer timestamp={timestamp} status={status} edited={edited} isSender={isSender} />
         </div>
       </div>
     </div>
