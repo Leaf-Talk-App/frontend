@@ -311,3 +311,25 @@
   cursor: wait;
   opacity: 0.45;
 }
+
+.message-composer__rec-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--leaf-color-danger);
+  white-space: nowrap;
+  animation: recPulse 1s ease-in-out infinite;
+}
+
+@keyframes recPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+.message-composer__send--recording {
+  background: var(--leaf-color-danger) !important;
+}
+
+.message-composer__icon--active {
+  color: var(--leaf-color-primary-dark);
+  background: var(--leaf-color-secondary);
+}

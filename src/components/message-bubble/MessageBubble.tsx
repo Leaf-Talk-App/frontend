@@ -1,9 +1,11 @@
 import './message-bubble.css';
-import type { MessageStatus } from '../../lib/api/contracts';
+import type { MessageStatus, MessageType } from '../../lib/api/contracts';
 import { Check, CheckCheck } from 'lucide-react';
 
 interface MessageBubbleProps {
   content: string;
+  type?: MessageType;
+  fileUrl?: string | null;
   isSender: boolean;
   timestamp?: string;
   status?: MessageStatus;
@@ -11,34 +13,59 @@ interface MessageBubbleProps {
   deleted?: boolean;
 }
 
+function StatusIcon({ status }: { status: MessageStatus }) {
+  if (status === 'read') return <CheckCheck size={13} aria-label="Lida" />;
+  if (status === 'delivered') return <CheckCheck size={13} aria-label="Entregue" style={{ opacity: 0.6 }} />;
+  return <Check size={13} aria-label="Enviada" />;
+}
+
 export function MessageBubble({
   content,
+  type = 'text',
+  fileUrl,
   isSender,
   timestamp,
   status,
   edited,
   deleted,
 }: MessageBubbleProps) {
+  const cls = `message-bubble ${isSender ? 'message-bubble--sender' : 'message-bubble--receiver'}`;
+
   return (
-    <div
-      className={`message-bubble ${isSender ? 'message-bubble--sender' : 'message-bubble--receiver'}`}
-    >
+    <div className={cls}>
       <div className="message-bubble__body">
         {deleted ? (
           <em className="message-bubble__deleted">Mensagem apagada</em>
+        ) : type === 'image' && fileUrl ? (
+          <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="message-bubble__image-link">
+            <img
+              src={fileUrl}
+              alt="Imagem"
+              className="message-bubble__image"
+              loading="lazy"
+            />
+          </a>
+        ) : type === 'audio' && fileUrl ? (
+          <audio
+            src={fileUrl}
+            controls
+            className="message-bubble__audio"
+            preload="metadata"
+          />
         ) : (
-          <p className="message-bubble__text">{content}</p>
+          content && <p className="message-bubble__text">{content}</p>
         )}
-      </div>
 
-      <div className="message-bubble__footer">
-        {timestamp && <time className="message-bubble__time">{timestamp}</time>}
-        {edited && <span className="message-bubble__edited">(editado)</span>}
-        {isSender && status && (
-          <span className="message-bubble__status" aria-label={`Status: ${status}`}>
-            {status === 'read' ? <CheckCheck size={13} /> : <Check size={13} />}
-          </span>
-        )}
+        {/* Footer sempre dentro da bolha — estilo WhatsApp */}
+        <div className={`message-bubble__footer ${(type === 'image' && fileUrl && !deleted) ? 'message-bubble__footer--over-image' : ''}`}>
+          {edited && !deleted && <span className="message-bubble__edited">editado</span>}
+          {timestamp && <time className="message-bubble__time">{timestamp}</time>}
+          {isSender && status && (
+            <span className="message-bubble__status">
+              <StatusIcon status={status} />
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

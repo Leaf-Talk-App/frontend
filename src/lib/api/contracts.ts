@@ -133,6 +133,8 @@ export type EditMessageRequest = {
   content: string;
 };
 
+export type MessageType = 'text' | 'image' | 'audio' | 'file';
+
 export type LeafMessage = {
   _id: string;
   chat_id: string;
@@ -140,6 +142,8 @@ export type LeafMessage = {
   receiver_id?: string;
   receiver_name?: string;
   content: string;
+  type?: MessageType;
+  file_url?: string | null;
   status?: MessageStatus;
   read?: boolean;
   read_at?: string;

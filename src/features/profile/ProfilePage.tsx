@@ -46,6 +46,7 @@ export function ProfilePage() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarError, setAvatarError] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const handleLogout = () => {
     logout();
@@ -90,17 +91,26 @@ export function ProfilePage() {
     const file = event.target.files?.[0];
     if (!file || !accessToken) return;
     setAvatarError('');
+
+    // Preview imediato antes do upload
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreview(previewUrl);
     setAvatarUploading(true);
+
+    const inputEl = event.target; // captura antes do async
     try {
       const form = new FormData();
       form.append('file', file);
       const { url } = await uploadsApi.avatar(form, accessToken);
       await updateProfileMutation.mutateAsync({ avatar: url });
+      setAvatarPreview(null); // usa a URL do servidor agora
     } catch {
       setAvatarError('Não foi possível enviar a foto. Tente novamente.');
+      setAvatarPreview(null);
     } finally {
       setAvatarUploading(false);
-      event.target.value = '';
+      inputEl.value = '';
+      URL.revokeObjectURL(previewUrl);
     }
   };
 
@@ -160,7 +170,7 @@ export function ProfilePage() {
             <div className="profile-card__top-accent" />
 
             <div className="profile-card__avatar-wrap">
-              <Avatar src={user.avatar} initials={initials} size="lg" />
+              <Avatar src={avatarPreview ?? user.avatar} initials={initials} size="lg" />
               <input
                 ref={avatarInputRef}
                 type="file"

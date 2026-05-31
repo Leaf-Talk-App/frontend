@@ -1,11 +1,12 @@
-import { ArrowLeft, Image, MoreVertical, Send, Smile } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, Image, Mic, MicOff, MoreVertical, Send, Smile, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
+import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar } from '../../components/avatar/Avatar';
 import { ErrorMessage, LoadingSpinner } from '../../components/feedback/FeedbackComponents';
 import { MessageBubble } from '../../components/message-bubble/MessageBubble';
 import type { LeafMessage } from '../../lib/api/contracts';
-import { useAuth } from '../../lib/auth/use-auth';
 import { routePaths } from '../../routes/paths';
 import {
   useChatQuery,
@@ -231,6 +232,8 @@ export function ChatWindowPage() {
               >
                 <MessageBubble
                   content={item.message.content}
+                  type={item.message.type}
+                  fileUrl={item.message.file_url}
                   isSender={item.message.sender_id === currentUser.id}
                   timestamp={formatTime(item.message.created_at)}
                   status={item.message.status}
@@ -248,6 +251,19 @@ export function ChatWindowPage() {
         <MessageComposer
           recipientName={displayName}
           onSend={handleSendMessage}
+          onSendAudio={async (blob) => {
+            if (!accessToken || !otherParticipantId) return;
+            const form = new FormData();
+            form.append('file', blob, 'audio.webm');
+            const { url } = await uploadsApi.audio(form, accessToken);
+            await sendMutation.mutateAsync({
+              chat_id: chatId,
+              content: '',
+              receiver_id: otherParticipantId,
+              type: 'audio',
+              file_url: url,
+            });
+          }}
           onSendFile={async (file) => {
             if (!accessToken || !otherParticipantId) return;
             const form = new FormData();
@@ -275,12 +291,17 @@ interface MessageComposerProps {
   recipientName: string;
   onSend: (content: string) => void;
   onSendFile?: (file: File) => Promise<void>;
+  onSendAudio?: (blob: Blob) => Promise<void>;
   isLoading?: boolean;
 }
 
-function MessageComposer({ recipientName, onSend, onSendFile, isLoading = false }: MessageComposerProps) {
+function MessageComposer({ recipientName, onSend, onSendFile, onSendAudio, isLoading = false }: MessageComposerProps) {
   const [message, setMessage] = useState('');
+  const [showEmoji, setShowEmoji] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const emojiWrapRef = useRef<HTMLDivElement>(null);
+  const { state: recState, duration, start: startRec, stop: stopRec, cancel: cancelRec } = useAudioRecorder();
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -307,6 +328,24 @@ function MessageComposer({ recipientName, onSend, onSendFile, isLoading = false 
     event.target.value = '';
   };
 
+  const handleEmojiSelect = useCallback((emoji: string) => {
+    const input = inputRef.current;
+    if (!input) {
+      setMessage((m) => m + emoji);
+      return;
+    }
+    const start = input.selectionStart ?? message.length;
+    const end   = input.selectionEnd   ?? message.length;
+    const next = message.slice(0, start) + emoji + message.slice(end);
+    setMessage(next);
+    // Reposiciona cursor após o emoji inserido
+    requestAnimationFrame(() => {
+      const pos = start + emoji.length;
+      input.setSelectionRange(pos, pos);
+      input.focus();
+    });
+  }, [message]);
+
   return (
     <form className="message-composer" onSubmit={handleSubmit} noValidate>
       <input
@@ -316,6 +355,7 @@ function MessageComposer({ recipientName, onSend, onSendFile, isLoading = false 
         style={{ display: 'none' }}
         onChange={handleFileChange}
       />
+
       <button
         type="button"
         className="message-composer__icon"
@@ -327,6 +367,7 @@ function MessageComposer({ recipientName, onSend, onSendFile, isLoading = false 
       </button>
 
       <input
+        ref={inputRef}
         type="text"
         className="message-composer__input"
         value={message}
@@ -338,23 +379,81 @@ function MessageComposer({ recipientName, onSend, onSendFile, isLoading = false 
         autoComplete="off"
       />
 
-      <button
-        type="button"
-        className="message-composer__icon"
-        aria-label="Inserir emoji"
-        disabled={isLoading}
-      >
-        <Smile size={18} strokeWidth={2.2} />
-      </button>
+      {/* Emoji picker */}
+      <div ref={emojiWrapRef} style={{ position: 'relative' }}>
+        <button
+          type="button"
+          className={`message-composer__icon${showEmoji ? ' message-composer__icon--active' : ''}`}
+          aria-label="Inserir emoji"
+          aria-expanded={showEmoji}
+          disabled={isLoading}
+          onClick={() => setShowEmoji((v) => !v)}
+        >
+          <Smile size={18} strokeWidth={2.2} />
+        </button>
+        {showEmoji && (
+          <EmojiPicker
+            onSelect={(emoji) => { handleEmojiSelect(emoji); }}
+            onClose={() => setShowEmoji(false)}
+          />
+        )}
+      </div>
 
-      <button
-        type="submit"
-        className="message-composer__send"
-        aria-label="Enviar mensagem"
-        disabled={isLoading || !message.trim()}
-      >
-        <Send size={18} strokeWidth={2.4} />
-      </button>
+      {/* Microfone — mostra quando não há texto digitado */}
+      {!message.trim() && recState === 'idle' && (
+        <button
+          type="button"
+          className="message-composer__icon"
+          aria-label="Gravar áudio"
+          disabled={isLoading}
+          onClick={async () => {
+            const ok = await startRec();
+            if (!ok) alert('Sem permissão para acessar o microfone.');
+          }}
+        >
+          <Mic size={18} strokeWidth={2.2} />
+        </button>
+      )}
+
+      {/* Gravando */}
+      {recState === 'recording' && (
+        <>
+          <span className="message-composer__rec-badge">
+            🔴 {duration}s
+          </span>
+          <button
+            type="button"
+            className="message-composer__icon"
+            aria-label="Cancelar gravação"
+            onClick={cancelRec}
+          >
+            <X size={18} strokeWidth={2.2} />
+          </button>
+          <button
+            type="button"
+            className="message-composer__send message-composer__send--recording"
+            aria-label="Enviar áudio"
+            onClick={async () => {
+              const blob = await stopRec();
+              if (blob && onSendAudio) await onSendAudio(blob);
+            }}
+          >
+            <Send size={18} strokeWidth={2.4} />
+          </button>
+        </>
+      )}
+
+      {/* Botão enviar texto — só quando há texto */}
+      {(message.trim() || recState !== 'recording') && recState === 'idle' && (
+        <button
+          type="submit"
+          className="message-composer__send"
+          aria-label="Enviar mensagem"
+          disabled={isLoading || !message.trim()}
+        >
+          <Send size={18} strokeWidth={2.4} />
+        </button>
+      )}
     </form>
   );
 }
