@@ -269,12 +269,19 @@ export const uploadsApi = {
   file(file: File, token?: string) {
     const body = new FormData();
     body.append('file', file);
+    return apiRequest<UploadFileResponse>('/upload/file', { method: 'POST', body, token });
+  },
 
-    return apiRequest<UploadFileResponse>('/upload/file', {
-      method: 'POST',
-      body,
-      token,
-    });
+  avatar(form: FormData, token: string) {
+    return apiRequest<UploadFileResponse>('/upload/avatar', { method: 'POST', body: form, token });
+  },
+
+  image(form: FormData, token: string) {
+    return apiRequest<UploadFileResponse>('/upload/image', { method: 'POST', body: form, token });
+  },
+
+  audio(form: FormData, token: string) {
+    return apiRequest<UploadFileResponse>('/upload/audio', { method: 'POST', body: form, token });
   },
 };
 

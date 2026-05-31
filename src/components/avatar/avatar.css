@@ -3,30 +3,31 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--color-primary-light), var(--color-secondary));
-  color: white;
-  font-weight: var(--font-weight-semibold);
+  border-radius: var(--leaf-radius-pill);
+  /* Usa tokens Leaf diretamente — visível em ambos os temas */
+  background: var(--leaf-color-secondary);
+  color: var(--leaf-color-primary-dark);
+  font-weight: 700;
   flex-shrink: 0;
   overflow: hidden;
+}
 
-  &--sm {
-    width: 32px;
-    height: 32px;
-    font-size: var(--font-size-sm);
-  }
+.avatar--sm {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
 
-  &--md {
-    width: 48px;
-    height: 48px;
-    font-size: var(--font-size-base);
-  }
+.avatar--md {
+  width: 48px;
+  height: 48px;
+  font-size: 15px;
+}
 
-  &--lg {
-    width: 64px;
-    height: 64px;
-    font-size: var(--font-size-lg);
-  }
+.avatar--lg {
+  width: 64px;
+  height: 64px;
+  font-size: 22px;
 }
 
 .avatar__image {
@@ -37,15 +38,25 @@
 
 .avatar__initials {
   display: block;
+  font-family: var(--leaf-font-heading);
+  letter-spacing: 0.03em;
+  user-select: none;
 }
 
 .avatar__status {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 30%;
-  height: 30%;
-  background: var(--color-online);
-  border: 2px solid white;
-  border-radius: var(--radius-full);
+  bottom: 1px;
+  right: 1px;
+  width: 28%;
+  height: 28%;
+  background: #5cc760;
+  border: 2px solid var(--leaf-color-surface);
+  border-radius: var(--leaf-radius-pill);
+}
+
+/* Dark mode — secondary token já muda via dark-theme.css (#1d2c12),
+   mas ficaria escuro demais. Usamos uma cor ligeiramente mais visível. */
+[data-theme='dark'] .avatar {
+  background: #2d4a1e;
+  color: var(--leaf-color-primary);
 }

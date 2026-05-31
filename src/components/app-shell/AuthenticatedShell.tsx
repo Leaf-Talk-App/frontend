@@ -11,13 +11,8 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { routePaths } from '../../routes/paths';
 import './authenticated-shell.css';
 
-// Suporte via WhatsApp (+55 34 99338-8856) com mensagem padrão.
-const HELP_WHATSAPP_URL =
-  'https://wa.me/5534993388856?text=' +
-  encodeURIComponent('Olá, preciso de ajuda com o Leaf.');
-
 function openHelp() {
-  window.open(HELP_WHATSAPP_URL, '_blank', 'noopener,noreferrer');
+  window.location.href = 'mailto:LeafTalkApp@gmail.com?subject=Suporte%20Leaf&body=Ol%C3%A1%2C%20preciso%20de%20ajuda%20com%20o%20Leaf.';
 }
 
 const primaryNavItems = [
@@ -88,7 +83,6 @@ function DesktopSidebar() {
         </span>
         <span>
           <strong>Leaf</strong>
-          <small>CONNECTED LIVING</small>
         </span>
       </div>
 

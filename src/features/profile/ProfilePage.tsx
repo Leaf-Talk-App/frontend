@@ -6,15 +6,16 @@ import {
   Info,
   Loader,
   LogOut,
-  Settings,
   ShieldCheck,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar } from '../../components/avatar/Avatar';
 import { ErrorMessage, LoadingSpinner } from '../../components/feedback/FeedbackComponents';
 import { routePaths } from '../../routes/paths';
 import { useCurrentUserQuery, useLogout, useUpdateProfileMutation } from '../auth/auth-hooks';
+import { useAuth } from '../../lib/auth/use-auth';
+import { uploadsApi } from '../../lib/api/endpoints';
 import './profile-page.css';
 
 function formatMemberSince(dateValue?: string) {
@@ -41,6 +42,10 @@ export function ProfilePage() {
   const updateProfileMutation = useUpdateProfileMutation();
   const logout = useLogout();
   const navigate = useNavigate();
+  const { accessToken } = useAuth();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
 
   const handleLogout = () => {
     logout();
@@ -79,6 +84,24 @@ export function ProfilePage() {
     setBioDraft(currentBio);
     setSearchableDraft(currentSearchable);
     setEncryptionDraft(false);
+  };
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !accessToken) return;
+    setAvatarError('');
+    setAvatarUploading(true);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const { url } = await uploadsApi.avatar(form, accessToken);
+      await updateProfileMutation.mutateAsync({ avatar: url });
+    } catch {
+      setAvatarError('Não foi possível enviar a foto. Tente novamente.');
+    } finally {
+      setAvatarUploading(false);
+      event.target.value = '';
+    }
   };
 
   const handleSaveChanges = async () => {
@@ -121,10 +144,14 @@ export function ProfilePage() {
     <div className="profile-page">
       <header className="profile-page__topbar">
         <h1>Leaf — Perfil</h1>
-        <div className="profile-page__topbar-actions" aria-hidden="true">
+        <button
+          type="button"
+          className="profile-page__notif-btn"
+          aria-label="Notificações"
+          onClick={() => alert('Notificações em breve.')}
+        >
           <Bell size={18} strokeWidth={2} />
-          <Settings size={18} strokeWidth={2} />
-        </div>
+        </button>
       </header>
 
       <div className="profile-page__layout">
@@ -134,9 +161,25 @@ export function ProfilePage() {
 
             <div className="profile-card__avatar-wrap">
               <Avatar src={user.avatar} initials={initials} size="lg" />
-              <button type="button" className="profile-card__camera-btn" aria-label="Alterar foto">
-                <Camera size={14} strokeWidth={2.4} />
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                style={{ display: 'none' }}
+                onChange={handleAvatarChange}
+              />
+              <button
+                type="button"
+                className="profile-card__camera-btn"
+                aria-label="Alterar foto de perfil"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={avatarUploading}
+              >
+                {avatarUploading ? <Loader size={14} className="spin" /> : <Camera size={14} strokeWidth={2.4} />}
               </button>
+              {avatarError ? (
+                <p className="profile-card__avatar-error">{avatarError}</p>
+              ) : null}
             </div>
 
             <h2>{displayNameDraft || user.display_name || user.name}</h2>

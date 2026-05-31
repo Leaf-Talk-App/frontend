@@ -1,45 +1,74 @@
 import { MessageSquare, Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueries } from '@tanstack/react-query';
 import { Button } from '../../components/button/Button';
 import { ChatItem } from '../../components/chat-item/ChatItem';
 import { routePaths } from '../../routes/paths';
 import { useAuth } from '../../lib/auth/use-auth';
-import { useChatsQuery, useParticipantQuery } from './chats-hooks';
-import type { LeafChatSummary } from '../../lib/api/contracts';
+import { usersApi } from '../../lib/api/endpoints';
+import { useChatsQuery } from './chats-hooks';
+import type { LeafChatSummary, LeafUser } from '../../lib/api/contracts';
 import './chats-page.css';
-
-// Wrapper que busca os dados do outro participante para cada chat
-function ChatRow({
-  chat,
-  currentUserId,
-  onClick,
-}: {
-  chat: LeafChatSummary;
-  currentUserId?: string;
-  onClick: () => void;
-}) {
-  const otherUserId = chat.participants?.find((id) => id !== currentUserId);
-  const { data: otherUser } = useParticipantQuery(otherUserId);
-
-  return <ChatItem chat={chat} otherUser={otherUser} onClick={onClick} />;
-}
 
 export function ChatsPage() {
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
+  const { accessToken, user: currentUser } = useAuth();
   const { data: chats, isLoading, error } = useChatsQuery();
   const [search, setSearch] = useState('');
 
+  // Coleta IDs únicos de todos os outros participantes
+  const participantIds = useMemo(() => {
+    if (!chats || !currentUser) return [];
+    const ids = new Set<string>();
+    chats.forEach((chat) => {
+      chat.participants?.forEach((id) => {
+        if (id !== currentUser.id) ids.add(id);
+      });
+    });
+    return Array.from(ids);
+  }, [chats, currentUser]);
+
+  // Busca todos em paralelo com useQueries
+  const userQueries = useQueries({
+    queries: participantIds.map((userId) => ({
+      queryKey: ['users', 'id', userId],
+      queryFn: () => usersApi.getById(userId, { token: accessToken! }),
+      enabled: Boolean(accessToken),
+      staleTime: 5 * 60_000,
+    })),
+  });
+
+  // Mapa id → LeafUser para lookup rápido
+  const usersMap = useMemo(() => {
+    const map: Record<string, LeafUser> = {};
+    userQueries.forEach((q, i) => {
+      if (q.data) map[participantIds[i]] = q.data;
+    });
+    return map;
+  }, [userQueries, participantIds]);
+
+  // Filtro por nome OU por prévia da última mensagem
   const filteredChats = useMemo(() => {
     if (!chats) return [];
     const term = search.trim().toLowerCase();
     if (!term) return chats;
+
     return chats.filter((chat) => {
       const preview = chat.last_message?.content?.toLowerCase() ?? '';
-      return preview.includes(term);
+      if (preview.includes(term)) return true;
+
+      // Também filtra pelo nome do outro participante
+      const otherId = chat.participants?.find((id) => id !== currentUser?.id);
+      const other = otherId ? usersMap[otherId] : undefined;
+      if (other) {
+        const name = (other.display_name || other.name || '').toLowerCase();
+        const email = (other.email || '').toLowerCase();
+        return name.includes(term) || email.includes(term);
+      }
+      return false;
     });
-  }, [chats, search]);
+  }, [chats, search, currentUser?.id, usersMap]);
 
   return (
     <div className="chats-page">
@@ -54,8 +83,8 @@ export function ChatsPage() {
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar mensagens…"
-            aria-label="Buscar mensagens"
+            placeholder="Buscar por nome ou mensagem…"
+            aria-label="Buscar conversas"
           />
         </div>
 
@@ -87,19 +116,23 @@ export function ChatsPage() {
           </div>
         ) : filteredChats.length === 0 ? (
           <div className="chats-page__status">
-            <p>Nenhuma conversa corresponde a "{search}".</p>
+            <p>Nenhum resultado para "{search}".</p>
           </div>
         ) : (
           <ul className="chats-page__list">
-            {filteredChats.map((chat) => (
-              <li key={chat._id}>
-                <ChatRow
-                  chat={chat}
-                  currentUserId={currentUser?.id}
-                  onClick={() => navigate(`/chats/${chat._id}`)}
-                />
-              </li>
-            ))}
+            {filteredChats.map((chat) => {
+              const otherId = chat.participants?.find((id) => id !== currentUser?.id);
+              const otherUser = otherId ? usersMap[otherId] : undefined;
+              return (
+                <li key={chat._id}>
+                  <ChatItem
+                    chat={chat}
+                    otherUser={otherUser}
+                    onClick={() => navigate(`/chats/${chat._id}`)}
+                  />
+                </li>
+              );
+            })}
           </ul>
         )}
       </aside>

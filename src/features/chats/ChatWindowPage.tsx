@@ -1,4 +1,4 @@
-import { ArrowLeft, MoreVertical, Paperclip, Send, Smile } from 'lucide-react';
+import { ArrowLeft, Image, MoreVertical, Send, Smile } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar } from '../../components/avatar/Avatar';
@@ -13,6 +13,8 @@ import {
   useParticipantQuery,
   useSendMessageMutation,
 } from './chats-hooks';
+import { uploadsApi } from '../../lib/api/endpoints';
+import { useAuth } from '../../lib/auth/use-auth';
 import { useWebSocket } from './useWebSocket';
 import './chat-window-page.css';
 
@@ -71,7 +73,7 @@ export function ChatWindowPage() {
   const { chatId } = useParams<{ chatId: string }>();
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, accessToken } = useAuth();
 
   // ── Dados da conversa ─────────────────────────────────────────────────────
   // useChatQuery: primeiro tenta o cache da lista, depois GET /chats/{id}
@@ -246,6 +248,19 @@ export function ChatWindowPage() {
         <MessageComposer
           recipientName={displayName}
           onSend={handleSendMessage}
+          onSendFile={async (file) => {
+            if (!accessToken || !otherParticipantId) return;
+            const form = new FormData();
+            form.append('file', file);
+            const { url } = await uploadsApi.image(form, accessToken);
+            await sendMutation.mutateAsync({
+              chat_id: chatId,
+              content: '',
+              receiver_id: otherParticipantId,
+              type: 'image',
+              file_url: url,
+            });
+          }}
           isLoading={sendMutation.isPending}
         />
         <small className="chat-window-page__footnote">
@@ -259,11 +274,13 @@ export function ChatWindowPage() {
 interface MessageComposerProps {
   recipientName: string;
   onSend: (content: string) => void;
+  onSendFile?: (file: File) => Promise<void>;
   isLoading?: boolean;
 }
 
-function MessageComposer({ recipientName, onSend, isLoading = false }: MessageComposerProps) {
+function MessageComposer({ recipientName, onSend, onSendFile, isLoading = false }: MessageComposerProps) {
   const [message, setMessage] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -274,7 +291,6 @@ function MessageComposer({ recipientName, onSend, isLoading = false }: MessageCo
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    // Enter sem Shift envia; Shift+Enter poderia ser quebra de linha (input não suporta)
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       const trimmed = message.trim();
@@ -284,15 +300,30 @@ function MessageComposer({ recipientName, onSend, isLoading = false }: MessageCo
     }
   };
 
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !onSendFile) return;
+    await onSendFile(file);
+    event.target.value = '';
+  };
+
   return (
     <form className="message-composer" onSubmit={handleSubmit} noValidate>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
       <button
         type="button"
         className="message-composer__icon"
-        aria-label="Anexar arquivo"
+        aria-label="Anexar imagem"
         disabled={isLoading}
+        onClick={() => fileInputRef.current?.click()}
       >
-        <Paperclip size={18} strokeWidth={2.2} />
+        <Image size={18} strokeWidth={2.2} />
       </button>
 
       <input

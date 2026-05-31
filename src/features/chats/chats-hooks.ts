@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { chatsApi, messagesApi, usersApi } from '../../lib/api/endpoints';
 import { queryKeys } from '../../lib/api/query-keys';
@@ -123,14 +123,14 @@ export function useSendMessageMutation() {
       return messagesApi.send(data, { token: accessToken });
     },
 
-    // Atualização otimista: adiciona a mensagem ao cache imediatamente
+    // Atualização otimista: adiciona ao cache InfiniteData<LeafMessage[]>
     onMutate: async (data) => {
       if (!data.chat_id || !currentUser) return;
 
       const queryKey = queryKeys.messages.byChatId(data.chat_id);
       await queryClient.cancelQueries({ queryKey });
 
-      const previous = queryClient.getQueryData<LeafMessage[]>(queryKey);
+      const previous = queryClient.getQueryData<InfiniteData<LeafMessage[]>>(queryKey);
 
       const optimisticMessage: LeafMessage = {
         _id: `optimistic-${Date.now()}`,
@@ -145,15 +145,20 @@ export function useSendMessageMutation() {
         created_at: new Date().toISOString(),
       };
 
-      queryClient.setQueryData<LeafMessage[]>(queryKey, (old) =>
-        old ? [...old, optimisticMessage] : [optimisticMessage],
-      );
+      queryClient.setQueryData<InfiniteData<LeafMessage[]>>(queryKey, (old) => {
+        if (!old) return { pages: [[optimisticMessage]], pageParams: [0] };
+        // Adiciona à última página (mais recente)
+        const lastIdx = old.pages.length - 1;
+        const updatedPages = old.pages.map((page, i) =>
+          i === lastIdx ? [...page, optimisticMessage] : page,
+        );
+        return { ...old, pages: updatedPages };
+      });
 
       return { previous, queryKey };
     },
 
     onError: (_err, _vars, context) => {
-      // Reverte se der erro
       if (context?.previous !== undefined) {
         queryClient.setQueryData(context.queryKey, context.previous);
       }
@@ -164,7 +169,6 @@ export function useSendMessageMutation() {
 
       const queryKey = queryKeys.messages.byChatId(variables.chat_id);
 
-      // Substitui a mensagem otimista pela real se o backend retornou dados completos
       if (response._id) {
         const realMessage: LeafMessage = {
           _id: response._id,
@@ -179,18 +183,18 @@ export function useSendMessageMutation() {
           created_at: response.created_at ?? new Date().toISOString(),
         };
 
-        queryClient.setQueryData<LeafMessage[]>(queryKey, (old) => {
-          if (!old) return [realMessage];
-          // Remove a mensagem otimista e adiciona a real
-          const withoutOptimistic = old.filter((m) => !m._id.startsWith('optimistic-'));
-          return [...withoutOptimistic, realMessage];
+        // Substitui otimista pela real em todas as páginas
+        queryClient.setQueryData<InfiniteData<LeafMessage[]>>(queryKey, (old) => {
+          if (!old) return { pages: [[realMessage]], pageParams: [0] };
+          const updatedPages = old.pages.map((page) =>
+            page.map((m) => (m._id.startsWith('optimistic-') ? realMessage : m)),
+          );
+          return { ...old, pages: updatedPages };
         });
       } else {
-        // fallback: refetch
         queryClient.invalidateQueries({ queryKey });
       }
 
-      // Atualiza lista de conversas (last_message)
       queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine });
     },
   });

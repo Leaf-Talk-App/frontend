@@ -26,11 +26,23 @@
   font-weight: 700;
 }
 
-.profile-page__topbar-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  color: #4f544a;
+.profile-page__notif-btn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  color: var(--leaf-color-text-muted);
+  background: transparent;
+  border: 1px solid var(--leaf-color-border, rgb(69 92 42 / 10%));
+  border-radius: var(--leaf-radius-pill);
+  cursor: pointer;
+  /* Offset do ThemeToggle fixo (top-right) — evita sobreposição */
+  margin-right: 52px;
+}
+
+.profile-page__notif-btn:hover {
+  background: var(--leaf-color-muted-surface);
+  color: var(--leaf-color-primary-dark);
 }
 
 .profile-page__layout {
