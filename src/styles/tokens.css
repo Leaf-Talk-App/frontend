@@ -1,0 +1,23 @@
+:root {
+  --leaf-color-primary: #7fa245;
+  --leaf-color-primary-dark: #4b760f;
+  --leaf-color-secondary: #cee2c8;
+  --leaf-color-tertiary: #455c2a;
+  --leaf-color-neutral: #f4f5ee;
+  --leaf-color-surface: #ffffff;
+  --leaf-color-muted-surface: #eff1e9;
+  --leaf-color-text: #1d211b;
+  --leaf-color-text-muted: #505747;
+  --leaf-color-danger: #c9171d;
+
+  --leaf-font-heading: 'Manrope', 'Inter', system-ui, sans-serif;
+  --leaf-font-body: 'Inter', system-ui, sans-serif;
+
+  --leaf-radius-sm: 8px;
+  --leaf-radius-md: 16px;
+  --leaf-radius-lg: 28px;
+  --leaf-radius-pill: 999px;
+
+  --leaf-shadow-soft: 0 18px 40px rgb(69 92 42 / 12%);
+  --leaf-shadow-control: 0 10px 22px rgb(75 118 15 / 22%);
+}

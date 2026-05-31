@@ -1,0 +1,37 @@
+.theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 600;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--leaf-color-hairline, rgb(69 92 42 / 10%));
+  background: var(--leaf-color-surface, #fff);
+  color: var(--leaf-color-primary-dark, #4b760f);
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgb(69 92 42 / 14%);
+  transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+}
+
+[data-theme='dark'] .theme-toggle {
+  background: #1c2119;
+  border-color: rgb(110 150 65 / 18%);
+  color: #8ebb48;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 50%);
+}
+
+@media (max-width: 767px) {
+  .theme-toggle {
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+  }
+}

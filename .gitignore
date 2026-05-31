@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.development
+.env.*.local
+coverage/
+.vite/
+*.log
+# .env.production NÃO ignorado — necessário para build de produção no Render

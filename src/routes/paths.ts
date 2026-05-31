@@ -1,0 +1,14 @@
+export const routePaths = {
+  login: '/login',
+  register: '/register',
+  createAccount: '/create-account',
+  verifyEmail: '/verify-email',
+  googleCallback: '/auth/google/callback',
+  forgotPassword: '/forgot-password',
+  resetPassword: '/reset-password',
+  chats: '/chats',
+  chat: '/chats/:chatId',
+  search: '/search',
+  assistant: '/ai',
+  profile: '/profile',
+} as const;

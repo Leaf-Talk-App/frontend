@@ -1,0 +1,358 @@
+/* ============================================================
+ * Leaf — Dark Mode ("Deep Canopy")  [ADITIVO]
+ * ------------------------------------------------------------
+ * Ativado por [data-theme="dark"] no <html>.
+ * Tudo aqui é escopado em [data-theme="dark"] (especificidade
+ * maior que as regras de 1 classe), então NÃO altera o tema
+ * claro. Para desligar o dark mode, basta remover o @import
+ * no global.css.
+ * ============================================================ */
+
+/* ---------- 1) Override dos tokens (os 2 namespaces) ---------- */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* tokens.css (--leaf-color-*) */
+  --leaf-color-primary: #8ebb48;
+  --leaf-color-primary-dark: #6aac2a;
+  --leaf-color-secondary: #1d2c12;
+  --leaf-color-tertiary: #a2d155;
+  --leaf-color-neutral: #0f1310;
+  --leaf-color-surface: #171c14;
+  --leaf-color-muted-surface: #1c2119;
+  --leaf-color-text: #dfe6d4;
+  --leaf-color-text-muted: #8f9b85;
+  --leaf-color-danger: #ff6b6b;
+  --leaf-color-border: rgb(110 150 65 / 12%);
+  --leaf-color-hairline: rgb(110 150 65 / 10%);
+  --leaf-shadow-soft: 0 20px 48px rgb(0 0 0 / 60%);
+  --leaf-shadow-control: 0 8px 24px rgb(80 175 20 / 30%);
+
+  /* design-system.css (--color-*) */
+  --color-primary: #8ebb48;
+  --color-primary-light: #a2d155;
+  --color-primary-dark: #6aac2a;
+  --color-secondary: #1d2c12;
+  --color-tertiary: #a2d155;
+  --color-neutral-100: #1c2119;
+  --color-neutral-200: #232b1e;
+  --color-neutral-300: #2a3324;
+  --color-neutral-400: #5e6857;
+  --color-neutral-500: #7a8672;
+  --color-neutral-600: #8f9b85;
+  --color-neutral-700: #a8b49e;
+  --color-neutral-800: #c4ccb8;
+  --color-neutral-900: #dfe6d4;
+  --color-text-primary: #dfe6d4;
+  --color-text-secondary: #8f9b85;
+  --color-text-light: #5e6857;
+  --color-bg-primary: #171c14;
+  --color-bg-secondary: #0f1310;
+  --color-border: rgb(110 150 65 / 12%);
+  --color-border-light: rgb(110 150 65 / 8%);
+  --color-success: #5cc760;
+  --color-error: #ff6b6b;
+  --color-online: #5cc760;
+  --color-offline: #3e4e38;
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 40%);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 50%);
+  --shadow-lg: 0 10px 24px rgb(0 0 0 / 60%);
+  --shadow-xl: 0 20px 48px rgb(0 0 0 / 65%);
+}
+
+[data-theme='dark'] body,
+[data-theme='dark'] .app-root {
+  background: #0f1310;
+  color: #dfe6d4;
+}
+
+/* transição suave ao alternar */
+html { transition: background-color 280ms ease, color 200ms ease; }
+
+/* ===================== AUTH (login/cadastro/verify/senha) ===================== */
+[data-theme='dark'] .login-page,
+[data-theme='dark'] .register-page,
+[data-theme='dark'] .verify-email-page,
+[data-theme='dark'] .password-page {
+  background:
+    radial-gradient(circle at 80% 18%, rgb(50 90 25 / 20%), transparent 30%),
+    radial-gradient(circle at 18% 80%, rgb(30 60 15 / 16%), transparent 32%),
+    linear-gradient(180deg, #0e1310 0%, #0b100a 100%);
+}
+[data-theme='dark'] .login-page__topbar,
+[data-theme='dark'] .verify-email-page__topbar {
+  background: rgb(14 19 16 / 82%);
+  box-shadow: 0 1px 0 rgb(110 150 65 / 8%);
+}
+[data-theme='dark'] .login-page__footer,
+[data-theme='dark'] .verify-email-page__footer {
+  background: rgb(14 19 16 / 60%);
+  border-top-color: rgb(110 150 65 / 8%);
+  color: #8f9b85;
+}
+/* cartões de auth (alguns hardcoded em white) */
+[data-theme='dark'] .verify-email-card,
+[data-theme='dark'] .register-card,
+[data-theme='dark'] .password-card {
+  background: #171c14;
+  border-color: rgb(110 150 65 / 12%);
+  box-shadow: 0 20px 48px rgb(0 0 0 / 60%);
+}
+[data-theme='dark'] .verify-email-card__code-input {
+  background: #232b1e;
+  border-color: rgb(110 150 65 / 18%);
+  color: #dfe6d4;
+}
+[data-theme='dark'] .verify-email-card__code-input:disabled {
+  background: #1c2119;
+}
+/* o login-card usa var(--leaf-color-surface), já vira sozinho */
+
+/* ===================== CONVERSAS (lista) ===================== */
+[data-theme='dark'] .chats-page {
+  background: linear-gradient(180deg, #0e1310 0%, #0b100a 100%);
+  color: #dfe6d4;
+}
+[data-theme='dark'] .chats-page__list-pane {
+  background: #131811;
+  border-right-color: rgb(110 150 65 / 10%);
+}
+[data-theme='dark'] .chats-page__heading h1 { color: #dfe6d4; }
+[data-theme='dark'] .chats-page__search { background: #1c2119; }
+[data-theme='dark'] .chats-page__search:focus-within {
+  background: #232b1e;
+  border-color: rgb(142 187 72 / 40%);
+  box-shadow: 0 0 0 3px rgb(142 187 72 / 14%);
+}
+[data-theme='dark'] .chats-page__search input { color: #dfe6d4; }
+[data-theme='dark'] .chats-page__search input::placeholder { color: #5e6857; }
+[data-theme='dark'] .chats-page__list::-webkit-scrollbar-thumb,
+[data-theme='dark'] .chat-window-page__messages::-webkit-scrollbar-thumb,
+[data-theme='dark'] .ai-assistant-page__thread::-webkit-scrollbar-thumb { background: #2a3324; }
+[data-theme='dark'] .chats-page__status p { color: #8f9b85; }
+[data-theme='dark'] .chats-page__status-title { color: #dfe6d4; }
+[data-theme='dark'] .chats-page__status-hint { color: #7a8672; }
+[data-theme='dark'] .chats-page__welcome {
+  background: radial-gradient(circle at 70% 22%, rgb(50 90 25 / 22%) 0%, transparent 55%),
+    linear-gradient(180deg, #0e1310 0%, #0b100a 100%);
+}
+[data-theme='dark'] .chats-page__welcome-card {
+  background: #171c14;
+  border-color: rgb(110 150 65 / 12%);
+  box-shadow: 0 18px 38px rgb(0 0 0 / 55%);
+}
+[data-theme='dark'] .chats-page__welcome-card h2 { color: #dfe6d4; }
+[data-theme='dark'] .chats-page__welcome-card p { color: #8f9b85; }
+@media (max-width: 767px) {
+  [data-theme='dark'] .chats-page__list-pane { background: transparent; }
+}
+
+/* chat-item (usa classes próprias; bordas/realce) */
+[data-theme='dark'] .chat-item:hover { background: #171c14; }
+[data-theme='dark'] .chat-item--selected { background: #1a2612; }
+[data-theme='dark'] .chat-item__name { color: #dfe6d4; }
+[data-theme='dark'] .chat-item__time { color: #5e6857; }
+[data-theme='dark'] .chat-item__message { color: #8f9b85; }
+
+/* ===================== JANELA DE CONVERSA ===================== */
+[data-theme='dark'] .chat-window-page {
+  background: linear-gradient(180deg, #0e1310 0%, #0b100a 100%);
+  color: #dfe6d4;
+}
+[data-theme='dark'] .chat-window-page__header {
+  background: #131811;
+  border-bottom-color: rgb(110 150 65 / 10%);
+}
+[data-theme='dark'] .chat-window-page__name { color: #dfe6d4; }
+[data-theme='dark'] .chat-window-page__status { color: #6aac2a; }
+[data-theme='dark'] .chat-window-page__back,
+[data-theme='dark'] .chat-window-page__menu { color: #8f9b85; }
+[data-theme='dark'] .chat-window-page__back:hover,
+[data-theme='dark'] .chat-window-page__menu:hover { background: #1c2119; color: #8ebb48; }
+[data-theme='dark'] .chat-window-page__divider span {
+  background: #1c2119;
+  border-color: rgb(110 150 65 / 12%);
+  color: #7a8672;
+}
+[data-theme='dark'] .chat-window-page__empty h3 { color: #dfe6d4; }
+[data-theme='dark'] .chat-window-page__empty p { color: #8f9b85; }
+[data-theme='dark'] .message-composer {
+  background: #1c2119;
+  border-color: rgb(110 150 65 / 12%);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 45%);
+}
+[data-theme='dark'] .message-composer__input { color: #dfe6d4; }
+[data-theme='dark'] .message-composer__input::placeholder { color: #5e6857; }
+[data-theme='dark'] .message-composer__icon { color: #8f9b85; }
+[data-theme='dark'] .message-composer__icon:hover:not(:disabled) { background: #232b1e; color: #8ebb48; }
+
+/* bolha de mensagem */
+[data-theme='dark'] .message-bubble--receiver .message-bubble__body {
+  background: #1c2119;
+  color: #dfe6d4;
+  border-color: rgb(110 150 65 / 12%);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 40%);
+}
+[data-theme='dark'] .message-bubble--sender .message-bubble__body {
+  background: #2b4c1a;
+  color: #e6f0d8;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 45%);
+}
+
+/* ===================== HUMBERTO (AI) ===================== */
+[data-theme='dark'] .ai-assistant-page {
+  background: linear-gradient(180deg, #0e1310 0%, #0b100a 100%);
+  color: #dfe6d4;
+}
+[data-theme='dark'] .ai-assistant-page__title h1 { color: #dfe6d4; }
+[data-theme='dark'] .ai-assistant-page__title p { color: #8f9b85; }
+[data-theme='dark'] .ai-assistant-page__thread {
+  background: #131811;
+  border-color: rgb(110 150 65 / 12%);
+  box-shadow: 0 14px 30px rgb(0 0 0 / 50%);
+}
+[data-theme='dark'] .ai-message__bubble--ai {
+  background: #1c2119;
+  color: #dfe6d4;
+  border-color: rgb(110 150 65 / 12%);
+}
+[data-theme='dark'] .ai-message__bubble--user {
+  background: #2b4c1a;
+  color: #e6f0d8;
+  box-shadow: 0 8px 18px rgb(0 0 0 / 45%);
+}
+[data-theme='dark'] .ai-message__bubble--typing {
+  background: #1c2119;
+  border-color: rgb(142 187 72 / 30%);
+  color: #8ebb48;
+}
+[data-theme='dark'] .ai-message__meta { color: #5e6857; }
+[data-theme='dark'] .ai-message__action {
+  background: #1c2119;
+  border-color: rgb(110 150 65 / 12%);
+  color: #a8b49e;
+}
+[data-theme='dark'] .ai-message__chip {
+  background: #1c2119;
+  border-color: rgb(142 187 72 / 28%);
+  color: #a2d155;
+}
+[data-theme='dark'] .ai-message__chip:hover:not(:disabled) {
+  background: #243515;
+  border-color: rgb(142 187 72 / 50%);
+}
+[data-theme='dark'] .ai-message__chip--muted {
+  background: transparent;
+  border-color: rgb(110 150 65 / 14%);
+  color: #5e6857;
+}
+[data-theme='dark'] .ai-action-card {
+  background: #171c14;
+  border-color: rgb(142 187 72 / 25%);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 45%);
+}
+[data-theme='dark'] .ai-action-card__tag { background: #243515; color: #a2d155; }
+[data-theme='dark'] .ai-action-card__title,
+[data-theme='dark'] .ai-action-card__value { color: #dfe6d4; }
+[data-theme='dark'] .ai-action-card__row { border-bottom-color: rgb(110 150 65 / 10%); }
+[data-theme='dark'] .ai-action-card__label { color: #7a8672; }
+[data-theme='dark'] .ai-action-card__body { color: #a8b49e; }
+[data-theme='dark'] .ai-action-card__cancel { border-color: rgb(142 187 72 / 25%); color: #a2d155; }
+[data-theme='dark'] .ai-action-card__cancel:hover { background: #1c2119; border-color: rgb(142 187 72 / 45%); }
+[data-theme='dark'] .ai-action-card__confirmed { color: #8ebb48; }
+[data-theme='dark'] .sidekick-card {
+  background: #171c14;
+  border-color: rgb(110 150 65 / 12%);
+  box-shadow: 0 12px 24px rgb(0 0 0 / 45%);
+}
+[data-theme='dark'] .sidekick-card header { color: #8ebb48; }
+[data-theme='dark'] .sidekick-card h2 { color: #c4ccb8; }
+[data-theme='dark'] .sidekick-card__chip {
+  background: #1c2119;
+  border-color: rgb(110 150 65 / 12%);
+  color: #c4ccb8;
+}
+[data-theme='dark'] .sidekick-card__chip:hover:not(:disabled) {
+  background: #243515;
+  border-color: rgb(142 187 72 / 30%);
+}
+[data-theme='dark'] .sidekick-card__chip svg { color: #8ebb48; }
+[data-theme='dark'] .sidekick-card--insight p,
+[data-theme='dark'] .sidekick-card--collab .sidekick-card__collab-sub { color: #a8b49e; }
+[data-theme='dark'] .sidekick-card--insight strong { color: #8ebb48; }
+[data-theme='dark'] .sidekick-card--collab .sidekick-card__collab-note {
+  background: #1c2119;
+  border-color: rgb(110 150 65 / 12%);
+  color: #a8b49e;
+}
+[data-theme='dark'] .sidekick-card--collab strong { color: #dfe6d4; }
+[data-theme='dark'] .ai-assistant-page__suggestion {
+  background: #1c2119;
+  border-color: rgb(110 150 65 / 12%);
+  color: #c4ccb8;
+}
+[data-theme='dark'] .ai-assistant-page__suggestion:hover:not(:disabled) {
+  background: #243515;
+  border-color: rgb(142 187 72 / 30%);
+}
+[data-theme='dark'] .ai-assistant-page__suggestion svg { color: #8ebb48; }
+[data-theme='dark'] .ai-composer {
+  background: #1c2119;
+  border-color: rgb(110 150 65 / 12%);
+  box-shadow: 0 12px 26px rgb(0 0 0 / 45%);
+}
+[data-theme='dark'] .ai-composer__icon { color: #8f9b85; }
+[data-theme='dark'] .ai-composer__icon:hover:not(:disabled) { background: #232b1e; color: #8ebb48; }
+[data-theme='dark'] .ai-composer__input { color: #dfe6d4; }
+[data-theme='dark'] .ai-composer__input::placeholder { color: #5e6857; }
+[data-theme='dark'] .ai-assistant-page__footnote { color: #5e6857; }
+
+/* ===================== PERFIL ===================== */
+[data-theme='dark'] .profile-page {
+  background:
+    radial-gradient(circle at 82% 16%, rgb(50 90 25 / 18%) 0%, transparent 30%),
+    linear-gradient(180deg, #0e1310 0%, #0b100a 100%);
+  color: #dfe6d4;
+}
+[data-theme='dark'] .profile-page__topbar h1 { color: #8ebb48; }
+[data-theme='dark'] .profile-page__topbar-actions { color: #8f9b85; }
+[data-theme='dark'] .profile-card,
+[data-theme='dark'] .overview-card,
+[data-theme='dark'] .panel-card,
+[data-theme='dark'] .toggle-card {
+  background: #171c14;
+  border-color: rgb(110 150 65 / 12%);
+}
+[data-theme='dark'] .profile-card h2 { color: #dfe6d4; }
+[data-theme='dark'] .profile-card p { color: #8f9b85; }
+[data-theme='dark'] .overview-card h3 { color: #dfe6d4; }
+[data-theme='dark'] .overview-card__row { color: #8f9b85; }
+[data-theme='dark'] .overview-card__row strong { color: #c4ccb8; }
+[data-theme='dark'] .section-title { color: #8ebb48; }
+[data-theme='dark'] .section-title h2 { color: #dfe6d4; }
+[data-theme='dark'] .panel-field > span { color: #8f9b85; }
+[data-theme='dark'] .panel-field input,
+[data-theme='dark'] .panel-field textarea {
+  background: #1c2119;
+  color: #dfe6d4;
+}
+[data-theme='dark'] .toggle-card h3 { color: #dfe6d4; }
+[data-theme='dark'] .toggle-card p { color: #8f9b85; }
+[data-theme='dark'] .switch { background: #2a3324; }
+[data-theme='dark'] .switch--on { background: #6aac2a; }
+[data-theme='dark'] .cta-btn--secondary { background: #232b1e; color: #c4ccb8; }
+/* logout: mantém o tom de "perigo", em versão escura */
+[data-theme='dark'] .logout-card {
+  background: #1c1413;
+  border-color: rgb(201 23 29 / 28%);
+  color: #ff9b96;
+}
+[data-theme='dark'] .logout-card:hover { background: #241715; border-color: rgb(201 23 29 / 45%); }
+[data-theme='dark'] .logout-card__icon { background: #3a1a18; color: #ff8a85; }
+[data-theme='dark'] .logout-card__text strong { color: #ffb0ab; }
+[data-theme='dark'] .logout-card__text small { color: #b88a87; }
+
+/* ===================== BUSCA ===================== */
+[data-theme='dark'] .search-page__empty h3 { color: #dfe6d4; }
+[data-theme='dark'] .search-page__empty-mark { background: #1c2119; color: #8f9b85; }
+[data-theme='dark'] .user-row:hover { background: #171c14; }

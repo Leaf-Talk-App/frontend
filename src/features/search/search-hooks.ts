@@ -1,0 +1,38 @@
+import { useQuery } from '@tanstack/react-query';
+import { useMemo, useState, useEffect } from 'react';
+import { usersApi } from '../../lib/api/endpoints';
+import { queryKeys } from '../../lib/api/query-keys';
+import { useAuth } from '../../lib/auth/use-auth';
+
+const DEBOUNCE_DELAY = 300;
+
+interface UseUserSearchOptions {
+  query: string;
+  enabled?: boolean;
+}
+
+export function useUserSearch({ query, enabled = true }: UseUserSearchOptions) {
+  const { accessToken } = useAuth();
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, DEBOUNCE_DELAY);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  return useQuery({
+    queryKey: queryKeys.users.search(debouncedQuery),
+    queryFn: async () => {
+      if (!accessToken || !debouncedQuery || debouncedQuery.length < 2) {
+        return [];
+      }
+
+      const results = await usersApi.search(debouncedQuery, { token: accessToken });
+      return results;
+    },
+    enabled: enabled && Boolean(accessToken) && debouncedQuery.length >= 2,
+  });
+}

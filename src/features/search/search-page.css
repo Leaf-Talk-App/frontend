@@ -1,0 +1,228 @@
+/* ============================================================
+ * Search — busca de usuários em tempo real (lista limpa)
+ * Substitui o conteúdo de: src/features/search/search-page.css
+ * ============================================================ */
+
+.search-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 0 40px 40px;
+  overflow-y: auto;
+}
+
+.search-page__head {
+  padding: 24px 0 4px;
+}
+
+.search-page__head h1 {
+  font-family: var(--leaf-font-heading);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--leaf-color-text);
+  margin: 0;
+}
+
+.search-page__bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 60px;
+  padding: 0 20px;
+  margin: 12px 0 8px;
+  max-width: 640px;
+  background: var(--leaf-color-surface, #fff);
+  border: 1px solid var(--leaf-color-border);
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgb(79 95 57 / 6%);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus-within {
+    border-color: rgba(127, 162, 67, 0.45);
+    box-shadow: 0 0 0 4px rgba(127, 162, 67, 0.1);
+  }
+
+  svg {
+    color: var(--leaf-color-text-muted);
+    flex-shrink: 0;
+  }
+
+  input {
+    flex: 1;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 17px;
+    color: var(--leaf-color-text);
+
+    &::placeholder {
+      color: var(--leaf-color-text-muted);
+    }
+  }
+}
+
+.search-page__clear {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--leaf-color-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--leaf-color-neutral);
+  }
+}
+
+.search-page__count {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--leaf-color-text-muted);
+  margin: 14px 0 10px;
+}
+
+.search-page__results {
+  flex: 1;
+}
+
+.search-page__status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+/* User list */
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 720px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    background: var(--leaf-color-surface, #fff);
+    border-color: var(--leaf-color-border);
+    box-shadow: 0 2px 10px rgb(79 95 57 / 6%);
+  }
+}
+
+.user-row__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-row__name {
+  font-family: var(--leaf-font-heading);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--leaf-color-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-row__verified {
+  color: var(--leaf-color-primary);
+  flex-shrink: 0;
+}
+
+.user-row__handle {
+  font-size: 13px;
+  color: var(--leaf-color-text-muted);
+  margin: 2px 0 0;
+}
+
+.user-row__role {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--leaf-color-primary-dark);
+  margin: 3px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-row__btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--leaf-color-primary-dark), var(--leaf-color-primary));
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgb(75 118 15 / 22%);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+/* Empty / idle states */
+.search-page__empty {
+  max-width: 720px;
+  text-align: center;
+  padding: 56px 24px;
+  color: var(--leaf-color-text-muted);
+}
+
+.search-page__empty-mark {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px;
+  border-radius: 999px;
+  background: var(--leaf-color-neutral);
+  color: var(--leaf-color-text-muted);
+}
+
+.search-page__empty h3 {
+  font-family: var(--leaf-font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--leaf-color-text);
+  margin: 0 0 8px;
+}
+
+.search-page__empty p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .search-page {
+    padding: 0 16px 24px;
+  }
+}

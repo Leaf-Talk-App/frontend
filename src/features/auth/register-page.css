@@ -1,0 +1,336 @@
+@import './auth-page-base.css';
+
+.register-page {
+  height: 100vh;
+  background: radial-gradient(circle at 18% 28%, #f3f6ed 0%, #f7f8f4 34%, #f3f4ef 68%, #eef0ea 100%);
+  color: #1d211b;
+  overflow: hidden;
+  position: relative;
+}
+
+.register-page::before,
+.register-page::after {
+  display: none;
+}
+
+.register-page__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #4f7a16;
+  font-family: var(--leaf-font-heading);
+  font-size: 30px;
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.register-page__brand--floating {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  z-index: 3;
+}
+
+.register-page__hero,
+.register-page__panel {
+  height: 100vh;
+}
+
+.register-page__content {
+  display: grid;
+  grid-template-columns: 54% 46%;
+  height: 100vh;
+}
+
+.register-page__hero {
+  width: 100%;
+  padding: 74px 48px 30px 52px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.register-page__hero-content {
+  max-width: 380px;
+}
+
+.register-page__eyebrow {
+  margin: 0 0 14px;
+  color: #4f7a16;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.register-page__hero h1 {
+  margin: 0;
+  font-family: var(--leaf-font-heading);
+  font-size: clamp(38px, 4.8vw, 62px);
+  font-weight: 500;
+  line-height: 0.97;
+  letter-spacing: -0.02em;
+  color: #1b201a;
+}
+
+.register-page__hero h1 span {
+  color: #4f7a16;
+}
+
+.register-page__intro {
+  margin: 22px 0 0;
+  color: #52584d;
+  font-size: clamp(15px, 1.35vw, 23px);
+  line-height: 1.38;
+}
+
+.register-page__panel {
+  position: relative;
+  width: 100%;
+  padding: 40px 38px 20px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.register-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 420px);
+  margin: 0;
+  padding: 22px 24px;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid #ecefe6;
+  box-shadow: 0 18px 40px rgb(79 95 57 / 10%);
+}
+
+.register-card__mark {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 8px;
+  color: #4f7a16;
+}
+
+.register-card__heading {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.register-card__heading h2 {
+  margin: 0;
+  font-family: var(--leaf-font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: #212521;
+}
+
+.register-card__heading p {
+  margin: 6px 0 0;
+  font-size: 15px;
+  color: #50564b;
+}
+
+.register-card__fields {
+  display: grid;
+  gap: 10px;
+}
+
+.register-card .auth-field {
+  display: grid;
+  gap: 6px;
+}
+
+.register-card .auth-field > span:first-child {
+  color: #4b5046;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.register-card .auth-field__icon-control {
+  position: relative;
+  display: block;
+}
+
+.register-card .auth-field__icon-control input {
+  width: 100%;
+  height: 46px;
+  padding: 0 44px 0 44px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: #eceee7;
+  color: #232822;
+  font-size: 15px;
+  outline: 0;
+}
+
+.register-card .auth-field__icon-control input::placeholder {
+  color: #72796e;
+}
+
+.register-card .auth-field__icon-control input:focus {
+  border-color: #7fa2457a;
+  box-shadow: 0 0 0 3px rgb(127 162 69 / 14%);
+}
+
+.register-card .auth-field__icon {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%);
+  color: #6b7267;
+  pointer-events: none;
+}
+
+.register-card .auth-field__icon-toggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  color: #6b7267;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.register-card .auth-field__error,
+.register-card__error,
+.register-card__google-error {
+  margin: 4px 0 0;
+  color: #c9171d;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.register-card__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 50px;
+  margin-top: 14px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #487711, #7da23f);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow: 0 14px 30px rgb(72 119 17 / 28%);
+  cursor: pointer;
+}
+
+.register-card__submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.register-card__login {
+  margin: 12px 0 0;
+  text-align: center;
+  color: #535a4f;
+  font-size: 14px;
+}
+
+.register-card__login a {
+  color: #4f7a16;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.register-card__divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 14px;
+  margin: 14px 0 10px;
+  color: #595f54;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.register-card__divider::before,
+.register-card__divider::after {
+  content: '';
+  height: 1px;
+  background: #d8dbd1;
+}
+
+.register-card__socials {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.register-card__terms {
+  margin: 14px 0 0;
+  text-align: center;
+  color: #6b7267;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.register-card__terms a {
+  color: #4f7a16;
+  text-decoration: underline;
+  text-decoration-color: rgb(79 122 22 / 35%);
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  .register-page {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .register-page__hero {
+    display: none;
+  }
+
+  .register-page__brand--floating {
+    position: static;
+    margin: 18px 20px 0;
+  }
+
+  .register-page__content {
+    display: block;
+    height: auto;
+  }
+
+  .register-page__panel {
+    height: auto;
+    padding: 18px 18px 30px;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .register-card {
+    padding: 26px 20px;
+  }
+
+  .register-card__heading h2 {
+    font-size: 30px;
+  }
+
+  .register-card__heading p {
+    font-size: 16px;
+  }
+
+  .register-card__login,
+  .register-card__terms {
+    font-size: 14px;
+  }
+}
