@@ -19,8 +19,8 @@ export function useWebSocket({
 }: UseWebSocketOptions) {
   const wsRef = useRef<WebSocket | null>(null);
   const queryClient = useQueryClient();
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
-  const heartbeatRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartbeatRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intentionalCloseRef = useRef(false);
 
   const connect = useCallback(() => {

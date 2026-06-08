@@ -6,6 +6,7 @@ import type {
   LeafChatSummary,
   LeafMessage,
   LeafUser,
+  MessageType,
   SendMessageRequest,
 } from '../../lib/api/contracts';
 import { useAuth } from '../../lib/auth/use-auth';
@@ -138,7 +139,7 @@ export function useSendMessageMutation() {
         sender_id: currentUser.id,
         receiver_id: data.receiver_id,
         content: data.content ?? '',
-        type: data.type ?? 'text',
+        type: (data.type ?? 'text') as MessageType,
         file_url: data.file_url ?? null,
         status: 'sent',
         read: false,
@@ -178,7 +179,7 @@ export function useSendMessageMutation() {
           sender_id: response.sender_id ?? currentUser?.id ?? '',
           receiver_id: response.receiver_id ?? variables.receiver_id,
           content: response.content ?? variables.content ?? '',
-          type: response.type ?? variables.type ?? 'text',
+          type: (response.type ?? variables.type ?? 'text') as MessageType,
           file_url: response.file_url ?? variables.file_url ?? null,
           status: response.status,
           read: response.read ?? false,
