@@ -37,6 +37,20 @@ function buildHandle(name?: string, email?: string) {
   return '@leaf_user';
 }
 
+// Máscara BR: (DD) NNNNN-NNNN. Só armazena/exibe — sem verificação por SMS.
+function maskPhone(value: string): string {
+  const d = value.replace(/\D/g, '').slice(0, 11);
+  if (d.length <= 2) return d.length ? `(${d}` : '';
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
+function isValidPhone(value: string): boolean {
+  const d = value.replace(/\D/g, '');
+  return d.length === 10 || d.length === 11; // fixo (10) ou celular (11)
+}
+
 export function ProfilePage() {
   const { data: user, isLoading } = useCurrentUserQuery();
   const updateProfileMutation = useUpdateProfileMutation();
@@ -55,12 +69,14 @@ export function ProfilePage() {
 
   const [displayNameDraft, setDisplayNameDraft] = useState('');
   const [bioDraft, setBioDraft] = useState('');
+  const [phoneDraft, setPhoneDraft] = useState('');
   const [searchableDraft, setSearchableDraft] = useState(true);
   const [encryptionDraft, setEncryptionDraft] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
   const currentDisplayName = user?.display_name || user?.name || '';
   const currentBio = user?.bio || '';
+  const currentPhone = user?.phone || '';
   const currentSearchable = user?.searchable ?? true;
 
   useEffect(() => {
@@ -68,9 +84,10 @@ export function ProfilePage() {
 
     setDisplayNameDraft(currentDisplayName);
     setBioDraft(currentBio);
+    setPhoneDraft(currentPhone);
     setSearchableDraft(currentSearchable);
     setInitialized(true);
-  }, [currentBio, currentDisplayName, currentSearchable, initialized, user]);
+  }, [currentBio, currentDisplayName, currentPhone, currentSearchable, initialized, user]);
 
   // Limpa o preview assim que a query sincronizar com a URL nova —
   // evita o "pisca" de volta para a foto antiga
@@ -80,17 +97,21 @@ export function ProfilePage() {
     }
   }, [user?.avatar, avatarPreview]);
 
+  const phoneValid = phoneDraft.trim() === '' || isValidPhone(phoneDraft);
+
   const hasChanges = useMemo(() => {
     return (
       displayNameDraft !== currentDisplayName ||
       bioDraft !== currentBio ||
+      phoneDraft !== currentPhone ||
       searchableDraft !== currentSearchable
     );
-  }, [bioDraft, currentBio, currentDisplayName, currentSearchable, displayNameDraft, searchableDraft]);
+  }, [bioDraft, currentBio, currentDisplayName, currentPhone, currentSearchable, displayNameDraft, phoneDraft, searchableDraft]);
 
   const handleDiscardDraft = () => {
     setDisplayNameDraft(currentDisplayName);
     setBioDraft(currentBio);
+    setPhoneDraft(currentPhone);
     setSearchableDraft(currentSearchable);
     setEncryptionDraft(false);
   };
@@ -127,11 +148,12 @@ export function ProfilePage() {
   };
 
   const handleSaveChanges = async () => {
-    if (!hasChanges) return;
+    if (!hasChanges || !phoneValid) return;
 
     await updateProfileMutation.mutateAsync({
       display_name: displayNameDraft.trim(),
       bio: bioDraft.trim(),
+      phone: phoneDraft.trim(),
       searchable: searchableDraft,
     });
   };
@@ -259,6 +281,23 @@ export function ProfilePage() {
                 maxLength={240}
               />
             </label>
+
+            <label className="panel-field" htmlFor="profile-phone">
+              <span>Telefone (opcional)</span>
+              <input
+                id="profile-phone"
+                type="tel"
+                inputMode="tel"
+                value={phoneDraft}
+                onChange={(event) => setPhoneDraft(maskPhone(event.target.value))}
+                placeholder="(11) 99999-9999"
+              />
+              {!phoneValid ? (
+                <small style={{ color: 'var(--leaf-color-danger, #c9171d)', fontSize: 12 }}>
+                  Telefone inválido — use DDD + número.
+                </small>
+              ) : null}
+            </label>
           </article>
 
           <div className="section-title section-title--spaced">
@@ -306,7 +345,7 @@ export function ProfilePage() {
               type="button"
               className="cta-btn cta-btn--primary"
               onClick={handleSaveChanges}
-              disabled={!hasChanges || updateProfileMutation.isPending}
+              disabled={!hasChanges || !phoneValid || updateProfileMutation.isPending}
             >
               {updateProfileMutation.isPending ? (
                 <>

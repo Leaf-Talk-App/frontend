@@ -76,6 +76,11 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   display: grid;
+  /* empacota os itens no topo. Sem isto, o grid usa o default (stretch) e,
+     com poucas conversas, estica as linhas para preencher a altura do painel
+     (flex:1) — criando espaços enormes entre os chats. */
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: 2px;
 }
 

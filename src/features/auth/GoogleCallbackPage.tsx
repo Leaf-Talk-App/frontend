@@ -59,12 +59,18 @@ export function GoogleCallbackPage() {
         setGoogleOAuthStatus(code, 'success');
         navigate(routePaths.chats, { replace: true });
       })
-      .catch(() => {
+      .catch((err: unknown) => {
         setGoogleOAuthStatus(code, 'failed');
+        // Surfacea o detalhe real do backend (ex: redirect_uri_mismatch) p/ diagnóstico.
+        const detail =
+          err && typeof err === 'object' && 'payload' in err
+            ? (err as { payload?: { detail?: string } }).payload?.detail
+            : undefined;
         navigate(routePaths.login, {
           replace: true,
           state: {
             googleError:
+              detail ||
               'Não foi possível concluir o login com Google. Tente novamente (use um único clique no botão).',
           },
         });

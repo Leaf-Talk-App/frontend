@@ -18,11 +18,15 @@
    max-width impede bolhas gigantes.                                        */
 .message-bubble__body {
   display: inline-block;
-  max-width: min(480px, 72%);
+  width: fit-content;
+  /* cresce horizontalmente até ~78% do container antes de quebrar linha
+     (padrão WhatsApp/Telegram). break-word quebra só palavras/URLs longas
+     demais (não break-all); NÃO reduz o min-content a 1 char. */
+  max-width: min(560px, 78%);
   padding: 8px 12px 6px;
   border-radius: 18px;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .message-bubble--sender .message-bubble__body {
@@ -89,6 +93,12 @@
   color: rgba(255 255 255 / 0.85);
 }
 
+/* ✓✓ verde quando lida (sobre o balão verde do remetente) */
+.message-bubble__tick--read {
+  color: #34e89e;
+  opacity: 1;
+}
+
 /* ── Imagem ──────────────────────────────────────────────────────────────────
    Bolha sem padding lateral; imagem preenche a bolha arredondada.         */
 .message-bubble--image .message-bubble__body {
@@ -97,21 +107,61 @@
   background: transparent;
   border: none;
   box-shadow: none;
+  /* a bolha acompanha a imagem (que já tem o seu próprio limite) */
+  max-width: min(340px, 75vw);
 }
 
 .message-bubble--image.message-bubble--sender .message-bubble__body {
   box-shadow: 0 4px 12px rgb(107 146 58 / 20%);
 }
 
+.message-bubble__media-btn {
+  display: block;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
 .message-bubble__image {
   display: block;
-  max-width: 280px;
-  max-height: 280px;
+  /* width/height auto → a imagem mantém a proporção NATURAL e nunca corta.
+     landscape fica landscape, portrait fica portrait, limitada pelo box.
+     (object-fit é proposital­mente omitido: seria no-op com auto/auto e só
+     causaria corte se houvesse caixa de tamanho fixo). */
   width: auto;
   height: auto;
+  max-width: min(340px, 75vw);
+  max-height: 460px;
   border-radius: 14px;
   cursor: zoom-in;
-  object-fit: cover;
+}
+
+/* ── Arquivo (PDF / documento) ─────────────────────────────────────────────── */
+.message-bubble__file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 220px;
+  max-width: 100%;
+  padding: 6px 4px;
+  margin: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.message-bubble__file-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .message-bubble--image .message-bubble__footer {
@@ -150,5 +200,6 @@
 
 @media (max-width: 768px) {
   .message-bubble__body  { max-width: 86%; }
-  .message-bubble__image { max-width: 220px; max-height: 220px; }
+  .message-bubble--image .message-bubble__body { max-width: 80vw; }
+  .message-bubble__image { max-width: 80vw; max-height: 60vh; }
 }

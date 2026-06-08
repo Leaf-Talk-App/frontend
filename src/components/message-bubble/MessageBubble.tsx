@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import './message-bubble.css';
 import type { MessageStatus, MessageType } from '../../lib/api/contracts';
-import { Check, CheckCheck } from 'lucide-react';
+import { Check, CheckCheck, FileText } from 'lucide-react';
+import { AudioPlayer } from '../audio-player/AudioPlayer';
+import { MediaViewer } from '../media-viewer/MediaViewer';
 
 interface MessageBubbleProps {
   content: string;
@@ -14,8 +17,10 @@ interface MessageBubbleProps {
 }
 
 function StatusIcon({ status }: { status: MessageStatus }) {
-  if (status === 'read') return <CheckCheck size={12} aria-label="Lida" />;
-  if (status === 'delivered') return <CheckCheck size={12} aria-label="Entregue" style={{ opacity: 0.55 }} />;
+  if (status === 'read')
+    return <CheckCheck size={12} aria-label="Lida" className="message-bubble__tick--read" />;
+  if (status === 'delivered')
+    return <CheckCheck size={12} aria-label="Entregue" style={{ opacity: 0.55 }} />;
   return <Check size={12} aria-label="Enviada" />;
 }
 
@@ -38,6 +43,20 @@ function Footer({
   );
 }
 
+function isPdf(url?: string | null): boolean {
+  return Boolean(url && /\.pdf(\?|#|$)/i.test(url));
+}
+
+function fileNameFromUrl(url?: string | null): string {
+  if (!url) return 'arquivo';
+  try {
+    const u = new URL(url, window.location.origin);
+    return decodeURIComponent(u.pathname.split('/').pop() || 'arquivo');
+  } catch {
+    return url.split('/').pop() || 'arquivo';
+  }
+}
+
 export function MessageBubble({
   content,
   type = 'text',
@@ -49,15 +68,24 @@ export function MessageBubble({
   deleted,
 }: MessageBubbleProps) {
   const senderCls = isSender ? 'message-bubble--sender' : 'message-bubble--receiver';
+  const variant = isSender ? 'sender' : 'receiver';
+  const [viewerOpen, setViewerOpen] = useState(false);
+
   const isImage = type === 'image' && fileUrl && !deleted;
   const isAudio = type === 'audio' && fileUrl && !deleted;
+  const isFile = type === 'file' && fileUrl && !deleted;
 
   /* ── Imagem ────────────────────────────────────────────────────────────── */
   if (isImage) {
     return (
       <div className={`message-bubble message-bubble--image ${senderCls}`}>
         <div className="message-bubble__body">
-          <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+          <button
+            type="button"
+            className="message-bubble__media-btn"
+            onClick={() => setViewerOpen(true)}
+            aria-label="Abrir imagem"
+          >
             <img
               src={fileUrl}
               alt=""
@@ -67,9 +95,10 @@ export function MessageBubble({
                 (e.currentTarget as HTMLImageElement).style.display = 'none';
               }}
             />
-          </a>
+          </button>
           <Footer timestamp={timestamp} status={status} edited={edited} isSender={isSender} />
         </div>
+        <MediaViewer open={viewerOpen} onClose={() => setViewerOpen(false)} url={fileUrl} kind="image" />
       </div>
     );
   }
@@ -79,9 +108,47 @@ export function MessageBubble({
     return (
       <div className={`message-bubble ${senderCls}`}>
         <div className="message-bubble__body">
-          <audio src={fileUrl} controls className="message-bubble__audio" preload="metadata" />
+          <AudioPlayer src={fileUrl} variant={variant} />
           <Footer timestamp={timestamp} status={status} edited={edited} isSender={isSender} />
         </div>
+      </div>
+    );
+  }
+
+  /* ── Arquivo (PDF / documento) ─────────────────────────────────────────── */
+  if (isFile) {
+    const pdf = isPdf(fileUrl);
+    const name = fileNameFromUrl(fileUrl);
+    return (
+      <div className={`message-bubble ${senderCls}`}>
+        <div className="message-bubble__body">
+          {pdf ? (
+            <button
+              type="button"
+              className="message-bubble__file"
+              onClick={() => setViewerOpen(true)}
+              aria-label={`Abrir ${name}`}
+            >
+              <FileText size={20} strokeWidth={2} />
+              <span className="message-bubble__file-name">{name}</span>
+            </button>
+          ) : (
+            <a
+              className="message-bubble__file"
+              href={fileUrl}
+              download={name}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FileText size={20} strokeWidth={2} />
+              <span className="message-bubble__file-name">{name}</span>
+            </a>
+          )}
+          <Footer timestamp={timestamp} status={status} edited={edited} isSender={isSender} />
+        </div>
+        {pdf && (
+          <MediaViewer open={viewerOpen} onClose={() => setViewerOpen(false)} url={fileUrl} kind="pdf" name={name} />
+        )}
       </div>
     );
   }

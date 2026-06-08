@@ -9,10 +9,16 @@ import {
 } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { routePaths } from '../../routes/paths';
+import { useAuth } from '../../lib/auth/use-auth';
+import { useWebSocket } from '../../features/chats/useWebSocket';
 import './authenticated-shell.css';
 
+// Suporte via WhatsApp do Alan (+55 34 9338-8856). Apenas dígitos, com DDI/DDD.
+const ALAN_WHATSAPP = '553493388856';
+
 function openHelp() {
-  window.location.href = 'mailto:LeafTalkApp@gmail.com?subject=Suporte%20Leaf&body=Ol%C3%A1%2C%20preciso%20de%20ajuda%20com%20o%20Leaf.';
+  const text = encodeURIComponent('Olá Alan, preciso de ajuda com o Leaf.');
+  window.open(`https://wa.me/${ALAN_WHATSAPP}?text=${text}`, '_blank', 'noopener,noreferrer');
 }
 
 const primaryNavItems = [
@@ -61,9 +67,21 @@ const mobileNavItems = [
   },
 ];
 
+/**
+ * Conexão WebSocket única e global enquanto o usuário está logado.
+ * Mantém o status `online` correto no backend (antes só conectava com um chat
+ * aberto) e recebe os eventos de presença/novas mensagens em qualquer tela.
+ */
+function GlobalPresence() {
+  const { user } = useAuth();
+  useWebSocket({ userId: user?.id, enabled: Boolean(user?.id) });
+  return null;
+}
+
 export function AuthenticatedShell() {
   return (
     <div className="authenticated-shell">
+      <GlobalPresence />
       <DesktopSidebar />
       <main className="authenticated-shell__main">
         <Outlet />

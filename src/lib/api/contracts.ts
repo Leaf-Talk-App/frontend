@@ -44,11 +44,14 @@ export type GoogleExchangeRequest = {
 export type LeafUser = {
   _id: string;
   name: string;
+  username?: string;
   email: string;
   verified?: boolean;
   display_name?: string;
   bio?: string;
   avatar?: string;
+  phone?: string;
+  phone_verified?: boolean;
   searchable?: boolean;
   online?: boolean;
   last_seen?: string;
@@ -59,6 +62,7 @@ export type UpdateProfileRequest = {
   display_name?: string;
   bio?: string;
   avatar?: string;
+  phone?: string;
   searchable?: boolean;
 };
 
@@ -81,6 +85,7 @@ export type ChatActionRequest = {
 
 export type ChatLastMessage = {
   content: string;
+  type?: string;
   created_at: string;
   status?: MessageStatus;
 };
@@ -146,6 +151,7 @@ export type LeafMessage = {
   file_url?: string | null;
   status?: MessageStatus;
   read?: boolean;
+  read_by?: string[];
   read_at?: string;
   edited?: boolean;
   deleted?: boolean;
@@ -185,9 +191,17 @@ export type LeafGroup = {
 
 export type AiChatRequest = {
   message: string;
+  attachment_url?: string | null;
+  attachment_mime?: string | null;
 };
 
 export type AiChatResponse = { reply: string } | ApiMessageResponse | { error: string };
+
+export type AiHistoryMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+  created_at?: string | null;
+};
 
 export type UploadFileResponse = {
   url: string;

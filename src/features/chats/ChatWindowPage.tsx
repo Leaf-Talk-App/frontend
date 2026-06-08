@@ -1,4 +1,4 @@
-import { ArrowLeft, Image, Mic, MicOff, MoreVertical, Send, Smile, X } from 'lucide-react';
+import { ArrowLeft, Camera, Image, Mic, MicOff, Search, Send, Smile, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
@@ -6,6 +6,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar } from '../../components/avatar/Avatar';
 import { ErrorMessage, LoadingSpinner } from '../../components/feedback/FeedbackComponents';
 import { MessageBubble } from '../../components/message-bubble/MessageBubble';
+import { ImagePreviewModal } from '../../components/image-preview-modal/ImagePreviewModal';
+import { CameraCaptureModal } from '../../components/camera-capture-modal/CameraCaptureModal';
+import { ChatHeaderMenu } from './ChatHeaderMenu';
 import type { LeafMessage } from '../../lib/api/contracts';
 import { routePaths } from '../../routes/paths';
 import {
@@ -14,9 +17,10 @@ import {
   useParticipantQuery,
   useSendMessageMutation,
 } from './chats-hooks';
-import { uploadsApi } from '../../lib/api/endpoints';
+import { uploadsApi, messagesApi } from '../../lib/api/endpoints';
+import { queryKeys } from '../../lib/api/query-keys';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth/use-auth';
-import { useWebSocket } from './useWebSocket';
 import './chat-window-page.css';
 
 function formatTime(value?: string) {
@@ -24,6 +28,19 @@ function formatTime(value?: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatLastSeen(value?: string) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const now = new Date();
+  const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  if (date.toDateString() === now.toDateString()) return `hoje às ${time}`;
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return `ontem às ${time}`;
+  return `${date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${time}`;
 }
 
 function formatDateDivider(value?: string) {
@@ -98,20 +115,42 @@ export function ChatWindowPage() {
   } = useMessagesQuery({ chatId, enabled: Boolean(chatId) });
 
   const sendMutation = useSendMessageMutation();
+  const queryClient = useQueryClient();
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [sendingImage, setSendingImage] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // ── WebSocket ─────────────────────────────────────────────────────────────
-  useWebSocket({
-    userId: currentUser?.id,
-    chatId,
-    enabled: Boolean(chatId && currentUser?.id),
-  });
+  // O WebSocket agora é único e global (AuthenticatedShell → GlobalPresence),
+  // então não abrimos outra conexão aqui — evita 2 sockets para o mesmo user
+  // (o segundo sobrescrevia o primeiro e bagunçava o status online).
 
   // ── Scroll automático ─────────────────────────────────────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const feed = useMemo(() => buildFeed(messages), [messages]);
+  // ── Read receipts: marca recebidas como lidas ao abrir / ao chegar novas ──
+  useEffect(() => {
+    if (!chatId || !accessToken || !currentUser || !messages?.length) return;
+    const hasUnreadIncoming = messages.some(
+      (m) => m.sender_id !== currentUser.id && !m.read,
+    );
+    if (!hasUnreadIncoming) return;
+    messagesApi
+      .markAsRead(chatId, { token: accessToken })
+      .then(() => queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine }))
+      .catch(() => undefined);
+  }, [chatId, accessToken, currentUser, messages, queryClient]);
+
+  // Pesquisar na conversa (filtra as mensagens já carregadas pelo termo)
+  const visibleMessages = useMemo(() => {
+    if (!searchOpen || !searchTerm.trim()) return messages;
+    const t = searchTerm.trim().toLowerCase();
+    return (messages ?? []).filter((m) => (m.content || '').toLowerCase().includes(t));
+  }, [messages, searchOpen, searchTerm]);
+
+  const feed = useMemo(() => buildFeed(visibleMessages), [visibleMessages]);
 
   // Bloqueia só se não tiver chatId ou usuário logado
   if (!chatId || !currentUser) {
@@ -169,19 +208,50 @@ export function ChatWindowPage() {
           <div className="chat-window-page__user-meta">
             <h2 className="chat-window-page__name">{displayName}</h2>
             <p className="chat-window-page__status">
-              {isOtherOnline ? 'Online agora' : otherUser ? 'Offline' : ''}
+              {isOtherOnline
+                ? 'Online agora'
+                : otherUser?.last_seen
+                ? `visto por último ${formatLastSeen(otherUser.last_seen)}`
+                : otherUser
+                ? 'Offline'
+                : ''}
             </p>
           </div>
         </div>
 
-        <button
-          className="chat-window-page__menu"
-          type="button"
-          aria-label="Opções da conversa"
-        >
-          <MoreVertical size={18} strokeWidth={2.2} />
-        </button>
+        <ChatHeaderMenu
+          chatId={chatId}
+          otherUser={otherUser}
+          otherUserId={otherParticipantId}
+          muted={currentChat?.muted ?? false}
+          messages={messages}
+          onOpenSearch={() => setSearchOpen(true)}
+        />
       </header>
+
+      {searchOpen && (
+        <div className="chat-window-page__search">
+          <Search size={16} strokeWidth={2.2} />
+          <input
+            autoFocus
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Pesquisar nesta conversa…"
+            aria-label="Pesquisar na conversa"
+          />
+          <button
+            type="button"
+            className="chat-window-page__search-close"
+            onClick={() => {
+              setSearchOpen(false);
+              setSearchTerm('');
+            }}
+            aria-label="Fechar busca"
+          >
+            <X size={16} strokeWidth={2.2} />
+          </button>
+        </div>
+      )}
 
       <main className="chat-window-page__messages" aria-live="polite">
         {/* Carregar mensagens mais antigas */}
@@ -264,25 +334,41 @@ export function ChatWindowPage() {
               file_url: url,
             });
           }}
-          onSendFile={async (file) => {
-            if (!accessToken || !otherParticipantId) return;
-            const form = new FormData();
-            form.append('file', file);
-            const { url } = await uploadsApi.image(form, accessToken);
-            await sendMutation.mutateAsync({
-              chat_id: chatId,
-              content: '',
-              receiver_id: otherParticipantId,
-              type: 'image',
-              file_url: url,
-            });
-          }}
+          onPickFile={(file) => setPendingFile(file)}
           isLoading={sendMutation.isPending}
         />
         <small className="chat-window-page__footnote">
           CRIPTOGRAFIA ATIVA · POWERED BY LEAF 1.4
         </small>
       </footer>
+
+      {pendingFile && (
+        <ImagePreviewModal
+          file={pendingFile}
+          sending={sendingImage}
+          recipientLabel={displayName}
+          onCancel={() => setPendingFile(null)}
+          onSend={async (caption) => {
+            if (!accessToken || !otherParticipantId) return;
+            setSendingImage(true);
+            try {
+              const form = new FormData();
+              form.append('file', pendingFile);
+              const { url } = await uploadsApi.image(form, accessToken);
+              await sendMutation.mutateAsync({
+                chat_id: chatId,
+                content: caption.trim(),
+                receiver_id: otherParticipantId,
+                type: 'image',
+                file_url: url,
+              });
+              setPendingFile(null);
+            } finally {
+              setSendingImage(false);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -290,14 +376,15 @@ export function ChatWindowPage() {
 interface MessageComposerProps {
   recipientName: string;
   onSend: (content: string) => void;
-  onSendFile?: (file: File) => Promise<void>;
+  onPickFile?: (file: File) => void;
   onSendAudio?: (blob: Blob) => Promise<void>;
   isLoading?: boolean;
 }
 
-function MessageComposer({ recipientName, onSend, onSendFile, onSendAudio, isLoading = false }: MessageComposerProps) {
+function MessageComposer({ recipientName, onSend, onPickFile, onSendAudio, isLoading = false }: MessageComposerProps) {
   const [message, setMessage] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const emojiWrapRef = useRef<HTMLDivElement>(null);
@@ -321,10 +408,9 @@ function MessageComposer({ recipientName, onSend, onSendFile, onSendAudio, isLoa
     }
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !onSendFile) return;
-    await onSendFile(file);
+    if (file && onPickFile) onPickFile(file);
     event.target.value = '';
   };
 
@@ -365,6 +451,26 @@ function MessageComposer({ recipientName, onSend, onSendFile, onSendAudio, isLoa
       >
         <Image size={18} strokeWidth={2.2} />
       </button>
+
+      {/* Câmera ao vivo (getUserMedia) — funciona no desktop e no mobile */}
+      <button
+        type="button"
+        className="message-composer__icon"
+        aria-label="Tirar foto"
+        disabled={isLoading}
+        onClick={() => setShowCamera(true)}
+      >
+        <Camera size={18} strokeWidth={2.2} />
+      </button>
+      {showCamera && (
+        <CameraCaptureModal
+          onClose={() => setShowCamera(false)}
+          onCapture={(file) => {
+            setShowCamera(false);
+            onPickFile?.(file);
+          }}
+        />
+      )}
 
       <input
         ref={inputRef}

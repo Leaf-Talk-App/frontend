@@ -3,6 +3,7 @@ import type {
   AddMemberRequest,
   AiChatRequest,
   AiChatResponse,
+  AiHistoryMessage,
   ApiMessageResponse,
   AuthLoginRequest,
   AuthLoginResponse,
@@ -199,6 +200,16 @@ export const messagesApi = {
     );
   },
 
+  clearChat(chatId: string, { token }: AuthedRequest) {
+    return apiRequest<ApiMessageResponse>(
+      `/messages/clear/${encodeURIComponent(chatId)}`,
+      {
+        method: 'POST',
+        token,
+      },
+    );
+  },
+
   edit(messageId: string, data: EditMessageRequest, { token }: AuthedRequest) {
     return apiRequest<ApiMessageResponse>(
       `/messages/edit/${encodeURIComponent(messageId)}`,
@@ -259,6 +270,17 @@ export const aiApi = {
 
   confirm(taskId: string, { token }: AuthedRequest) {
     return apiRequest<ApiMessageResponse>(`/ai/confirm/${encodeURIComponent(taskId)}`, {
+      method: 'POST',
+      token,
+    });
+  },
+
+  history({ token }: AuthedRequest) {
+    return apiRequest<AiHistoryMessage[]>('/ai/history', { token });
+  },
+
+  clearHistory({ token }: AuthedRequest) {
+    return apiRequest<ApiMessageResponse>('/ai/history/clear', {
       method: 'POST',
       token,
     });

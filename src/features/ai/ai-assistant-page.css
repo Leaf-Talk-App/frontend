@@ -14,6 +14,9 @@
   justify-content: space-between;
   gap: 16px;
   padding-bottom: 14px;
+  /* afasta o "Nova conversa" do botão de tema fixo (position:fixed; right:16px;
+     40px) no canto superior direito — antes ficavam sobrepostos. */
+  padding-right: 52px;
 }
 
 .ai-assistant-page__title {
@@ -641,4 +644,21 @@
     font-size: 9px;
     margin-top: 6px;
   }
+}
+
+/* ── Anexos enviados ao Humberto ──────────────────────────────────────────── */
+.ai-message__attachment-img {
+  display: block;
+  max-width: 220px;
+  max-height: 220px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.ai-message__attachment-file {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  opacity: 0.92;
 }

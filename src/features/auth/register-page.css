@@ -289,6 +289,81 @@
   text-underline-offset: 2px;
 }
 
+/* ── Dark mode ──────────────────────────────────────────────────────────────
+   .register-page e .register-card já têm fundo/borda no dark-theme.css.
+   Aqui só o que faltava: textos, inputs, ícones, labels, divider, links.   */
+[data-theme='dark'] .register-page__brand,
+[data-theme='dark'] .register-page__eyebrow,
+[data-theme='dark'] .register-page__hero h1 span {
+  color: #9ccb5b;
+}
+
+[data-theme='dark'] .register-page__hero h1 {
+  color: #e6f0d8;
+}
+
+[data-theme='dark'] .register-page__intro {
+  color: #a9b29c;
+}
+
+[data-theme='dark'] .register-card__mark {
+  color: #9ccb5b;
+}
+
+[data-theme='dark'] .register-card__heading h2 {
+  color: #e6f0d8;
+}
+
+[data-theme='dark'] .register-card__heading p,
+[data-theme='dark'] .register-card__login,
+[data-theme='dark'] .register-card__divider {
+  color: #a9b29c;
+}
+
+[data-theme='dark'] .register-card .auth-field > span:first-child {
+  color: #b8c0aa;
+}
+
+[data-theme='dark'] .register-card .auth-field__icon-control input {
+  background: #131711;
+  color: #e6f0d8;
+  border-color: rgb(110 150 65 / 14%);
+}
+
+[data-theme='dark'] .register-card .auth-field__icon-control input::placeholder {
+  color: #828b76;
+}
+
+[data-theme='dark'] .register-card .auth-field__icon-control input:focus {
+  border-color: rgb(127 162 69 / 55%);
+  box-shadow: 0 0 0 3px rgb(127 162 69 / 20%);
+}
+
+[data-theme='dark'] .register-card .auth-field__icon,
+[data-theme='dark'] .register-card .auth-field__icon-toggle {
+  color: #8a9380;
+}
+
+[data-theme='dark'] .register-card .auth-field__error,
+[data-theme='dark'] .register-card__error,
+[data-theme='dark'] .register-card__google-error {
+  color: #ff8a8f;
+}
+
+[data-theme='dark'] .register-card__divider::before,
+[data-theme='dark'] .register-card__divider::after {
+  background: rgb(110 150 65 / 18%);
+}
+
+[data-theme='dark'] .register-card__login a,
+[data-theme='dark'] .register-card__terms a {
+  color: #9ccb5b;
+}
+
+[data-theme='dark'] .register-card__terms {
+  color: #828b76;
+}
+
 @media (max-width: 767px) {
   .register-page {
     height: auto;

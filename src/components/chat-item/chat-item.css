@@ -66,6 +66,18 @@
   line-height: 1.35;
 }
 
+.chat-item__media-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-item__media-preview svg {
+  flex-shrink: 0;
+  opacity: 0.8;
+  vertical-align: middle;
+}
+
 .chat-item--unread .chat-item__name {
   color: #1c2018;
 }

@@ -157,6 +157,7 @@ export function VerifyEmailPage() {
                   inputMode="numeric"
                   autoComplete={index === 0 ? 'one-time-code' : 'off'}
                   maxLength={1}
+                  autoFocus={index === 0}
                   value={digit}
                   onChange={(e) => handleCodeChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}

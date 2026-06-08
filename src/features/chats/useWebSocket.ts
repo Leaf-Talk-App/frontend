@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { queryKeys } from '../../lib/api/query-keys';
+import type { LeafMessage } from '../../lib/api/contracts';
 import { env } from '../../config/env';
 
 interface UseWebSocketOptions {
@@ -19,12 +20,16 @@ export function useWebSocket({
   const wsRef = useRef<WebSocket | null>(null);
   const queryClient = useQueryClient();
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const heartbeatRef = useRef<NodeJS.Timeout>();
+  const intentionalCloseRef = useRef(false);
 
   const connect = useCallback(() => {
     if (!enabled || !userId) {
       console.log('[WebSocket] Skipped: disabled or no userId');
       return;
     }
+
+    intentionalCloseRef.current = false;
 
     const wsEndpoint = `${env.wsBaseUrl}/ws/${userId}`;
 
@@ -40,6 +45,13 @@ export function useWebSocket({
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
         }
+        // Heartbeat: ping a cada 30s p/ manter a conexão viva (proxies/idle).
+        if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+        heartbeatRef.current = setInterval(() => {
+          if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({ type: 'ping' }));
+          }
+        }, 30000);
       };
 
       ws.onmessage = (event) => {
@@ -54,6 +66,36 @@ export function useWebSocket({
               queryKey: queryKeys.messages.byChatId(data.chat_id),
             });
             // Invalida lista de conversas (last_message atualiza)
+            queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine });
+          }
+
+          // Presença: atualiza online/last_seen do usuário no cache
+          if (data.type === 'presence' && data.user_id) {
+            queryClient.setQueryData(
+              ['users', 'id', data.user_id],
+              (old: unknown) =>
+                old && typeof old === 'object'
+                  ? { ...(old as object), online: data.online, last_seen: data.last_seen ?? (old as { last_seen?: string }).last_seen }
+                  : old,
+            );
+          }
+
+          // Read receipts: o destinatário leu → atualiza meus ticks para ✓✓ lida
+          if (data.type === 'messages_read' && data.chat_id && userId) {
+            const queryKey = queryKeys.messages.byChatId(data.chat_id);
+            queryClient.setQueryData<InfiniteData<LeafMessage[]>>(queryKey, (old) => {
+              if (!old) return old;
+              return {
+                ...old,
+                pages: old.pages.map((page) =>
+                  page.map((m) =>
+                    m.sender_id === userId
+                      ? { ...m, read: true, status: 'read' as const }
+                      : m,
+                  ),
+                ),
+              };
+            });
             queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine });
           }
 
@@ -72,6 +114,10 @@ export function useWebSocket({
       ws.onclose = () => {
         console.log('[WebSocket] Disconnected');
         wsRef.current = null;
+        if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+
+        // Não reconectar em fechamento intencional (unmount, logout, beforeunload).
+        if (intentionalCloseRef.current) return;
 
         // Attempt to reconnect after 5 seconds
         if (enabled && userId) {
@@ -91,12 +137,24 @@ export function useWebSocket({
       connect();
     }
 
+    // beforeunload: fecha a conexão limpa → backend marca offline na hora.
+    const handleUnload = () => {
+      intentionalCloseRef.current = true;
+      wsRef.current?.close();
+    };
+    window.addEventListener('beforeunload', handleUnload);
+
     return () => {
+      intentionalCloseRef.current = true;
+      window.removeEventListener('beforeunload', handleUnload);
       if (wsRef.current) {
         wsRef.current.close();
       }
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (heartbeatRef.current) {
+        clearInterval(heartbeatRef.current);
       }
     };
   }, [enabled, userId, connect]);
