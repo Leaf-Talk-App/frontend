@@ -66,7 +66,8 @@ export function ChatItem({
   isSelected = false,
   onClick,
 }: ChatItemProps) {
-  const displayName = otherUser?.display_name || otherUser?.name || 'Desconhecido';
+  const loading = !otherUser; // dados do participante ainda carregando
+  const displayName = otherUser?.display_name || otherUser?.name || '';
   const avatar = otherUser?.avatar;
   const initials = displayName
     .split(' ')
@@ -89,7 +90,9 @@ export function ChatItem({
 
       <div className="chat-item__content">
         <div className="chat-item__header">
-          <h3 className="chat-item__name">{displayName}</h3>
+          <h3 className="chat-item__name">
+            {loading ? <span className="chat-item__skeleton-bar" /> : displayName}
+          </h3>
           <time className="chat-item__time">{timestamp}</time>
         </div>
 

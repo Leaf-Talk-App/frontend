@@ -55,8 +55,6 @@ export function SearchPage() {
     }
   };
 
-  const trimmed = query.trim();
-  const hasQuery = trimmed.length >= 2;
   const count = results?.length ?? 0;
 
   return (
@@ -68,7 +66,7 @@ export function SearchPage() {
       <div className="search-page__bar">
         <SearchIcon size={20} strokeWidth={2.2} aria-hidden="true" />
         <input
-          type="search"
+          type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar por nome ou e-mail…"
@@ -88,15 +86,7 @@ export function SearchPage() {
       </div>
 
       <section className="search-page__results" aria-label="Pessoas">
-        {!hasQuery ? (
-          <div className="search-page__empty">
-            <span className="search-page__empty-mark" aria-hidden="true">
-              <SearchIcon size={26} strokeWidth={2.2} />
-            </span>
-            <h3>Encontre pessoas no Leaf</h3>
-            <p>Digite um nome ou e-mail para começar a conversar.</p>
-          </div>
-        ) : isSearching ? (
+        {isSearching ? (
           <div className="search-page__status">
             <LoadingSpinner message="Buscando pessoas…" />
           </div>

@@ -66,6 +66,20 @@
   line-height: 1.35;
 }
 
+.chat-item__skeleton-bar {
+  display: inline-block;
+  width: 130px;
+  height: 14px;
+  border-radius: 7px;
+  background: #e6e9df;
+  animation: leafSkeleton 1.2s ease-in-out infinite;
+}
+
+@keyframes leafSkeleton {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
 .chat-item__media-preview {
   display: inline-flex;
   align-items: center;

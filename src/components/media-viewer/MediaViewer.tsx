@@ -34,20 +34,38 @@ export function MediaViewer({ open, onClose, url, kind, name }: MediaViewerProps
 
   if (!open) return null;
 
+  // Cloudinary é cross-origin → o atributo `download` é ignorado (abre em aba).
+  // Baixa via fetch + blob + clique programático; fallback abre em nova aba.
+  const handleDownload = async () => {
+    const fallbackName = name || url.split('/').pop()?.split('?')[0] || 'arquivo';
+    try {
+      const res = await fetch(url, { mode: 'cors' });
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = fallbackName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return createPortal(
     <div className="media-viewer" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="media-viewer__bar" onClick={(e) => e.stopPropagation()}>
-        <a
+        <button
+          type="button"
           className="media-viewer__action"
-          href={url}
-          download={name}
-          target="_blank"
-          rel="noopener noreferrer"
+          onClick={handleDownload}
           aria-label="Baixar arquivo"
           title="Baixar"
         >
           <Download size={18} strokeWidth={2.2} />
-        </a>
+        </button>
         <button
           type="button"
           className="media-viewer__action"

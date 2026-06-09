@@ -188,9 +188,10 @@ export function ChatWindowPage() {
   };
 
   // ── Header: nome e avatar do outro participante ───────────────────────────
-  const displayName =
-    otherUser?.display_name || otherUser?.name || otherParticipantId?.slice(0, 8) || 'Conversa';
-  const headerInitial = (displayName.charAt(0) || 'C').toUpperCase();
+  // BUG-7: enquanto o participante carrega, mostra skeleton — nunca UUID/"Conversa".
+  const headerLoading = !otherUser && Boolean(otherParticipantId);
+  const displayName = otherUser?.display_name || otherUser?.name || '';
+  const headerInitial = (displayName.charAt(0) || '').toUpperCase();
   const isOtherOnline = otherUser?.online ?? false;
 
   return (
@@ -213,9 +214,13 @@ export function ChatWindowPage() {
             online={isOtherOnline}
           />
           <div className="chat-window-page__user-meta">
-            <h2 className="chat-window-page__name">{displayName}</h2>
+            <h2 className="chat-window-page__name">
+              {headerLoading ? <span className="chat-window-page__name-skeleton" /> : displayName}
+            </h2>
             <p className="chat-window-page__status">
-              {isOtherOnline
+              {headerLoading
+                ? ''
+                : isOtherOnline
                 ? 'Online agora'
                 : otherUser?.last_seen
                 ? `visto por último ${formatLastSeen(otherUser.last_seen)}`

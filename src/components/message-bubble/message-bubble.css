@@ -126,6 +126,9 @@
   line-height: 1.4;
   white-space: pre-wrap;
   overflow-wrap: break-word;
+  /* balão-imagem tem fundo transparente → legenda fica sobre o fundo da página.
+     Cor explícita theme-aware (antes herdava branco do sender → sumia no claro). */
+  color: var(--leaf-color-text, #1f2520);
 }
 
 .message-bubble__media-btn {

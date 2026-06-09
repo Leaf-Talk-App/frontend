@@ -106,7 +106,9 @@
   text-align: center;
   border: 2px solid var(--leaf-color-border);
   border-radius: 12px;
-  background: white;
+  /* surface theme-aware (antes era 'white' fixo → sumia no card branco do tema
+     claro e destoava no escuro) */
+  background: var(--leaf-color-muted-surface);
   color: var(--leaf-color-text);
   transition: all 0.2s;
 

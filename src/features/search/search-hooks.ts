@@ -26,13 +26,10 @@ export function useUserSearch({ query, enabled = true }: UseUserSearchOptions) {
   return useQuery({
     queryKey: queryKeys.users.search(debouncedQuery),
     queryFn: async () => {
-      if (!accessToken || !debouncedQuery || debouncedQuery.length < 2) {
-        return [];
-      }
-
-      const results = await usersApi.search(debouncedQuery, { token: accessToken });
-      return results;
+      if (!accessToken) return [];
+      // termo vazio → backend retorna todos (limitado). Sem gate de tamanho.
+      return usersApi.search(debouncedQuery, { token: accessToken });
     },
-    enabled: enabled && Boolean(accessToken) && debouncedQuery.length >= 2,
+    enabled: enabled && Boolean(accessToken),
   });
 }

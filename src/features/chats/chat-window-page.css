@@ -74,6 +74,20 @@
   color: #6b7167;
 }
 
+.chat-window-page__name-skeleton {
+  display: inline-block;
+  width: 150px;
+  height: 16px;
+  border-radius: 8px;
+  background: #e6e9df;
+  animation: leafSkeletonHeader 1.2s ease-in-out infinite;
+}
+
+@keyframes leafSkeletonHeader {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
 .chat-window-page__menu {
   display: grid;
   width: 36px;
