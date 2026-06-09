@@ -297,7 +297,7 @@ export function AiAssistantPage() {
           </span>
           <div>
             <h1>Humberto</h1>
-            <p>Seu assistente que conhece a comunidade</p>
+            <p>Seu assistente de IA pessoal</p>
           </div>
         </div>
 

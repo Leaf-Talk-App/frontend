@@ -17,6 +17,7 @@ function translateAuthError(message: string): string {
 
   const errorMap: Record<string, string> = {
     'invalid credentials': 'E-mail ou senha inválidos.',
+    'email_not_verified': 'Confirme seu e-mail para continuar. Verifique sua caixa de entrada.',
     'email already exists': 'Este e-mail já está registrado.',
     'invalid email': 'E-mail inválido.',
     'password too weak': 'Senha muito fraca. Use pelo menos 8 caracteres com maiúsculas, minúsculas e números.',
