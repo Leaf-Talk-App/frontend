@@ -1,6 +1,8 @@
 .chats-page {
   display: grid;
-  grid-template-columns: 340px 1fr;
+  /* lista ocupa mais espaço (estilo WhatsApp/Telegram Web) e o painel direito
+     deixa de dominar a tela */
+  grid-template-columns: minmax(380px, 38%) 1fr;
   height: 100vh;
   background: linear-gradient(180deg, #f4f6ef 0%, #eef1e9 100%);
   color: #1f2520;
@@ -136,9 +138,9 @@
 .chats-page__welcome-card {
   display: grid;
   justify-items: center;
-  gap: 12px;
-  max-width: 420px;
-  padding: 30px 28px 22px;
+  gap: 10px;
+  max-width: 340px;
+  padding: 22px 22px 18px;
   background: #ffffff;
   border: 1px solid #e6e9df;
   border-radius: 24px;
@@ -148,19 +150,19 @@
 
 .chats-page__welcome-mark {
   display: grid;
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   place-items: center;
   background: linear-gradient(135deg, #5d8d22, #87b047);
   color: #ffffff;
-  border-radius: 18px;
+  border-radius: 14px;
   box-shadow: 0 12px 26px rgb(72 119 17 / 22%);
 }
 
 .chats-page__welcome-card h2 {
   margin: 0;
   font-family: var(--leaf-font-heading);
-  font-size: 24px;
+  font-size: 19px;
   font-weight: 700;
   color: #1f2520;
 }

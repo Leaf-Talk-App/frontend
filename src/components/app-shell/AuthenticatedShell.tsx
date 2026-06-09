@@ -14,9 +14,11 @@ import { useWebSocket } from '../../features/chats/useWebSocket';
 import { useChatsQuery } from '../../features/chats/chats-hooks';
 import './authenticated-shell.css';
 
-function useTotalUnread(): number {
+// Badge da sidebar = QUANTAS CONVERSAS têm ao menos 1 não lida (não a soma de
+// mensagens). O contador por mensagem fica no badge de cada item da lista.
+function useUnreadConversationsCount(): number {
   const { data: chats } = useChatsQuery();
-  return (chats ?? []).reduce((sum, c) => sum + (c.unread_count ?? 0), 0);
+  return (chats ?? []).filter((c) => (c.unread_count ?? 0) > 0).length;
 }
 
 // Suporte via WhatsApp do Alan (+55 34 9338-8856). Apenas dígitos, com DDI/DDD.
@@ -99,7 +101,7 @@ export function AuthenticatedShell() {
 
 function DesktopSidebar() {
   const navigate = useNavigate();
-  const totalUnread = useTotalUnread();
+  const unreadChats = useUnreadConversationsCount();
   return (
     <aside className="desktop-sidebar" aria-label="Navegação principal">
       <div className="desktop-sidebar__brand">
@@ -125,7 +127,7 @@ function DesktopSidebar() {
           <NavItem
             key={item.to}
             {...item}
-            badge={item.to === routePaths.chats ? totalUnread : 0}
+            badge={item.to === routePaths.chats ? unreadChats : 0}
           />
         ))}
       </nav>
@@ -139,12 +141,12 @@ function DesktopSidebar() {
 }
 
 function MobileBottomNav() {
-  const totalUnread = useTotalUnread();
+  const unreadChats = useUnreadConversationsCount();
   return (
     <nav className="mobile-bottom-nav" aria-label="Navegação mobile">
       {mobileNavItems.map((item) => {
         const Icon = item.icon;
-        const showBadge = item.to === routePaths.chats && totalUnread > 0;
+        const showBadge = item.to === routePaths.chats && unreadChats > 0;
 
         return (
           <NavLink
@@ -157,7 +159,7 @@ function MobileBottomNav() {
             <span className="mobile-bottom-nav__icon-wrap">
               <Icon size={20} strokeWidth={2} aria-hidden="true" />
               {showBadge ? (
-                <span className="mobile-bottom-nav__badge">{totalUnread > 99 ? '99+' : totalUnread}</span>
+                <span className="mobile-bottom-nav__badge">{unreadChats > 99 ? '99+' : unreadChats}</span>
               ) : null}
             </span>
             <span>{item.label}</span>

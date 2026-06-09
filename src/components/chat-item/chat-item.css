@@ -1,9 +1,9 @@
 .chat-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 12px 14px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 14px;
@@ -38,7 +38,7 @@
 
 .chat-item__name {
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: #232822;
   white-space: nowrap;
@@ -58,7 +58,7 @@
 
 .chat-item__message {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   color: #6b7167;
   white-space: nowrap;
   overflow: hidden;
