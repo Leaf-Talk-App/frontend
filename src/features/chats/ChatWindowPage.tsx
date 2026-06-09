@@ -20,6 +20,7 @@ import {
 import { uploadsApi, messagesApi } from '../../lib/api/endpoints';
 import { queryKeys } from '../../lib/api/query-keys';
 import { parseServerDate } from '../../lib/date';
+import { useCurrentUserQuery } from '../auth/auth-hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth/use-auth';
 import './chat-window-page.css';
@@ -116,6 +117,7 @@ export function ChatWindowPage() {
 
   const sendMutation = useSendMessageMutation();
   const queryClient = useQueryClient();
+  const { data: me } = useCurrentUserQuery();
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [sendingImage, setSendingImage] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -322,6 +324,7 @@ export function ChatWindowPage() {
                   status={item.message.status}
                   edited={item.message.edited}
                   deleted={item.message.deleted}
+                  suppressReadReceipt={me?.show_read_receipts === false}
                 />
               </div>
             ),

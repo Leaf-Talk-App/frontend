@@ -14,6 +14,8 @@ interface MessageBubbleProps {
   status?: MessageStatus;
   edited?: boolean;
   deleted?: boolean;
+  /** quando true, nunca exibe o ✓✓ verde (usuário desativou confirmações) */
+  suppressReadReceipt?: boolean;
 }
 
 function StatusIcon({ status }: { status: MessageStatus }) {
@@ -66,10 +68,14 @@ export function MessageBubble({
   status,
   edited,
   deleted,
+  suppressReadReceipt,
 }: MessageBubbleProps) {
   const senderCls = isSender ? 'message-bubble--sender' : 'message-bubble--receiver';
   const variant = isSender ? 'sender' : 'receiver';
   const [viewerOpen, setViewerOpen] = useState(false);
+  // se o usuário desativou confirmações, o próprio "lida" vira "entregue" na UI
+  const shownStatus: MessageStatus | undefined =
+    suppressReadReceipt && status === 'read' ? 'delivered' : status;
 
   const isImage = type === 'image' && fileUrl && !deleted;
   const isAudio = type === 'audio' && fileUrl && !deleted;
@@ -97,7 +103,7 @@ export function MessageBubble({
             />
           </button>
           {content?.trim() ? <p className="message-bubble__caption">{content}</p> : null}
-          <Footer timestamp={timestamp} status={status} edited={edited} isSender={isSender} />
+          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} />
         </div>
         <MediaViewer open={viewerOpen} onClose={() => setViewerOpen(false)} url={fileUrl} kind="image" />
       </div>
@@ -110,7 +116,7 @@ export function MessageBubble({
       <div className={`message-bubble ${senderCls}`}>
         <div className="message-bubble__body">
           <AudioPlayer src={fileUrl} variant={variant} />
-          <Footer timestamp={timestamp} status={status} edited={edited} isSender={isSender} />
+          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} />
         </div>
       </div>
     );
@@ -145,7 +151,7 @@ export function MessageBubble({
               <span className="message-bubble__file-name">{name}</span>
             </a>
           )}
-          <Footer timestamp={timestamp} status={status} edited={edited} isSender={isSender} />
+          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} />
         </div>
         {pdf && (
           <MediaViewer open={viewerOpen} onClose={() => setViewerOpen(false)} url={fileUrl} kind="pdf" name={name} />
@@ -164,7 +170,7 @@ export function MessageBubble({
           ) : (
             <p className="message-bubble__text">{content}</p>
           )}
-          <Footer timestamp={timestamp} status={status} edited={edited} isSender={isSender} />
+          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} />
         </div>
       </div>
     </div>

@@ -71,6 +71,7 @@ export function ProfilePage() {
   const [bioDraft, setBioDraft] = useState('');
   const [phoneDraft, setPhoneDraft] = useState('');
   const [searchableDraft, setSearchableDraft] = useState(true);
+  const [readReceiptsDraft, setReadReceiptsDraft] = useState(true);
   const [encryptionDraft, setEncryptionDraft] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
@@ -78,6 +79,7 @@ export function ProfilePage() {
   const currentBio = user?.bio || '';
   const currentPhone = user?.phone || '';
   const currentSearchable = user?.searchable ?? true;
+  const currentReadReceipts = user?.show_read_receipts ?? true;
 
   useEffect(() => {
     if (!user || initialized) return;
@@ -86,8 +88,9 @@ export function ProfilePage() {
     setBioDraft(currentBio);
     setPhoneDraft(currentPhone);
     setSearchableDraft(currentSearchable);
+    setReadReceiptsDraft(currentReadReceipts);
     setInitialized(true);
-  }, [currentBio, currentDisplayName, currentPhone, currentSearchable, initialized, user]);
+  }, [currentBio, currentDisplayName, currentPhone, currentSearchable, currentReadReceipts, initialized, user]);
 
   // Limpa o preview assim que a query sincronizar com a URL nova —
   // evita o "pisca" de volta para a foto antiga
@@ -104,15 +107,17 @@ export function ProfilePage() {
       displayNameDraft !== currentDisplayName ||
       bioDraft !== currentBio ||
       phoneDraft !== currentPhone ||
-      searchableDraft !== currentSearchable
+      searchableDraft !== currentSearchable ||
+      readReceiptsDraft !== currentReadReceipts
     );
-  }, [bioDraft, currentBio, currentDisplayName, currentPhone, currentSearchable, displayNameDraft, phoneDraft, searchableDraft]);
+  }, [bioDraft, currentBio, currentDisplayName, currentPhone, currentSearchable, currentReadReceipts, displayNameDraft, phoneDraft, searchableDraft, readReceiptsDraft]);
 
   const handleDiscardDraft = () => {
     setDisplayNameDraft(currentDisplayName);
     setBioDraft(currentBio);
     setPhoneDraft(currentPhone);
     setSearchableDraft(currentSearchable);
+    setReadReceiptsDraft(currentReadReceipts);
     setEncryptionDraft(false);
   };
 
@@ -155,6 +160,7 @@ export function ProfilePage() {
       bio: bioDraft.trim(),
       phone: phoneDraft.trim(),
       searchable: searchableDraft,
+      show_read_receipts: readReceiptsDraft,
     });
   };
 
@@ -316,6 +322,22 @@ export function ProfilePage() {
               role="switch"
               aria-checked={searchableDraft}
               onClick={() => setSearchableDraft((current) => !current)}
+            >
+              <span />
+            </button>
+          </article>
+
+          <article className="toggle-card">
+            <div>
+              <h3>Confirmações de leitura</h3>
+              <p>Permite que outros vejam quando você leu as mensagens.</p>
+            </div>
+            <button
+              type="button"
+              className={`switch ${readReceiptsDraft ? 'switch--on' : ''}`}
+              role="switch"
+              aria-checked={readReceiptsDraft}
+              onClick={() => setReadReceiptsDraft((current) => !current)}
             >
               <span />
             </button>

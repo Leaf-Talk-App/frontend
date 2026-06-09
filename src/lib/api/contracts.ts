@@ -53,6 +53,7 @@ export type LeafUser = {
   phone?: string;
   phone_verified?: boolean;
   searchable?: boolean;
+  show_read_receipts?: boolean;
   online?: boolean;
   last_seen?: string;
   created_at?: string;
@@ -64,6 +65,7 @@ export type UpdateProfileRequest = {
   avatar?: string;
   phone?: string;
   searchable?: boolean;
+  show_read_receipts?: boolean;
 };
 
 export type BlockUserRequest = {
