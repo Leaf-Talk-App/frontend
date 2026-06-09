@@ -19,21 +19,20 @@ import {
 } from './chats-hooks';
 import { uploadsApi, messagesApi } from '../../lib/api/endpoints';
 import { queryKeys } from '../../lib/api/query-keys';
+import { parseServerDate } from '../../lib/date';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth/use-auth';
 import './chat-window-page.css';
 
 function formatTime(value?: string) {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
+  const date = parseServerDate(value);
+  if (!date) return '';
   return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 function formatLastSeen(value?: string) {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
+  const date = parseServerDate(value);
+  if (!date) return '';
   const now = new Date();
   const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   if (date.toDateString() === now.toDateString()) return `hoje às ${time}`;
@@ -44,9 +43,8 @@ function formatLastSeen(value?: string) {
 }
 
 function formatDateDivider(value?: string) {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
+  const date = parseServerDate(value);
+  if (!date) return '';
 
   const today = new Date();
   const yesterday = new Date();
@@ -91,6 +89,8 @@ export function ChatWindowPage() {
   const { chatId } = useParams<{ chatId: string }>();
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLElement>(null);
+  const atBottomRef = useRef(true);
   const { user: currentUser, accessToken } = useAuth();
 
   // ── Dados da conversa ─────────────────────────────────────────────────────
@@ -126,8 +126,12 @@ export function ChatWindowPage() {
   // (o segundo sobrescrevia o primeiro e bagunçava o status online).
 
   // ── Scroll automático ─────────────────────────────────────────────────────
+  // Só rola para o fim se o usuário JÁ estava no fim (não arrasta quem subiu
+  // para ler mensagens antigas). Envio próprio força o fim (handleSendMessage).
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (atBottomRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   // ── Read receipts: marca recebidas como lidas ao abrir / ao chegar novas ──
@@ -166,6 +170,7 @@ export function ChatWindowPage() {
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
 
+    atBottomRef.current = true; // envio próprio sempre rola para o fim
     const receiverId = otherParticipantId ?? '';
 
     try {
@@ -253,7 +258,15 @@ export function ChatWindowPage() {
         </div>
       )}
 
-      <main className="chat-window-page__messages" aria-live="polite">
+      <main
+        ref={messagesContainerRef}
+        className="chat-window-page__messages"
+        aria-live="polite"
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+        }}
+      >
         {/* Carregar mensagens mais antigas */}
         {hasOlderMessages && !messagesLoading && (
           <div className="chat-window-page__load-more">
@@ -484,7 +497,6 @@ function MessageComposer({ recipientName, onSend, onPickFile, onSendAudio, isLoa
         onKeyDown={handleKeyDown}
         placeholder={`Escreva uma mensagem para ${recipientName}…`}
         aria-label="Escreva uma mensagem"
-        disabled={isLoading}
         autoComplete="off"
         spellCheck
         lang="pt-BR"

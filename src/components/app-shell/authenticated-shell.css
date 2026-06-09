@@ -181,3 +181,37 @@
     padding-bottom: 112px;
   }
 }
+
+/* ── Badges de não lidas ───────────────────────────────────────────────── */
+.desktop-sidebar__link { position: relative; }
+.desktop-sidebar__badge {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  background: linear-gradient(90deg, #487711, #7da23f);
+  border-radius: 999px;
+}
+.mobile-bottom-nav__icon-wrap { position: relative; display: inline-grid; place-items: center; }
+.mobile-bottom-nav__badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  background: linear-gradient(90deg, #487711, #7da23f);
+  border-radius: 999px;
+}

@@ -11,7 +11,13 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { routePaths } from '../../routes/paths';
 import { useAuth } from '../../lib/auth/use-auth';
 import { useWebSocket } from '../../features/chats/useWebSocket';
+import { useChatsQuery } from '../../features/chats/chats-hooks';
 import './authenticated-shell.css';
+
+function useTotalUnread(): number {
+  const { data: chats } = useChatsQuery();
+  return (chats ?? []).reduce((sum, c) => sum + (c.unread_count ?? 0), 0);
+}
 
 // Suporte via WhatsApp do Alan (+55 34 9338-8856). Apenas dígitos, com DDI/DDD.
 const ALAN_WHATSAPP = '553493388856';
@@ -93,6 +99,7 @@ export function AuthenticatedShell() {
 
 function DesktopSidebar() {
   const navigate = useNavigate();
+  const totalUnread = useTotalUnread();
   return (
     <aside className="desktop-sidebar" aria-label="Navegação principal">
       <div className="desktop-sidebar__brand">
@@ -115,7 +122,11 @@ function DesktopSidebar() {
 
       <nav className="desktop-sidebar__nav" aria-label="Área de trabalho">
         {primaryNavItems.map((item) => (
-          <NavItem key={item.to} {...item} />
+          <NavItem
+            key={item.to}
+            {...item}
+            badge={item.to === routePaths.chats ? totalUnread : 0}
+          />
         ))}
       </nav>
 
@@ -128,10 +139,12 @@ function DesktopSidebar() {
 }
 
 function MobileBottomNav() {
+  const totalUnread = useTotalUnread();
   return (
     <nav className="mobile-bottom-nav" aria-label="Navegação mobile">
       {mobileNavItems.map((item) => {
         const Icon = item.icon;
+        const showBadge = item.to === routePaths.chats && totalUnread > 0;
 
         return (
           <NavLink
@@ -141,7 +154,12 @@ function MobileBottomNav() {
               `mobile-bottom-nav__link${isActive ? ' mobile-bottom-nav__link--active' : ''}`
             }
           >
-            <Icon size={20} strokeWidth={2} aria-hidden="true" />
+            <span className="mobile-bottom-nav__icon-wrap">
+              <Icon size={20} strokeWidth={2} aria-hidden="true" />
+              {showBadge ? (
+                <span className="mobile-bottom-nav__badge">{totalUnread > 99 ? '99+' : totalUnread}</span>
+              ) : null}
+            </span>
             <span>{item.label}</span>
           </NavLink>
         );
@@ -150,7 +168,12 @@ function MobileBottomNav() {
   );
 }
 
-function NavItem({ label, to, icon: Icon }: (typeof primaryNavItems)[number]) {
+function NavItem({
+  label,
+  to,
+  icon: Icon,
+  badge = 0,
+}: (typeof primaryNavItems)[number] & { badge?: number }) {
   return (
     <NavLink
       to={to}
@@ -160,6 +183,9 @@ function NavItem({ label, to, icon: Icon }: (typeof primaryNavItems)[number]) {
     >
       <Icon size={20} strokeWidth={2} aria-hidden="true" />
       <span>{label}</span>
+      {badge > 0 ? (
+        <span className="desktop-sidebar__badge">{badge > 99 ? '99+' : badge}</span>
+      ) : null}
     </NavLink>
   );
 }

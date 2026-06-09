@@ -1,6 +1,7 @@
 import { FileText, Image as ImageIcon, Mic, Video } from 'lucide-react';
 import { Avatar } from '../avatar/Avatar';
 import './chat-item.css';
+import { parseServerDate } from '../../lib/date';
 import type { LeafChatSummary, LeafUser } from '../../lib/api/contracts';
 
 // Indicador de mídia (ícone outline + texto) quando a última mensagem não tem texto.
@@ -39,10 +40,8 @@ interface ChatItemProps {
 }
 
 function formatTimestamp(dateString?: string): string {
-  if (!dateString) return '';
-
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return '';
+  const date = parseServerDate(dateString);
+  if (!date) return '';
 
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
