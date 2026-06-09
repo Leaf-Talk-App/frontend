@@ -185,24 +185,29 @@
 
 .message-composer {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
   padding: 8px 10px;
   background: #ffffff;
   border: 1px solid #e6e9df;
-  border-radius: 999px;
+  border-radius: 22px;
   box-shadow: 0 10px 24px rgb(79 95 57 / 8%);
 }
 
 .message-composer__input {
   flex: 1;
-  height: 38px;
-  padding: 0 8px;
+  min-height: 38px;
+  max-height: 120px;
+  padding: 9px 8px;
   background: transparent;
   border: 0;
   outline: 0;
   color: #1f2520;
   font-size: 14px;
+  font-family: inherit;
+  line-height: 1.4;
+  resize: none;
+  overflow-y: auto;
 }
 
 .message-composer__input::placeholder {

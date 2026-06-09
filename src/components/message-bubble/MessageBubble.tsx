@@ -96,6 +96,7 @@ export function MessageBubble({
               }}
             />
           </button>
+          {content?.trim() ? <p className="message-bubble__caption">{content}</p> : null}
           <Footer timestamp={timestamp} status={status} edited={edited} isSender={isSender} />
         </div>
         <MediaViewer open={viewerOpen} onClose={() => setViewerOpen(false)} url={fileUrl} kind="image" />

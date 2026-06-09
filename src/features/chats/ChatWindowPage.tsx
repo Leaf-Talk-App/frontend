@@ -386,7 +386,7 @@ function MessageComposer({ recipientName, onSend, onPickFile, onSendAudio, isLoa
   const [showEmoji, setShowEmoji] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const emojiWrapRef = useRef<HTMLDivElement>(null);
   const { state: recState, duration, start: startRec, stop: stopRec, cancel: cancelRec } = useAudioRecorder();
 
@@ -396,15 +396,18 @@ function MessageComposer({ recipientName, onSend, onPickFile, onSendAudio, isLoa
     if (!trimmed || isLoading) return;
     onSend(trimmed);
     setMessage('');
+    inputRef.current?.focus(); // mantém o foco no campo após enviar
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter envia; Shift+Enter quebra linha (comportamento padrão do textarea)
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       const trimmed = message.trim();
       if (!trimmed || isLoading) return;
       onSend(trimmed);
       setMessage('');
+      inputRef.current?.focus();
     }
   };
 
@@ -472,9 +475,9 @@ function MessageComposer({ recipientName, onSend, onPickFile, onSendAudio, isLoa
         />
       )}
 
-      <input
+      <textarea
         ref={inputRef}
-        type="text"
+        rows={1}
         className="message-composer__input"
         value={message}
         onChange={(event) => setMessage(event.target.value)}
@@ -483,6 +486,8 @@ function MessageComposer({ recipientName, onSend, onPickFile, onSendAudio, isLoa
         aria-label="Escreva uma mensagem"
         disabled={isLoading}
         autoComplete="off"
+        spellCheck
+        lang="pt-BR"
       />
 
       {/* Emoji picker */}

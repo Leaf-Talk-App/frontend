@@ -170,7 +170,7 @@
   display: grid;
   min-height: 100vh;
   place-items: center end;
-  padding: 120px 96px 96px 56vw;
+  padding: 84px 96px 64px 56vw;
   pointer-events: none;
 }
 
@@ -182,8 +182,7 @@
   position: relative;
   z-index: 2;
   width: min(448px, 100%);
-  min-height: 720px;
-  padding: 40px;
+  padding: 32px;
   color: var(--leaf-color-text);
   background: var(--leaf-color-surface);
   border: 1px solid rgb(69 92 42 / 5%);
@@ -201,7 +200,7 @@
 }
 
 .login-card__heading {
-  margin-bottom: 40px;
+  margin-bottom: 22px;
   text-align: center;
 }
 
@@ -220,7 +219,7 @@
 
 .login-card__fields {
   display: grid;
-  gap: 24px;
+  gap: 18px;
 }
 
 .auth-field {
@@ -343,7 +342,7 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 16px;
-  margin: 40px 0;
+  margin: 22px 0;
   color: var(--leaf-color-text-muted);
   font-size: 13px;
 }
@@ -369,7 +368,7 @@
 }
 
 .login-card__signup {
-  margin: 44px 0 0;
+  margin: 22px 0 0;
   color: var(--leaf-color-text-muted);
   text-align: center;
 }
@@ -380,10 +379,16 @@
   text-decoration: none;
 }
 
+/* esconde o ícone nativo de revelar senha (Edge/IE) — mantém só o olho do Leaf */
+.auth-field__password-control input::-ms-reveal,
+.auth-field__password-control input::-ms-clear {
+  display: none;
+}
+
 .login-page__footer {
-  position: absolute;
+  position: fixed;
   right: 32px;
-  bottom: 28px;
+  bottom: 20px;
   left: 32px;
   display: flex;
   align-items: center;

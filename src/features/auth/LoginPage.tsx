@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, HelpCircle, Moon, Search, Sprout, Sun } from 'lucide-react';
+import { Eye, HelpCircle, Moon, Sprout, Sun } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTheme } from '../../hooks/useTheme';
@@ -121,17 +121,7 @@ export function LoginPage() {
           <span>Leaf</span>
         </Link>
 
-        <nav className="login-page__desktop-nav" aria-label="Navegação pública">
-          <span>Ecossistema</span>
-          <span>Comunidade</span>
-        </nav>
-
         <div className="login-page__top-actions">
-          <label className="login-page__search">
-            <Search size={18} strokeWidth={2} aria-hidden="true" />
-            <span className="sr-only">Buscar</span>
-            <input type="search" placeholder="Buscar no Leaf…" />
-          </label>
           <button
             className="login-page__icon-button"
             type="button"
@@ -140,9 +130,15 @@ export function LoginPage() {
           >
             {isDark ? <Sun size={21} strokeWidth={2.2} /> : <Moon size={21} strokeWidth={2.2} />}
           </button>
-          <button className="login-page__icon-button" type="button" aria-label="Ajuda">
+          <a
+            className="login-page__icon-button"
+            href="https://wa.me/5534933888856"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Ajuda no WhatsApp"
+          >
             <HelpCircle size={21} strokeWidth={2.2} />
-          </button>
+          </a>
         </div>
       </header>
 

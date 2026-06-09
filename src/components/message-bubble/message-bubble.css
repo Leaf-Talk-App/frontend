@@ -2,6 +2,10 @@
    Só controla alinhamento (esquerda/direita). NÃO tem flex column.        */
 .message-bubble {
   display: flex;
+  /* preenche a row (.chat-window-page__row). Sem isto vira flex-item que
+     encolhe ao conteúdo e o max-width:78% do corpo fica minúsculo → texto
+     quebrava letra a letra ("Sal/ve"). */
+  width: 100%;
   animation: bubbleIn 0.15s ease-out;
 }
 
@@ -113,6 +117,15 @@
 
 .message-bubble--image.message-bubble--sender .message-bubble__body {
   box-shadow: 0 4px 12px rgb(107 146 58 / 20%);
+}
+
+.message-bubble__caption {
+  margin: 0;
+  padding: 6px 10px 0;
+  font-size: 15px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .message-bubble__media-btn {
