@@ -1,5 +1,6 @@
 import { ArrowLeft, Camera, Image, Mic, MicOff, Search, Send, Smile, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ChatHeaderMenuHandle } from './ChatHeaderMenu';
 import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -122,6 +123,7 @@ export function ChatWindowPage() {
   const [sendingImage, setSendingImage] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const chatMenuRef = useRef<ChatHeaderMenuHandle>(null);
 
   // O WebSocket agora é único e global (AuthenticatedShell → GlobalPresence),
   // então não abrimos outra conexão aqui — evita 2 sockets para o mesmo user
@@ -171,6 +173,8 @@ export function ChatWindowPage() {
   // NÃO bloqueia mais por !currentChat — usa otherParticipantId diretamente
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
+    // Não envia se o ID do destinatário ainda não foi resolvido (evita receiver_id vazio)
+    if (!otherParticipantId) return;
 
     atBottomRef.current = true; // envio próprio sempre rola para o fim
     const receiverId = otherParticipantId ?? '';
@@ -206,7 +210,14 @@ export function ChatWindowPage() {
           <ArrowLeft size={20} strokeWidth={2.2} />
         </button>
 
-        <div className="chat-window-page__user-info">
+        <div
+          className="chat-window-page__user-info chat-window-page__user-info--clickable"
+          onClick={() => chatMenuRef.current?.openContact()}
+          onKeyDown={(e) => e.key === 'Enter' && chatMenuRef.current?.openContact()}
+          role="button"
+          tabIndex={0}
+          aria-label={`Ver perfil de ${displayName}`}
+        >
           <Avatar
             src={otherUser?.avatar}
             initials={headerInitial}
@@ -232,6 +243,7 @@ export function ChatWindowPage() {
         </div>
 
         <ChatHeaderMenu
+          ref={chatMenuRef}
           chatId={chatId}
           otherUser={otherUser}
           otherUserId={otherParticipantId}

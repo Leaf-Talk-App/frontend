@@ -195,6 +195,55 @@
   color: var(--leaf-color-text-muted, #6b7280);
 }
 
+/* ── Status online no modal de contato ──────────────────────────────────── */
+.chat-modal__online-status {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--leaf-color-text-muted, #6b7280);
+}
+
+.chat-modal__online-status:first-letter {
+  /* the ● prefix uses leaf-color-primary when online */
+}
+
+/* ── Ações no rodapé do modal ────────────────────────────────────────────── */
+.chat-modal__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--leaf-color-hairline, rgb(69 92 42 / 12%));
+}
+
+.chat-modal__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--leaf-radius-sm, 8px);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.chat-modal__btn--danger {
+  background: rgb(192 57 43 / 8%);
+  border-color: rgb(192 57 43 / 22%);
+  color: #c0392b;
+}
+
+.chat-modal__btn--danger:hover:not(:disabled) {
+  background: rgb(192 57 43 / 16%);
+}
+
+.chat-modal__btn--danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 /* ── Barra de busca na conversa ───────────────────────────────────────────── */
 .chat-window-page__search {
   display: flex;

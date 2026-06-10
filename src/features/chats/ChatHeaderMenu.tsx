@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Ban,
@@ -32,18 +32,36 @@ interface ChatHeaderMenuProps {
   onOpenSearch: () => void;
 }
 
+export interface ChatHeaderMenuHandle {
+  openContact: () => void;
+}
+
 const URL_RE = /(https?:\/\/[^\s]+)/i;
 
 type ModalKind = 'contact' | 'media' | null;
 
-export function ChatHeaderMenu({
+function formatLastSeenLocal(value?: string): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return '';
+  const now = new Date();
+  const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  if (date.toDateString() === now.toDateString()) return `hoje às ${time}`;
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return `ontem às ${time}`;
+  return `${date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${time}`;
+}
+
+export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuProps>(
+  function ChatHeaderMenu({
   chatId,
   otherUser,
   otherUserId,
   muted,
   messages,
   onOpenSearch,
-}: ChatHeaderMenuProps) {
+}: ChatHeaderMenuProps, ref) {
   const { accessToken } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -51,6 +69,10 @@ export function ChatHeaderMenu({
   const [showMore, setShowMore] = useState(false);
   const [modal, setModal] = useState<ModalKind>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    openContact: () => setModal('contact'),
+  }));
 
   // recolhe o submenu "Mais" sempre que o dropdown fecha
   useEffect(() => {
@@ -116,6 +138,7 @@ export function ChatHeaderMenu({
 
   const handleBlock = () => {
     setOpen(false);
+    setModal(null);
     if (window.confirm(`Bloquear ${name}? A conversa será removida da sua lista.`)) {
       blockMutation.mutate();
     }
@@ -197,11 +220,21 @@ export function ChatHeaderMenu({
                 <X size={20} strokeWidth={2.2} />
               </button>
               <div className="chat-modal__contact-head">
-                <Avatar src={otherUser?.avatar} initials={initials} size="lg" />
+                <Avatar src={otherUser?.avatar} initials={initials} size="lg" online={otherUser?.online} />
                 <h3 className="chat-modal__name">{name}</h3>
                 {otherUser?.username ? <p className="chat-modal__handle">@{otherUser.username}</p> : null}
+                <p className="chat-modal__online-status">
+                  {otherUser?.online
+                    ? '● Online agora'
+                    : otherUser?.last_seen
+                    ? `Visto por último ${formatLastSeenLocal(otherUser.last_seen)}`
+                    : 'Offline'}
+                </p>
               </div>
               <dl className="chat-modal__fields">
+                {otherUser?.bio ? (
+                  <div><dt>Bio</dt><dd>{otherUser.bio}</dd></div>
+                ) : null}
                 {otherUser?.email ? (
                   <div><dt>E-mail</dt><dd>{otherUser.email}</dd></div>
                 ) : null}
@@ -211,10 +244,19 @@ export function ChatHeaderMenu({
                     <dd>{otherUser.phone}{otherUser.phone_verified ? ' ✓' : ''}</dd>
                   </div>
                 ) : null}
-                {otherUser?.bio ? (
-                  <div><dt>Bio</dt><dd>{otherUser.bio}</dd></div>
-                ) : null}
               </dl>
+              {otherUserId && (
+                <div className="chat-modal__actions">
+                  <button
+                    className="chat-modal__btn chat-modal__btn--danger"
+                    onClick={() => { setModal(null); handleBlock(); }}
+                    disabled={blockMutation.isPending}
+                  >
+                    <Ban size={15} strokeWidth={2} />
+                    Bloquear contato
+                  </button>
+                </div>
+              )}
             </div>
           </div>,
           document.body,
@@ -279,4 +321,4 @@ export function ChatHeaderMenu({
         )}
     </div>
   );
-}
+});

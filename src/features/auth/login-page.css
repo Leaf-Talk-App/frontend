@@ -387,16 +387,17 @@
 
 .login-page__footer {
   position: fixed;
-  right: 32px;
-  bottom: 20px;
-  left: 32px;
-  z-index: 1; /* abaixo do card (z-index:2) — nunca sobrepõe */
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  z-index: 0; /* abaixo do card (z-index:2) e painel (z-index:2) — nunca sobrepõe */
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
   color: var(--leaf-color-primary-dark);
   font-style: italic;
+  text-align: center;
   pointer-events: none; /* não bloqueia cliques no card */
 }
 

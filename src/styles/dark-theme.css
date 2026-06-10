@@ -154,6 +154,16 @@ html { transition: background-color 280ms ease, color 200ms ease; }
 [data-theme='dark'] .chat-item__time { color: #5e6857; }
 [data-theme='dark'] .chat-item__message { color: #8f9b85; }
 
+/* Destaque de não lidas no dark mode — sutil mas perceptível (antes sem regra → sumia) */
+[data-theme='dark'] .chat-item--unread { background: #192214; }
+[data-theme='dark'] .chat-item--unread:hover { background: #1f2a19; }
+[data-theme='dark'] .chat-item--unread .chat-item__name { color: #edf3e2; }
+[data-theme='dark'] .chat-item--unread .chat-item__message {
+  color: #b8c8a4;
+  font-weight: 600;
+}
+[data-theme='dark'] .chat-item--unread .chat-item__time { color: #8ebb48; }
+
 /* ===================== JANELA DE CONVERSA ===================== */
 [data-theme='dark'] .chat-window-page {
   background: linear-gradient(180deg, #0e1310 0%, #0b100a 100%);

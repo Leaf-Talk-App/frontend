@@ -48,6 +48,15 @@ export function ChatsPage() {
     return map;
   }, [userQueries, participantIds]);
 
+  // IDs cujas queries falharam (usuário deletado / inválido → mostra "Usuário removido")
+  const failedUserIds = useMemo(() => {
+    const s = new Set<string>();
+    userQueries.forEach((q, i) => {
+      if (q.isError) s.add(participantIds[i]);
+    });
+    return s;
+  }, [userQueries, participantIds]);
+
   // Filtro por nome OU por prévia da última mensagem
   const filteredChats = useMemo(() => {
     if (!chats) return [];
@@ -123,11 +132,13 @@ export function ChatsPage() {
             {filteredChats.map((chat) => {
               const otherId = chat.participants?.find((id) => id !== currentUser?.id);
               const otherUser = otherId ? usersMap[otherId] : undefined;
+              const userNotFound = otherId ? failedUserIds.has(otherId) : false;
               return (
                 <li key={chat._id}>
                   <ChatItem
                     chat={chat}
                     otherUser={otherUser}
+                    userNotFound={userNotFound}
                     onClick={() => navigate(`/chats/${chat._id}`)}
                   />
                 </li>

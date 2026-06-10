@@ -2,7 +2,10 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  /* Usar height (não min-height) + overflow:hidden evita scroll indesejado na página.
+     O conteúdo interno tem overflow-y:auto para rolar em viewports muito pequenas. */
+  height: 100vh;
+  overflow: hidden;
   background:
     radial-gradient(circle at 84% 24%, rgb(206 226 200 / 58%), transparent 24%),
     linear-gradient(90deg, var(--leaf-color-neutral) 0%, #fbfcf7 50%, #eff1e9 100%);
@@ -42,6 +45,9 @@
   align-items: center;
   justify-content: center;
   padding: 32px;
+  /* Scroll dentro do conteúdo em viewports muito pequenas; sem scroll na página. */
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .verify-email-card {

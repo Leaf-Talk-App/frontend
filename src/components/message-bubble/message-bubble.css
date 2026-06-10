@@ -183,6 +183,14 @@
 .message-bubble--image .message-bubble__footer {
   padding: 4px 8px 6px;
   justify-content: flex-end;
+  /* Bolha-imagem tem fundo transparente → timestamp herdaria #fff do sender e
+     ficaria invisível no modo claro. Cor explícita, theme-aware, corrige. */
+  color: var(--leaf-color-text-muted, #6b7167);
+}
+
+/* Legenda da imagem: garante cor legível mesmo dentro do sender bubble (fundo transparente) */
+.message-bubble--image .message-bubble__caption {
+  color: var(--leaf-color-text, #1f2520);
 }
 
 /* ── Áudio ────────────────────────────────────────────────────────────────── */

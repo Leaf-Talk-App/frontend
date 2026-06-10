@@ -50,6 +50,24 @@
   min-width: 0;
 }
 
+/* Torna a área de info do contato clicável (abre modal de perfil) */
+.chat-window-page__user-info--clickable {
+  cursor: pointer;
+  border-radius: var(--leaf-radius-sm, 8px);
+  padding: 4px 6px;
+  margin: -4px -6px;
+  transition: background 0.15s ease;
+}
+
+.chat-window-page__user-info--clickable:hover {
+  background: rgb(69 92 42 / 6%);
+}
+
+.chat-window-page__user-info--clickable:focus-visible {
+  outline: 2px solid var(--leaf-color-primary, #7fa245);
+  outline-offset: 2px;
+}
+
 .chat-window-page__user-meta {
   display: grid;
   gap: 2px;

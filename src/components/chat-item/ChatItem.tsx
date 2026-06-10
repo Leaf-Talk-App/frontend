@@ -36,6 +36,8 @@ interface ChatItemProps {
   chat: LeafChatSummary;
   otherUser?: LeafUser;
   isSelected?: boolean;
+  /** true quando a query do participante falhou (usuário deletado / ID inválido) */
+  userNotFound?: boolean;
   onClick?: () => void;
 }
 
@@ -64,10 +66,14 @@ export function ChatItem({
   chat,
   otherUser,
   isSelected = false,
+  userNotFound = false,
   onClick,
 }: ChatItemProps) {
-  const loading = !otherUser; // dados do participante ainda carregando
-  const displayName = otherUser?.display_name || otherUser?.name || '';
+  // loading: dados ainda carregando (não mostra skeleton quando já sabemos que falhou)
+  const loading = !otherUser && !userNotFound;
+  const displayName = userNotFound
+    ? 'Usuário removido'
+    : otherUser?.display_name || otherUser?.name || '';
   const avatar = otherUser?.avatar;
   const initials = displayName
     .split(' ')
