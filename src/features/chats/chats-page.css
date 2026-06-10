@@ -1,8 +1,8 @@
 .chats-page {
   display: grid;
-  /* WhatsApp/Telegram: lista ~30% e chat ~70%.
-     min de 260px para não comprimir demais em notebooks. */
-  grid-template-columns: minmax(260px, 30%) 1fr;
+  /* WhatsApp/Telegram: lista ~32% e chat ~68%.
+     min de 320px para os nomes dos contatos não ficarem espremidos/cortados. */
+  grid-template-columns: minmax(320px, 32%) 1fr;
   height: 100vh;
   background: linear-gradient(180deg, #f4f6ef 0%, #eef1e9 100%);
   color: #1f2520;
@@ -185,7 +185,7 @@
 
 @media (max-width: 1024px) {
   .chats-page {
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: 300px 1fr;
   }
 }
 

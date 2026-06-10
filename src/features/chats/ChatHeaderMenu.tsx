@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Images,
   Info,
+  MessageSquare,
   MoreHorizontal,
   MoreVertical,
   Search,
@@ -223,9 +224,9 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
                 <Avatar src={otherUser?.avatar} initials={initials} size="lg" online={otherUser?.online} />
                 <h3 className="chat-modal__name">{name}</h3>
                 {otherUser?.username ? <p className="chat-modal__handle">@{otherUser.username}</p> : null}
-                <p className="chat-modal__online-status">
+                <p className={`chat-modal__online-status${otherUser?.online ? ' chat-modal__online-status--on' : ''}`}>
                   {otherUser?.online
-                    ? '● Online agora'
+                    ? 'Online agora'
                     : otherUser?.last_seen
                     ? `Visto por último ${formatLastSeenLocal(otherUser.last_seen)}`
                     : 'Offline'}
@@ -245,18 +246,39 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
                   </div>
                 ) : null}
               </dl>
-              {otherUserId && (
-                <div className="chat-modal__actions">
+              <button
+                className="chat-modal__media-link"
+                onClick={() => setModal('media')}
+                type="button"
+              >
+                <span><Images size={16} strokeWidth={2} /> Mídia, links e docs</span>
+                <span className="chat-modal__media-counts">
+                  {images.length + docs.length + links.length}
+                  <ChevronRight size={15} strokeWidth={2} />
+                </span>
+              </button>
+
+              <div className="chat-modal__actions">
+                <button
+                  className="chat-modal__btn chat-modal__btn--primary"
+                  onClick={() => setModal(null)}
+                  type="button"
+                >
+                  <MessageSquare size={15} strokeWidth={2} />
+                  Enviar mensagem
+                </button>
+                {otherUserId && (
                   <button
                     className="chat-modal__btn chat-modal__btn--danger"
                     onClick={() => { setModal(null); handleBlock(); }}
                     disabled={blockMutation.isPending}
+                    type="button"
                   >
                     <Ban size={15} strokeWidth={2} />
-                    Bloquear contato
+                    Bloquear
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>,
           document.body,

@@ -15,10 +15,21 @@ export function VerifyEmailPage() {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [verified, setVerified] = useState(false);
+  // Cooldown de reenvio: começa em 60s (o código já foi enviado no cadastro).
+  const [resendCooldown, setResendCooldown] = useState(60);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
   const verifyMutation = useVerifyEmailMutation();
   const resendMutation = useResendCodeMutation();
+
+  // Countdown de 1s — para de decrementar ao chegar a 0.
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = window.setInterval(() => {
+      setResendCooldown((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [resendCooldown]);
 
   // After a successful verification, hold the success screen, then redirect.
   useEffect(() => {
@@ -99,13 +110,17 @@ export function VerifyEmailPage() {
   }
 
   function handleResendCode() {
+    if (resendCooldown > 0) return;
     const email = localStorage.getItem('pending_email');
     if (!email) {
       setError('E-mail não encontrado. Faça o cadastro novamente.');
       return;
     }
     resendMutation.mutate(email);
+    setResendCooldown(60); // reinicia o timer ao reenviar
   }
+
+  const cooldownLabel = `${Math.floor(resendCooldown / 60)}:${String(resendCooldown % 60).padStart(2, '0')}`;
 
   return (
     <main className="verify-email-page" aria-labelledby="verify-title">
@@ -186,17 +201,23 @@ export function VerifyEmailPage() {
             </Button>
 
             <div className="verify-email-card__actions">
-              <p>
-                Não recebeu o código?{' '}
-                <button
-                  type="button"
-                  className="verify-email-card__link"
-                  onClick={handleResendCode}
-                  disabled={resendMutation.isPending}
-                >
-                  Reenviar
-                </button>
-              </p>
+              {resendCooldown > 0 ? (
+                <p>
+                  Reenviar código em <strong>{cooldownLabel}</strong>
+                </p>
+              ) : (
+                <p>
+                  Não recebeu o código?{' '}
+                  <button
+                    type="button"
+                    className="verify-email-card__link"
+                    onClick={handleResendCode}
+                    disabled={resendMutation.isPending}
+                  >
+                    {resendMutation.isPending ? 'Reenviando…' : 'Reenviar'}
+                  </button>
+                </p>
+              )}
             </div>
 
             <p className="verify-email-card__back">

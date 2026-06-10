@@ -203,8 +203,13 @@
   color: var(--leaf-color-text-muted, #6b7280);
 }
 
-.chat-modal__online-status:first-letter {
-  /* the ● prefix uses leaf-color-primary when online */
+.chat-modal__online-status--on {
+  color: var(--leaf-color-primary-dark, #4b760f);
+}
+
+.chat-modal__online-status--on::before {
+  content: '● ';
+  color: var(--leaf-color-primary, #7fa245);
 }
 
 /* ── Ações no rodapé do modal ────────────────────────────────────────────── */
@@ -229,6 +234,20 @@
   transition: background 0.15s ease;
 }
 
+.chat-modal__btn {
+  flex: 1;
+  justify-content: center;
+}
+
+.chat-modal__btn--primary {
+  background: linear-gradient(90deg, var(--leaf-color-primary-dark, #4b760f), var(--leaf-color-primary, #7fa245));
+  color: #fff;
+}
+
+.chat-modal__btn--primary:hover {
+  opacity: 0.92;
+}
+
 .chat-modal__btn--danger {
   background: rgb(192 57 43 / 8%);
   border-color: rgb(192 57 43 / 22%);
@@ -242,6 +261,38 @@
 .chat-modal__btn--danger:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+/* Linha "Mídia, links e docs" dentro do modal de contato */
+.chat-modal__media-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--leaf-color-hairline, rgb(69 92 42 / 12%));
+  border-radius: var(--leaf-radius-sm, 8px);
+  background: var(--leaf-color-muted-surface, rgb(69 92 42 / 5%));
+  color: var(--leaf-color-text, #1f2520);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.chat-modal__media-link:hover {
+  background: var(--leaf-color-secondary, rgb(69 92 42 / 10%));
+}
+
+.chat-modal__media-link > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-modal__media-counts {
+  color: var(--leaf-color-text-muted, #6b7280);
 }
 
 /* ── Barra de busca na conversa ───────────────────────────────────────────── */

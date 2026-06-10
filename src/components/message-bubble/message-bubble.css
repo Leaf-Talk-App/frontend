@@ -105,13 +105,12 @@
 
 /* ── Imagem ──────────────────────────────────────────────────────────────────
    Bolha sem padding lateral; imagem preenche a bolha arredondada.         */
+/* O balão de imagem MANTÉM o fundo do balão (branco no recebido, verde no
+   enviado) — antes era transparent e a legenda/imagem se confundiam com o
+   fundo do chat no light mode. Padding pequeno cria a moldura ao redor. */
 .message-bubble--image .message-bubble__body {
-  padding: 0;
+  padding: 3px;
   overflow: hidden;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  /* a bolha acompanha a imagem (que já tem o seu próprio limite) */
   max-width: min(340px, 75vw);
 }
 
@@ -121,14 +120,20 @@
 
 .message-bubble__caption {
   margin: 0;
-  padding: 6px 10px 0;
+  padding: 6px 9px 2px;
   font-size: 15px;
   line-height: 1.4;
   white-space: pre-wrap;
   overflow-wrap: break-word;
-  /* balão-imagem tem fundo transparente → legenda fica sobre o fundo da página.
-     Cor explícita theme-aware (antes herdava branco do sender → sumia no claro). */
+}
+
+/* Legenda: cor segue o lado do balão (escuro no recebido, branco no enviado) */
+.message-bubble--image.message-bubble--receiver .message-bubble__caption {
   color: var(--leaf-color-text, #1f2520);
+}
+
+.message-bubble--image.message-bubble--sender .message-bubble__caption {
+  color: #ffffff;
 }
 
 .message-bubble__media-btn {
@@ -143,14 +148,13 @@
 .message-bubble__image {
   display: block;
   /* width/height auto → a imagem mantém a proporção NATURAL e nunca corta.
-     landscape fica landscape, portrait fica portrait, limitada pelo box.
-     (object-fit é proposital­mente omitido: seria no-op com auto/auto e só
-     causaria corte se houvesse caixa de tamanho fixo). */
+     landscape fica landscape, portrait fica portrait, limitada pelo box. */
   width: auto;
   height: auto;
-  max-width: min(340px, 75vw);
+  max-width: 100%;
   max-height: 460px;
-  border-radius: 14px;
+  /* raio levemente menor que o do balão (18px) para encaixar dentro da moldura */
+  border-radius: 15px;
   cursor: zoom-in;
 }
 
@@ -181,16 +185,9 @@
 }
 
 .message-bubble--image .message-bubble__footer {
-  padding: 4px 8px 6px;
+  padding: 2px 8px 4px;
   justify-content: flex-end;
-  /* Bolha-imagem tem fundo transparente → timestamp herdaria #fff do sender e
-     ficaria invisível no modo claro. Cor explícita, theme-aware, corrige. */
-  color: var(--leaf-color-text-muted, #6b7167);
-}
-
-/* Legenda da imagem: garante cor legível mesmo dentro do sender bubble (fundo transparente) */
-.message-bubble--image .message-bubble__caption {
-  color: var(--leaf-color-text, #1f2520);
+  /* footer herda a cor por lado (--sender branco / --receiver cinza) das regras base */
 }
 
 /* ── Áudio ────────────────────────────────────────────────────────────────── */
