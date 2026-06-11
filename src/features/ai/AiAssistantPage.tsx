@@ -3,6 +3,8 @@ import {
   Check,
   CircleDashed,
   Lightbulb,
+  Mic,
+  MicOff,
   Plus,
   Send,
   Sparkles,
@@ -14,6 +16,7 @@ import { ImagePreviewModal } from '../../components/image-preview-modal/ImagePre
 import { CameraCaptureModal } from '../../components/camera-capture-modal/CameraCaptureModal';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../lib/auth/use-auth';
+import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { uploadsApi } from '../../lib/api/endpoints';
 import { useAiChatMutation, useAiHistoryQuery, useClearAiHistoryMutation } from './ai-hooks';
 import type { AiHistoryMessage } from '../../lib/api/contracts';
@@ -150,6 +153,7 @@ export function AiAssistantPage() {
   const [uploading, setUploading] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const composerRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -233,6 +237,27 @@ export function AiAssistantPage() {
     // mantém o foco no campo após enviar (input não é mais desabilitado)
     composerRef.current?.focus();
   };
+
+  // Ditado por voz — diferencial de acessibilidade: fala → transcreve → envia.
+  // (Claude não recebe áudio; transcrevemos no navegador e mandamos o texto.)
+  const speech = useSpeechRecognition({
+    lang: 'pt-BR',
+    onInterim: (text) => setInput(text), // mostra a transcrição ao vivo no campo
+    onFinal: (text) => {
+      setInput('');
+      setVoiceError(null);
+      sendPrompt(text); // envia automaticamente ao parar de falar
+    },
+    onError: (err) => {
+      setVoiceError(
+        err === 'not-allowed' || err === 'service-not-allowed'
+          ? 'Permita o microfone no navegador para falar com o Humberto.'
+          : err === 'no-speech'
+          ? 'Não entendi — tente falar de novo.'
+          : 'Não foi possível usar o microfone agora.',
+      );
+    },
+  });
 
   const handleNewConversation = () => {
     // Limpa o histórico persistido (POST /ai/history/clear) e reinicia o thread.
@@ -469,10 +494,35 @@ export function AiAssistantPage() {
             type="text"
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder="Escreva uma mensagem ou comando…"
+            placeholder={
+              speech.state === 'listening'
+                ? 'Ouvindo… fale agora'
+                : 'Escreva uma mensagem ou comando…'
+            }
             className="ai-composer__input"
             aria-label="Mensagem para o Humberto"
           />
+
+          {/* Falar com o Humberto — ditado por voz (acessibilidade) */}
+          {speech.supported && (
+            <button
+              type="button"
+              className={`ai-composer__icon${speech.state === 'listening' ? ' ai-composer__icon--rec' : ''}`}
+              aria-label={speech.state === 'listening' ? 'Parar de falar' : 'Falar com o Humberto'}
+              title={speech.state === 'listening' ? 'Parar de falar' : 'Falar com o Humberto'}
+              disabled={aiChat.isPending || uploading}
+              onClick={() => {
+                setVoiceError(null);
+                speech.state === 'listening' ? speech.stop() : speech.start();
+              }}
+            >
+              {speech.state === 'listening' ? (
+                <MicOff size={16} strokeWidth={2.4} />
+              ) : (
+                <Mic size={16} strokeWidth={2.4} />
+              )}
+            </button>
+          )}
 
           <button
             type="submit"
@@ -483,6 +533,10 @@ export function AiAssistantPage() {
             <Send size={18} strokeWidth={2.4} />
           </button>
         </form>
+
+        {voiceError && (
+          <p className="ai-composer__voice-error" role="alert">{voiceError}</p>
+        )}
 
         <small className="ai-assistant-page__footnote">
           HUMBERTO · POWERED BY YOUR COMMUNITY DATA

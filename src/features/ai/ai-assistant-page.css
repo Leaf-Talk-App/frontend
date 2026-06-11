@@ -662,3 +662,22 @@
   font-size: 13px;
   opacity: 0.92;
 }
+
+/* ── Ditado por voz (falar com o Humberto) ───────────────────────────────── */
+.ai-composer__icon--rec {
+  color: #fff !important;
+  background: var(--leaf-color-danger, #c9171d) !important;
+  animation: aiMicPulse 1s ease-in-out infinite;
+}
+
+@keyframes aiMicPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+.ai-composer__voice-error {
+  margin: 8px 4px 0;
+  font-size: 13px;
+  color: var(--leaf-color-danger, #c9171d);
+  text-align: center;
+}
