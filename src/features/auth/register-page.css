@@ -1,16 +1,15 @@
-@import './auth-page-base.css';
+/* sem @import do auth-page-base: aquele arquivo injetava padding 48/32/64 e
+   overflow-y:auto que brigavam com o layout em grid daqui e criavam o scroll
+   esquisito. Register é autossuficiente e usa o scroll natural da página. */
 
 .register-page {
-  height: 100vh;
+  /* min-height (não height fixo) → cabe na viewport quando dá e, quando não dá,
+     rola a PÁGINA inteira (um único scrollbar à direita), sem scroll interno. */
+  min-height: 100vh;
   background: radial-gradient(circle at 18% 28%, #f3f6ed 0%, #f7f8f4 34%, #f3f4ef 68%, #eef0ea 100%);
   color: #1d211b;
-  overflow: hidden;
+  overflow-x: hidden;
   position: relative;
-}
-
-.register-page::before,
-.register-page::after {
-  display: none;
 }
 
 .register-page__brand {
@@ -34,13 +33,13 @@
 
 .register-page__hero,
 .register-page__panel {
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .register-page__content {
   display: grid;
   grid-template-columns: 54% 46%;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .register-page__hero {
@@ -87,12 +86,12 @@
 .register-page__panel {
   position: relative;
   width: 100%;
-  padding: 40px 38px 20px;
+  padding: 32px 38px 24px;
   background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow-y: auto;
+  /* sem overflow-y:auto — nada de scroll interno na coluna do card */
 }
 
 .register-card {

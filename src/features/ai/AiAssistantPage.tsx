@@ -230,6 +230,8 @@ export function AiAssistantPage() {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     sendPrompt(input);
+    // mantém o foco no campo após enviar (input não é mais desabilitado)
+    composerRef.current?.focus();
   };
 
   const handleNewConversation = () => {
@@ -469,7 +471,6 @@ export function AiAssistantPage() {
             onChange={(event) => setInput(event.target.value)}
             placeholder="Escreva uma mensagem ou comando…"
             className="ai-composer__input"
-            disabled={aiChat.isPending}
             aria-label="Mensagem para o Humberto"
           />
 

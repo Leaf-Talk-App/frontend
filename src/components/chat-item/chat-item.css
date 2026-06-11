@@ -34,10 +34,17 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
+  /* grid item de .chat-item__content (display:grid) → min-width:auto faria o
+     header crescer com o nome nowrap e estourar a coluna. */
+  min-width: 0;
 }
 
 .chat-item__name {
   margin: 0;
+  /* min-width:0 é o que faz o ellipsis valer dentro do flex — sem isso o nome
+     não encolhe e empurra/tampa a hora à direita. */
+  min-width: 0;
+  flex: 1;
   font-size: 16px;
   font-weight: 700;
   color: #232822;

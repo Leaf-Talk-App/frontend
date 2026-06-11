@@ -234,6 +234,16 @@ export const messagesApi = {
       token,
     });
   },
+
+  deleteForMe(messageId: string, { token }: AuthedRequest) {
+    return apiRequest<ApiMessageResponse>(
+      `/messages/${encodeURIComponent(messageId)}/delete-for-me`,
+      {
+        method: 'POST',
+        token,
+      },
+    );
+  },
 };
 
 export const groupsApi = {

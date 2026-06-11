@@ -241,10 +241,6 @@ export function LoginPage() {
           </p>
         </form>
       </section>
-
-      <footer className="login-page__footer">
-        <span>Criptografado para a sua privacidade digital.</span>
-      </footer>
     </main>
   );
 }

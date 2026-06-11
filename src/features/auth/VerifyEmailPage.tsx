@@ -5,7 +5,7 @@ import { useAuth } from '../../lib/auth/use-auth';
 import { useVerifyEmailMutation, useResendCodeMutation } from './auth-hooks';
 import { routePaths } from '../../routes/paths';
 import './verify-email-page.css';
-import { CheckCircle2, Leaf, LockKeyhole, Loader2, Sprout } from 'lucide-react';
+import { CheckCircle2, Leaf, Loader2, Sprout } from 'lucide-react';
 
 const REDIRECT_DELAY_MS = 2200;
 
@@ -227,10 +227,6 @@ export function VerifyEmailPage() {
         )}
       </div>
 
-      <footer className="verify-email-page__footer">
-        <LockKeyhole size={14} aria-hidden="true" />
-        <span>Criptografado para sua privacidade digital.</span>
-      </footer>
     </main>
   );
 }

@@ -1,4 +1,4 @@
-import { ArrowLeft, Camera, Image, Mic, MicOff, Search, Send, Smile, X } from 'lucide-react';
+import { ArrowLeft, Camera, ChevronDown, Image, Mic, MicOff, Search, Send, Smile, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChatHeaderMenuHandle } from './ChatHeaderMenu';
 import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
@@ -22,7 +22,7 @@ import { uploadsApi, messagesApi } from '../../lib/api/endpoints';
 import { queryKeys } from '../../lib/api/query-keys';
 import { parseServerDate } from '../../lib/date';
 import { useCurrentUserQuery } from '../auth/auth-hooks';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth/use-auth';
 import './chat-window-page.css';
 
@@ -122,6 +122,23 @@ export function ChatWindowPage() {
   const sendMutation = useSendMessageMutation();
   const queryClient = useQueryClient();
   const { data: me } = useCurrentUserQuery();
+
+  // Apagar mensagem (para mim / para todos) — invalida histórico e lista
+  const invalidateMessages = useCallback(() => {
+    if (!chatId) return;
+    queryClient.invalidateQueries({ queryKey: queryKeys.messages.byChatId(chatId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine });
+  }, [chatId, queryClient]);
+
+  const deleteForMeMutation = useMutation({
+    mutationFn: (messageId: string) => messagesApi.deleteForMe(messageId, { token: accessToken! }),
+    onSuccess: invalidateMessages,
+  });
+
+  const deleteForAllMutation = useMutation({
+    mutationFn: (messageId: string) => messagesApi.delete(messageId, { token: accessToken! }),
+    onSuccess: invalidateMessages,
+  });
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [sendingImage, setSendingImage] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -337,26 +354,14 @@ export function ChatWindowPage() {
                 <span>{item.label}</span>
               </div>
             ) : (
-              <div
+              <MessageRow
                 key={item.key}
-                className={`chat-window-page__row${
-                  item.message.sender_id === currentUser.id
-                    ? ' chat-window-page__row--own'
-                    : ''
-                }`}
-              >
-                <MessageBubble
-                  content={item.message.content}
-                  type={item.message.type}
-                  fileUrl={item.message.file_url}
-                  isSender={item.message.sender_id === currentUser.id}
-                  timestamp={formatTime(item.message.created_at)}
-                  status={item.message.status}
-                  edited={item.message.edited}
-                  deleted={item.message.deleted}
-                  suppressReadReceipt={me?.show_read_receipts === false}
-                />
-              </div>
+                message={item.message}
+                isOwn={item.message.sender_id === currentUser.id}
+                suppressReadReceipt={me?.show_read_receipts === false}
+                onDeleteForMe={() => deleteForMeMutation.mutate(item.message._id)}
+                onDeleteForEveryone={() => deleteForAllMutation.mutate(item.message._id)}
+              />
             ),
           )
         )}
@@ -427,6 +432,94 @@ export function ChatWindowPage() {
           }}
         />
       )}
+    </div>
+  );
+}
+
+interface MessageRowProps {
+  message: LeafMessage;
+  isOwn: boolean;
+  suppressReadReceipt?: boolean;
+  onDeleteForMe: () => void;
+  onDeleteForEveryone: () => void;
+}
+
+function MessageRow({
+  message,
+  isOwn,
+  suppressReadReceipt,
+  onDeleteForMe,
+  onDeleteForEveryone,
+}: MessageRowProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Mensagem otimista ainda não tem _id real → não dá para apagar
+  const canDelete = !message._id.startsWith('optimistic-');
+  const canDeleteForEveryone = isOwn && !message.deleted;
+
+  return (
+    <div className={`chat-window-page__row${isOwn ? ' chat-window-page__row--own' : ''}`}>
+      <div className="message-row__wrap">
+        <MessageBubble
+          content={message.content}
+          type={message.type}
+          fileUrl={message.file_url}
+          isSender={isOwn}
+          timestamp={formatTime(message.created_at)}
+          status={message.status}
+          edited={message.edited}
+          deleted={message.deleted}
+          suppressReadReceipt={suppressReadReceipt}
+        />
+
+        {canDelete && (
+          <div className="message-row__menu-wrap">
+            <button
+              type="button"
+              className="message-row__menu-btn"
+              aria-label="Opções da mensagem"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              <ChevronDown size={16} strokeWidth={2.4} />
+            </button>
+
+            {menuOpen && (
+              <>
+                <div className="message-row__backdrop" onClick={() => setMenuOpen(false)} />
+                <div className="message-row__menu" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onDeleteForMe();
+                    }}
+                  >
+                    <Trash2 size={15} strokeWidth={2} /> Apagar para mim
+                  </button>
+                  {canDeleteForEveryone && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="message-row__menu-danger"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        if (window.confirm('Apagar esta mensagem para todos?')) {
+                          onDeleteForEveryone();
+                        }
+                      }}
+                    >
+                      <Trash2 size={15} strokeWidth={2} /> Apagar para todos
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
