@@ -6,6 +6,7 @@ import {
   Search,
   Sprout,
   UserRound,
+  Users,
 } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { routePaths } from '../../routes/paths';
@@ -36,6 +37,11 @@ const primaryNavItems = [
     icon: MessageSquare,
   },
   {
+    label: 'Grupos',
+    to: routePaths.groups,
+    icon: Users,
+  },
+  {
     label: 'Humberto',
     to: routePaths.assistant,
     icon: Bot,
@@ -59,9 +65,9 @@ const mobileNavItems = [
     icon: MessageSquare,
   },
   {
-    label: 'Buscar',
-    to: routePaths.search,
-    icon: Search,
+    label: 'Grupos',
+    to: routePaths.groups,
+    icon: Users,
   },
   {
     label: 'Humberto',

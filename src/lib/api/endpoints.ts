@@ -16,11 +16,13 @@ import type {
   CreateGroupRequest,
   CreateGroupResponse,
   EditMessageRequest,
+  GroupMessage,
   LeafChat,
   LeafChatSummary,
   LeafGroup,
   LeafMessage,
   LeafUser,
+  RemoveMemberRequest,
   SendGroupMessageRequest,
   SendMessageRequest,
   SendMessageResponse,
@@ -258,7 +260,7 @@ export const messagesApi = {
 
 export const groupsApi = {
   create(data: CreateGroupRequest, { token }: AuthedRequest) {
-    return apiRequest<CreateGroupResponse>('/groups/create', {
+    return apiRequest<CreateGroupResponse | { error: string }>('/groups/create', {
       method: 'POST',
       body: data,
       token,
@@ -269,6 +271,28 @@ export const groupsApi = {
     return apiRequest<LeafGroup[]>('/groups/my', { token });
   },
 
+  getById(groupId: string, { token }: AuthedRequest) {
+    return apiRequest<LeafGroup | { error: string }>(
+      `/groups/${encodeURIComponent(groupId)}`,
+      { token },
+    );
+  },
+
+  messages(groupId: string, { token }: AuthedRequest, skip = 0, limit = 50) {
+    return apiRequest<GroupMessage[]>(
+      `/groups/${encodeURIComponent(groupId)}/messages?skip=${skip}&limit=${limit}`,
+      { token },
+    );
+  },
+
+  sendMessage(data: SendGroupMessageRequest, { token }: AuthedRequest) {
+    return apiRequest<GroupMessage | { error: string }>('/groups/send-message', {
+      method: 'POST',
+      body: data,
+      token,
+    });
+  },
+
   addMember(data: AddMemberRequest, { token }: AuthedRequest) {
     return apiRequest<ApiMessageResponse | { error: string }>('/groups/add-member', {
       method: 'POST',
@@ -277,12 +301,26 @@ export const groupsApi = {
     });
   },
 
-  sendMessage(data: SendGroupMessageRequest, { token }: AuthedRequest) {
-    return apiRequest<ApiMessageResponse | { error: string }>('/groups/send-message', {
+  removeMember(data: RemoveMemberRequest, { token }: AuthedRequest) {
+    return apiRequest<ApiMessageResponse | { error: string }>('/groups/remove-member', {
       method: 'POST',
       body: data,
       token,
     });
+  },
+
+  leave(groupId: string, { token }: AuthedRequest) {
+    return apiRequest<ApiMessageResponse | { error: string }>(
+      `/groups/${encodeURIComponent(groupId)}/leave`,
+      { method: 'POST', token },
+    );
+  },
+
+  join(code: string, { token }: AuthedRequest) {
+    return apiRequest<{ message: string; group_id?: string } | { error: string }>(
+      `/groups/join/${encodeURIComponent(code)}`,
+      { method: 'POST', token },
+    );
   },
 };
 

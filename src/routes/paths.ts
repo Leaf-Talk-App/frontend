@@ -8,6 +8,8 @@ export const routePaths = {
   resetPassword: '/reset-password',
   chats: '/chats',
   chat: '/chats/:chatId',
+  groups: '/groups',
+  group: '/groups/:groupId',
   search: '/search',
   assistant: '/ai',
   profile: '/profile',

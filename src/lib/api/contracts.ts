@@ -193,9 +193,22 @@ export type AddMemberRequest = {
   user_id: string;
 };
 
+export type RemoveMemberRequest = {
+  group_id: string;
+  user_id: string;
+};
+
 export type SendGroupMessageRequest = {
   group_id: string;
   content: string;
+  type?: MessageType;
+  file_url?: string | null;
+};
+
+export type GroupLastMessage = {
+  content: string;
+  sender_id: string;
+  created_at?: string | null;
 };
 
 export type LeafGroup = {
@@ -206,8 +219,20 @@ export type LeafGroup = {
   admins: string[];
   invite_code?: string;
   created_by?: string;
+  member_count?: number;
+  last_message?: GroupLastMessage | null;
   created_at?: string;
   updated_at?: string;
+};
+
+export type GroupMessage = {
+  _id: string;
+  group_id: string;
+  sender_id: string;
+  content: string;
+  type?: MessageType;
+  file_url?: string | null;
+  created_at?: string | null;
 };
 
 export type AiChatRequest = {

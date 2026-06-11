@@ -8,6 +8,8 @@ import { ResetPasswordPage } from '../features/auth/ResetPasswordPage';
 import { GoogleCallbackPage } from '../features/auth/GoogleCallbackPage';
 import { ChatsPage } from '../features/chats/ChatsPage';
 import { ChatWindowPage } from '../features/chats/ChatWindowPage';
+import { GroupsPage } from '../features/groups/GroupsPage';
+import { GroupChatPage } from '../features/groups/GroupChatPage';
 import { SearchPage } from '../features/search/SearchPage';
 import { ProfilePage } from '../features/profile/ProfilePage';
 import { AiAssistantPage } from '../features/ai/AiAssistantPage';
@@ -29,6 +31,8 @@ export function AppRouter() {
         <Route element={<AuthenticatedShell />}>
           <Route path={routePaths.chats} element={<ChatsPage />} />
           <Route path={routePaths.chat} element={<ChatWindowPage />} />
+          <Route path={routePaths.groups} element={<GroupsPage />} />
+          <Route path={routePaths.group} element={<GroupChatPage />} />
           <Route path={routePaths.search} element={<SearchPage />} />
           <Route path={routePaths.assistant} element={<AiAssistantPage />} />
           <Route path={routePaths.profile} element={<ProfilePage />} />
