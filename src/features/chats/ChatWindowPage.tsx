@@ -452,6 +452,7 @@ export function ChatWindowPage() {
               type: 'audio',
               file_url: url,
             });
+            setReplyingTo(null);
           }}
           onPickFile={(file) => setPendingFile(file)}
           onPickDocument={async (file) => {
@@ -465,6 +466,7 @@ export function ChatWindowPage() {
                 type: 'file',
                 file_url: url,
               });
+              setReplyingTo(null);
               setSendError(null);
             } catch (error) {
               const raw = error instanceof Error ? error.message.toLowerCase() : '';
@@ -491,6 +493,7 @@ export function ChatWindowPage() {
           onSend={async (caption) => {
             if (!accessToken || !otherParticipantId) return;
             setSendingImage(true);
+            const reply = replyingTo;
             try {
               const form = new FormData();
               form.append('file', pendingFile);
@@ -501,8 +504,18 @@ export function ChatWindowPage() {
                 receiver_id: otherParticipantId,
                 type: 'image',
                 file_url: url,
+                reply_to: reply?._id ?? null,
+                reply_preview: reply
+                  ? {
+                      _id: reply._id,
+                      sender_id: reply.sender_id,
+                      content: (reply.content || '').slice(0, 120),
+                      type: reply.type,
+                    }
+                  : null,
               });
               setPendingFile(null);
+              setReplyingTo(null);
             } finally {
               setSendingImage(false);
             }
@@ -543,9 +556,9 @@ function MessageRow({
 }: MessageRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Mensagem otimista ainda não tem _id real → não dá para apagar/responder
+  // Sem menu em mensagem otimista (sem _id real) nem em mensagem já apagada.
   const isOptimistic = message._id.startsWith('optimistic-');
-  const canDelete = !isOptimistic;
+  const canDelete = !isOptimistic && !message.deleted;
   const canDeleteForEveryone = isOwn && !message.deleted;
 
   // Citação (resposta): autor = "Você" se for minha, senão o nome do contato

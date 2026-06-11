@@ -211,6 +211,10 @@ html { transition: background-color 280ms ease, color 200ms ease; }
   border-color: rgb(110 150 65 / 12%);
   box-shadow: 0 2px 10px rgb(0 0 0 / 40%);
 }
+/* citação de resposta: overlay preto some no balão escuro recebido → usa claro */
+[data-theme='dark'] .message-bubble--receiver .message-bubble__reply {
+  background: rgb(255 255 255 / 9%);
+}
 [data-theme='dark'] .message-bubble--sender .message-bubble__body {
   background: #2b4c1a;
   color: #e6f0d8;

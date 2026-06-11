@@ -23,7 +23,7 @@ interface ForwardModalProps {
 export function ForwardModal({ message, onClose }: ForwardModalProps) {
   const { accessToken, user: currentUser } = useAuth();
   const queryClient = useQueryClient();
-  const { data: chats } = useChatsQuery();
+  const { data: chats, isLoading: chatsLoading } = useChatsQuery();
   const [search, setSearch] = useState('');
   const [doneId, setDoneId] = useState<string | null>(null);
 
@@ -109,7 +109,9 @@ export function ForwardModal({ message, onClose }: ForwardModalProps) {
           />
         </div>
 
-        {rows.length === 0 ? (
+        {chatsLoading ? (
+          <p className="chat-modal__empty">Carregando conversas…</p>
+        ) : rows.length === 0 ? (
           <p className="chat-modal__empty">Nenhuma conversa encontrada.</p>
         ) : (
           <ul className="forward-modal__list">
