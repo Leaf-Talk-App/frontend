@@ -1,4 +1,4 @@
-import { MessageSquare, Plus, Search } from 'lucide-react';
+import { Archive, ChevronDown, MessageSquare, Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueries } from '@tanstack/react-query';
@@ -16,6 +16,7 @@ export function ChatsPage() {
   const { accessToken, user: currentUser } = useAuth();
   const { data: chats, isLoading, error } = useChatsQuery();
   const [search, setSearch] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
 
   // Coleta IDs únicos de todos os outros participantes.
   // Conversa consigo mesmo (participants = [eu, eu]) não tem "outro" → cai no
@@ -86,6 +87,27 @@ export function ChatsPage() {
     });
   }, [chats, search, currentUser?.id, usersMap]);
 
+  // Arquivadas ficam numa seção recolhível; ativas na lista principal.
+  const activeChats = useMemo(() => filteredChats.filter((c) => !c.archived), [filteredChats]);
+  const archivedChats = useMemo(() => filteredChats.filter((c) => c.archived), [filteredChats]);
+
+  const renderChatLi = (chat: LeafChatSummary) => {
+    const otherId =
+      chat.participants?.find((id) => id !== currentUser?.id) ?? chat.participants?.[0];
+    const otherUser = otherId ? usersMap[otherId] : undefined;
+    const userNotFound = otherId ? failedUserIds.has(otherId) : false;
+    return (
+      <li key={chat._id}>
+        <ChatItem
+          chat={chat}
+          otherUser={otherUser}
+          userNotFound={userNotFound}
+          onClick={() => navigate(`/chats/${chat._id}`)}
+        />
+      </li>
+    );
+  };
+
   return (
     <div className="chats-page">
       <aside className="chats-page__list-pane" aria-label="Conversas">
@@ -136,23 +158,30 @@ export function ChatsPage() {
           </div>
         ) : (
           <ul className="chats-page__list">
-            {filteredChats.map((chat) => {
-              const otherId =
-                chat.participants?.find((id) => id !== currentUser?.id) ??
-                chat.participants?.[0];
-              const otherUser = otherId ? usersMap[otherId] : undefined;
-              const userNotFound = otherId ? failedUserIds.has(otherId) : false;
-              return (
-                <li key={chat._id}>
-                  <ChatItem
-                    chat={chat}
-                    otherUser={otherUser}
-                    userNotFound={userNotFound}
-                    onClick={() => navigate(`/chats/${chat._id}`)}
+            {archivedChats.length > 0 && (
+              <li>
+                <button
+                  type="button"
+                  className="chats-page__archived-toggle"
+                  onClick={() => setShowArchived((v) => !v)}
+                  aria-expanded={showArchived}
+                >
+                  <Archive size={18} strokeWidth={2.2} aria-hidden="true" />
+                  <span className="chats-page__archived-label">Arquivadas</span>
+                  <span className="chats-page__archived-count">{archivedChats.length}</span>
+                  <ChevronDown
+                    size={16}
+                    strokeWidth={2.4}
+                    className={`chats-page__archived-chevron${
+                      showArchived ? ' chats-page__archived-chevron--open' : ''
+                    }`}
+                    aria-hidden="true"
                   />
-                </li>
-              );
-            })}
+                </button>
+              </li>
+            )}
+            {showArchived && archivedChats.map(renderChatLi)}
+            {activeChats.map(renderChatLi)}
           </ul>
         )}
       </aside>

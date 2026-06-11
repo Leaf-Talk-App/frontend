@@ -148,6 +148,13 @@ html { transition: background-color 280ms ease, color 200ms ease; }
   [data-theme='dark'] .chats-page__list-pane { background: transparent; }
 }
 
+/* seção Arquivadas */
+[data-theme='dark'] .chats-page__archived-toggle { color: #8f9b85; }
+[data-theme='dark'] .chats-page__archived-toggle:hover { background: #171c14; }
+[data-theme='dark'] .chats-page__archived-label { color: #dfe6d4; }
+[data-theme='dark'] .chats-page__archived-count { color: #8f9b85; background: #2a3324; }
+[data-theme='dark'] .chats-page__archived-chevron { color: #5e6857; }
+
 /* chat-item (usa classes próprias; bordas/realce) */
 [data-theme='dark'] .chat-item:hover { background: #171c14; }
 [data-theme='dark'] .chat-item--selected { background: #1a2612; }

@@ -1,6 +1,8 @@
 import { useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
+  Archive,
+  ArchiveRestore,
   Ban,
   Bell,
   BellOff,
@@ -30,6 +32,7 @@ interface ChatHeaderMenuProps {
   otherUser?: LeafUser;
   otherUserId?: string;
   muted: boolean;
+  archived: boolean;
   messages?: LeafMessage[];
   onOpenSearch: () => void;
 }
@@ -71,6 +74,7 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
   otherUser,
   otherUserId,
   muted,
+  archived,
   messages,
   onOpenSearch,
 }: ChatHeaderMenuProps, ref) {
@@ -161,6 +165,15 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
     },
   });
 
+  const archiveMutation = useMutation({
+    mutationFn: () => chatsApi.archive({ chat_id: chatId }, { token: accessToken! }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine });
+      queryClient.invalidateQueries({ queryKey: queryKeys.chats.byId(chatId) });
+      navigate(routePaths.chats);
+    },
+  });
+
   const handleBlock = () => {
     setOpen(false);
     setModal(null);
@@ -244,6 +257,15 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
               <ChevronRight size={15} strokeWidth={2} style={{ marginLeft: 'auto' }} />
             </button>
           )}
+          <button
+            className="chat-menu__item"
+            role="menuitem"
+            disabled={archiveMutation.isPending}
+            onClick={() => { setOpen(false); archiveMutation.mutate(); }}
+          >
+            {archived ? <ArchiveRestore size={17} strokeWidth={2} /> : <Archive size={17} strokeWidth={2} />}
+            {archived ? 'Desarquivar conversa' : 'Arquivar conversa'}
+          </button>
           <div className="chat-menu__sep" />
           {/* Apagar fica SEMPRE visível no menu — não escondido no "Mais" */}
           <button

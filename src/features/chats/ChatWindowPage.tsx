@@ -304,6 +304,7 @@ export function ChatWindowPage() {
           otherUser={otherUser}
           otherUserId={otherParticipantId}
           muted={currentChat?.muted ?? false}
+          archived={currentChat?.archived ?? false}
           messages={messages}
           onOpenSearch={() => setSearchOpen(true)}
         />
