@@ -168,6 +168,8 @@ export type LeafMessage = {
   reply_to?: string | null;
   /** prévia denormalizada da mensagem citada (montada pelo backend no envio) */
   reply_preview?: ReplyPreview | null;
+  /** favoritada pelo usuário atual */
+  favorited?: boolean;
 };
 
 export type ReplyPreview = {

@@ -14,6 +14,7 @@ import {
   MoreHorizontal,
   MoreVertical,
   Search,
+  Star,
   Trash2,
   X,
 } from 'lucide-react';
@@ -53,7 +54,7 @@ const MUTE_OPTIONS: { label: string; minutes: number | null }[] = [
   { label: 'Para sempre', minutes: null },
 ];
 
-type ModalKind = 'contact' | 'media' | null;
+type ModalKind = 'contact' | 'media' | 'favorites' | null;
 
 function formatLastSeenLocal(value?: string): string {
   if (!value) return '';
@@ -139,13 +140,14 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
   const name = otherUser?.display_name || otherUser?.name || 'Contato';
   const initials = name.charAt(0).toUpperCase();
 
-  // Mídia / links / docs a partir das mensagens já carregadas
-  const { images, docs, links } = useMemo(() => {
+  // Mídia / links / docs / favoritas a partir das mensagens já carregadas
+  const { images, docs, links, favorites } = useMemo(() => {
     const list = (messages ?? []).filter((m) => !m.deleted);
     return {
       images: list.filter((m) => m.file_url && m.type === 'image'),
       docs: list.filter((m) => m.file_url && m.type !== 'image'),
       links: list.filter((m) => URL_RE.test(m.content || '')),
+      favorites: list.filter((m) => m.favorited),
     };
   }, [messages]);
 
@@ -237,6 +239,9 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
           </button>
           <button className="chat-menu__item" role="menuitem" onClick={() => { setOpen(false); setModal('media'); }}>
             <Images size={17} strokeWidth={2} /> Mídia, links e docs
+          </button>
+          <button className="chat-menu__item" role="menuitem" onClick={() => { setOpen(false); setModal('favorites'); }}>
+            <Star size={17} strokeWidth={2} /> Mensagens favoritas
           </button>
           {muted ? (
             <button
@@ -426,6 +431,32 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
                 </ul>
               ) : (
                 <p className="chat-modal__empty">Nenhum documento.</p>
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {modal === 'favorites' &&
+        createPortal(
+          <div className="chat-modal" role="dialog" aria-modal="true" onClick={() => setModal(null)}>
+            <div className="chat-modal__card" onClick={(e) => e.stopPropagation()}>
+              <button className="chat-modal__close" onClick={() => setModal(null)} aria-label="Fechar">
+                <X size={20} strokeWidth={2.2} />
+              </button>
+              <h3 className="chat-modal__name">Mensagens favoritas</h3>
+              <p className="chat-modal__hint">Do histórico já carregado nesta conversa.</p>
+              {favorites.length ? (
+                <ul className="chat-modal__fav-list">
+                  {favorites.map((m) => (
+                    <li key={m._id} className="chat-modal__fav-item">
+                      <Star size={14} strokeWidth={2.2} />
+                      <span>{(m.content || '').trim() || (m.type === 'image' ? '📷 Foto' : m.type === 'audio' ? '🎤 Áudio' : '📄 Arquivo')}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="chat-modal__empty">Nenhuma mensagem favoritada ainda. Toque na seta de uma mensagem → Favoritar.</p>
               )}
             </div>
           </div>,

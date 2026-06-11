@@ -1,4 +1,4 @@
-import { ArrowLeft, Camera, ChevronDown, Forward, Image, Mic, MicOff, Paperclip, Reply, Search, Send, Smile, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Camera, ChevronDown, Forward, Image, Mic, MicOff, Paperclip, Reply, Search, Send, Smile, Star, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChatHeaderMenuHandle } from './ChatHeaderMenu';
 import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
@@ -150,6 +150,11 @@ export function ChatWindowPage() {
 
   const deleteForAllMutation = useMutation({
     mutationFn: (messageId: string) => messagesApi.delete(messageId, { token: accessToken! }),
+    onSuccess: invalidateMessages,
+  });
+
+  const favoriteMutation = useMutation({
+    mutationFn: (messageId: string) => messagesApi.favorite(messageId, { token: accessToken! }),
     onSuccess: invalidateMessages,
   });
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -390,6 +395,7 @@ export function ChatWindowPage() {
                 suppressReadReceipt={me?.show_read_receipts === false}
                 onReply={() => setReplyingTo(item.message)}
                 onForward={() => setForwarding(item.message)}
+                onToggleFavorite={() => favoriteMutation.mutate(item.message._id)}
                 onDeleteForMe={() => deleteForMeMutation.mutate(item.message._id)}
                 onDeleteForEveryone={() => deleteForAllMutation.mutate(item.message._id)}
               />
@@ -518,6 +524,7 @@ interface MessageRowProps {
   suppressReadReceipt?: boolean;
   onReply: () => void;
   onForward: () => void;
+  onToggleFavorite: () => void;
   onDeleteForMe: () => void;
   onDeleteForEveryone: () => void;
 }
@@ -530,6 +537,7 @@ function MessageRow({
   suppressReadReceipt,
   onReply,
   onForward,
+  onToggleFavorite,
   onDeleteForMe,
   onDeleteForEveryone,
 }: MessageRowProps) {
@@ -560,6 +568,7 @@ function MessageRow({
           suppressReadReceipt={suppressReadReceipt}
           replyAuthor={replyAuthor}
           replyText={replyText}
+          favorited={message.favorited}
         />
 
         {canDelete && (
@@ -598,6 +607,16 @@ function MessageRow({
                     }}
                   >
                     <Forward size={15} strokeWidth={2} /> Encaminhar
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onToggleFavorite();
+                    }}
+                  >
+                    <Star size={15} strokeWidth={2} /> {message.favorited ? 'Desfavoritar' : 'Favoritar'}
                   </button>
                   <button
                     type="button"

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './message-bubble.css';
 import type { MessageStatus, MessageType } from '../../lib/api/contracts';
-import { Check, CheckCheck, FileText } from 'lucide-react';
+import { Check, CheckCheck, FileText, Star } from 'lucide-react';
 import { AudioPlayer } from '../audio-player/AudioPlayer';
 import { MediaViewer } from '../media-viewer/MediaViewer';
 
@@ -19,6 +19,8 @@ interface MessageBubbleProps {
   /** citação (resposta): autor e texto da mensagem original */
   replyAuthor?: string;
   replyText?: string;
+  /** favoritada pelo usuário atual → mostra ★ no rodapé */
+  favorited?: boolean;
 }
 
 /** Bloco de citação exibido no topo do balão quando a mensagem é uma resposta. */
@@ -45,9 +47,13 @@ function Footer({
   status,
   edited,
   isSender,
-}: Pick<MessageBubbleProps, 'timestamp' | 'status' | 'edited' | 'isSender'>) {
+  favorited,
+}: Pick<MessageBubbleProps, 'timestamp' | 'status' | 'edited' | 'isSender' | 'favorited'>) {
   return (
     <div className="message-bubble__footer">
+      {favorited && (
+        <Star size={11} strokeWidth={2.2} className="message-bubble__star" aria-label="Favoritada" />
+      )}
       {edited && <span className="message-bubble__edited">editado</span>}
       {timestamp && <time className="message-bubble__time">{timestamp}</time>}
       {isSender && status && (
@@ -85,6 +91,7 @@ export function MessageBubble({
   suppressReadReceipt,
   replyAuthor,
   replyText,
+  favorited,
 }: MessageBubbleProps) {
   const senderCls = isSender ? 'message-bubble--sender' : 'message-bubble--receiver';
   const variant = isSender ? 'sender' : 'receiver';
@@ -120,7 +127,7 @@ export function MessageBubble({
             />
           </button>
           {content?.trim() ? <p className="message-bubble__caption">{content}</p> : null}
-          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} />
+          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} favorited={favorited} />
         </div>
         <MediaViewer open={viewerOpen} onClose={() => setViewerOpen(false)} url={fileUrl} kind="image" />
       </div>
@@ -133,7 +140,7 @@ export function MessageBubble({
       <div className={`message-bubble ${senderCls}`}>
         <div className="message-bubble__body">
           <AudioPlayer src={fileUrl} variant={variant} />
-          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} />
+          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} favorited={favorited} />
         </div>
       </div>
     );
@@ -169,7 +176,7 @@ export function MessageBubble({
               <span className="message-bubble__file-name">{name}</span>
             </a>
           )}
-          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} />
+          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} favorited={favorited} />
         </div>
         {pdf && (
           <MediaViewer open={viewerOpen} onClose={() => setViewerOpen(false)} url={fileUrl} kind="pdf" name={name} />
@@ -189,7 +196,7 @@ export function MessageBubble({
           ) : (
             <p className="message-bubble__text">{content}</p>
           )}
-          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} />
+          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} favorited={favorited} />
         </div>
       </div>
     </div>

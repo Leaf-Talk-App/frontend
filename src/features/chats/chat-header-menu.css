@@ -195,6 +195,39 @@
   color: var(--leaf-color-text-muted, #6b7280);
 }
 
+.chat-modal__fav-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-modal__fav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  background: var(--leaf-color-muted-surface, rgb(69 92 42 / 5%));
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--leaf-color-text, #1f2520);
+}
+
+.chat-modal__fav-item svg {
+  flex-shrink: 0;
+  color: var(--leaf-color-primary-dark, #4b760f);
+  fill: currentColor;
+}
+
+.chat-modal__fav-item span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ── Status online no modal de contato ──────────────────────────────────── */
 .chat-modal__online-status {
   margin: 0;

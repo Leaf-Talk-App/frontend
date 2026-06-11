@@ -125,6 +125,11 @@
 .message-bubble--receiver .message-bubble__footer { color: #8a9183; }
 
 .message-bubble__time   { font-weight: 500; }
+.message-bubble__star {
+  fill: currentColor;
+  opacity: 0.9;
+  flex-shrink: 0;
+}
 .message-bubble__edited { font-style: italic; opacity: 0.75; }
 
 .message-bubble__status {

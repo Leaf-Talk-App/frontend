@@ -244,6 +244,16 @@ export const messagesApi = {
       },
     );
   },
+
+  favorite(messageId: string, { token }: AuthedRequest) {
+    return apiRequest<{ message: string; favorited: boolean }>(
+      `/messages/${encodeURIComponent(messageId)}/favorite`,
+      {
+        method: 'POST',
+        token,
+      },
+    );
+  },
 };
 
 export const groupsApi = {
