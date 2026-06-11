@@ -1,4 +1,4 @@
-import { ArrowLeft, Camera, ChevronDown, Image, Mic, MicOff, Paperclip, Reply, Search, Send, Smile, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Camera, ChevronDown, Forward, Image, Mic, MicOff, Paperclip, Reply, Search, Send, Smile, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChatHeaderMenuHandle } from './ChatHeaderMenu';
 import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
@@ -10,6 +10,7 @@ import { MessageBubble } from '../../components/message-bubble/MessageBubble';
 import { ImagePreviewModal } from '../../components/image-preview-modal/ImagePreviewModal';
 import { CameraCaptureModal } from '../../components/camera-capture-modal/CameraCaptureModal';
 import { ChatHeaderMenu } from './ChatHeaderMenu';
+import { ForwardModal } from './ForwardModal';
 import type { LeafMessage } from '../../lib/api/contracts';
 import { routePaths } from '../../routes/paths';
 import {
@@ -157,6 +158,7 @@ export function ChatWindowPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sendError, setSendError] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<LeafMessage | null>(null);
+  const [forwarding, setForwarding] = useState<LeafMessage | null>(null);
   const chatMenuRef = useRef<ChatHeaderMenuHandle>(null);
 
   // O WebSocket agora é único e global (AuthenticatedShell → GlobalPresence),
@@ -386,6 +388,7 @@ export function ChatWindowPage() {
                 otherName={displayName}
                 suppressReadReceipt={me?.show_read_receipts === false}
                 onReply={() => setReplyingTo(item.message)}
+                onForward={() => setForwarding(item.message)}
                 onDeleteForMe={() => deleteForMeMutation.mutate(item.message._id)}
                 onDeleteForEveryone={() => deleteForAllMutation.mutate(item.message._id)}
               />
@@ -499,6 +502,9 @@ export function ChatWindowPage() {
           }}
         />
       )}
+      {forwarding && (
+        <ForwardModal message={forwarding} onClose={() => setForwarding(null)} />
+      )}
     </div>
   );
 }
@@ -510,6 +516,7 @@ interface MessageRowProps {
   otherName: string;
   suppressReadReceipt?: boolean;
   onReply: () => void;
+  onForward: () => void;
   onDeleteForMe: () => void;
   onDeleteForEveryone: () => void;
 }
@@ -521,6 +528,7 @@ function MessageRow({
   otherName,
   suppressReadReceipt,
   onReply,
+  onForward,
   onDeleteForMe,
   onDeleteForEveryone,
 }: MessageRowProps) {
@@ -579,6 +587,16 @@ function MessageRow({
                     }}
                   >
                     <Reply size={15} strokeWidth={2} /> Responder
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onForward();
+                    }}
+                  >
+                    <Forward size={15} strokeWidth={2} /> Encaminhar
                   </button>
                   <button
                     type="button"
@@ -671,6 +689,22 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
     event.target.value = '';
   };
 
+  // Colar imagem do clipboard (Ctrl/Cmd+V) → abre o preview, como no WhatsApp Web
+  const handlePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file && onPickFile) {
+          event.preventDefault(); // não cola o "[object]" no texto
+          onPickFile(file);
+          break;
+        }
+      }
+    }
+  };
+
   const handleEmojiSelect = useCallback((emoji: string) => {
     const input = inputRef.current;
     if (!input) {
@@ -754,6 +788,7 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
         value={message}
         onChange={(event) => setMessage(event.target.value)}
         onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
         placeholder={`Escreva uma mensagem para ${recipientName}…`}
         aria-label="Escreva uma mensagem"
         autoComplete="off"
