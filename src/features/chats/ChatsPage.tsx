@@ -158,7 +158,7 @@ export function ChatsPage() {
           </div>
         ) : (
           <ul className="chats-page__list">
-            {archivedChats.length > 0 && (
+            {archivedChats.length > 0 && !search.trim() && (
               <li>
                 <button
                   type="button"
@@ -180,7 +180,7 @@ export function ChatsPage() {
                 </button>
               </li>
             )}
-            {showArchived && archivedChats.map(renderChatLi)}
+            {(showArchived || search.trim()) && archivedChats.map(renderChatLi)}
             {activeChats.map(renderChatLi)}
           </ul>
         )}
