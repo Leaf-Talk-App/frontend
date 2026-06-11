@@ -15,18 +15,20 @@ import {
 import { ImagePreviewModal } from '../../components/image-preview-modal/ImagePreviewModal';
 import { CameraCaptureModal } from '../../components/camera-capture-modal/CameraCaptureModal';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth/use-auth';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
-import { uploadsApi } from '../../lib/api/endpoints';
+import { aiApi, uploadsApi } from '../../lib/api/endpoints';
 import { useAiChatMutation, useAiHistoryQuery, useClearAiHistoryMutation } from './ai-hooks';
 import type { AiHistoryMessage } from '../../lib/api/contracts';
 import './ai-assistant-page.css';
 
 interface ActionCard {
-  type: 'schedule' | 'draft' | 'generic';
+  task_id?: string;
+  type: 'schedule' | 'draft' | 'generic' | 'send';
   title?: string;
   recipient?: string;
-  scheduledFor?: string;
+  scheduledFor?: string | null;
   body?: string;
   commandTag?: string;
 }
@@ -75,10 +77,21 @@ const WELCOME_MESSAGE: ChatMessage = {
 };
 
 function ActionCardBlock({ action }: { action: ActionCard }) {
+  const { accessToken } = useAuth();
   const [dismissed, setDismissed] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const confirmMutation = useMutation({
+    mutationFn: () => aiApi.confirm(action.task_id!, { token: accessToken! }),
+    onSuccess: () => setConfirmed(true),
+    onError: () => setError('Não consegui confirmar agora. Tente de novo.'),
+  });
 
   if (dismissed) return null;
+
+  const isSchedule = action.type === 'schedule';
+  const confirmedLabel = isSchedule ? 'Agendado' : 'Enviado';
 
   return (
     <div className="ai-action-card">
@@ -101,17 +114,25 @@ function ActionCardBlock({ action }: { action: ActionCard }) {
       {action.body ? <p className="ai-action-card__body">{action.body}</p> : null}
       {confirmed ? (
         <p className="ai-action-card__confirmed">
-          <Check size={14} strokeWidth={2.4} /> Confirmado
+          <Check size={14} strokeWidth={2.4} /> {confirmedLabel}
         </p>
       ) : (
-        <div className="ai-action-card__actions">
-          <button type="button" className="ai-action-card__confirm" onClick={() => setConfirmed(true)}>
-            CONFIRMAR
-          </button>
-          <button type="button" className="ai-action-card__cancel" onClick={() => setDismissed(true)}>
-            CANCELAR
-          </button>
-        </div>
+        <>
+          <div className="ai-action-card__actions">
+            <button
+              type="button"
+              className="ai-action-card__confirm"
+              disabled={!action.task_id || confirmMutation.isPending}
+              onClick={() => (action.task_id ? confirmMutation.mutate() : setConfirmed(true))}
+            >
+              {confirmMutation.isPending ? 'CONFIRMANDO…' : 'CONFIRMAR'}
+            </button>
+            <button type="button" className="ai-action-card__cancel" onClick={() => setDismissed(true)}>
+              CANCELAR
+            </button>
+          </div>
+          {error ? <p className="ai-action-card__error">{error}</p> : null}
+        </>
       )}
     </div>
   );

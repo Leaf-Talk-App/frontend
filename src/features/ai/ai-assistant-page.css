@@ -681,3 +681,9 @@
   color: var(--leaf-color-danger, #c9171d);
   text-align: center;
 }
+
+.ai-action-card__error {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--leaf-color-danger, #c9171d);
+}

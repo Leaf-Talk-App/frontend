@@ -214,7 +214,19 @@ export type AiChatRequest = {
   attachment_mime?: string | null;
 };
 
-export type AiChatResponse = { reply: string } | ApiMessageResponse | { error: string };
+export type AiActionCard = {
+  task_id: string;
+  type: 'send' | 'schedule';
+  title?: string;
+  recipient?: string;
+  scheduledFor?: string | null;
+  body?: string;
+};
+
+export type AiChatResponse =
+  | { reply: string; action?: AiActionCard }
+  | ApiMessageResponse
+  | { error: string };
 
 export type AiHistoryMessage = {
   role: 'user' | 'assistant';
