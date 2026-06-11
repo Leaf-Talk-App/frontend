@@ -127,7 +127,9 @@
 .chat-window-page__messages {
   flex: 1;
   overflow-y: auto;
-  padding: 24px clamp(16px, 4vw, 56px) 16px;
+  overflow-x: hidden;
+  /* margens laterais menores → as mensagens aproveitam mais a largura */
+  padding: 24px clamp(14px, 2.5vw, 36px) 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -200,7 +202,7 @@
 }
 
 .chat-window-page__composer-wrap {
-  padding: 14px clamp(16px, 4vw, 56px) 14px;
+  padding: 14px clamp(14px, 2.5vw, 36px) 14px;
   background: transparent;
 }
 

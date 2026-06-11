@@ -101,8 +101,12 @@ export function useMessagesQuery({ chatId, enabled = true }: UseMessagesQueryOpt
     staleTime: 5_000,
   });
 
-  // Flatten: todas as páginas numa lista plana, ordem cronológica
-  const data = infiniteQuery.data?.pages.flat();
+  // Flatten em ordem cronológica. As páginas chegam da mais RECENTE (página 0)
+  // para a mais antiga (paginação desc no backend), e cada página já vem em
+  // ordem cronológica interna → inverte a ordem DAS PÁGINAS antes de achatar.
+  const data = infiniteQuery.data
+    ? [...infiniteQuery.data.pages].reverse().flat()
+    : undefined;
 
   return {
     ...infiniteQuery,
@@ -150,10 +154,10 @@ export function useSendMessageMutation() {
 
       queryClient.setQueryData<InfiniteData<LeafMessage[]>>(queryKey, (old) => {
         if (!old) return { pages: [[optimisticMessage]], pageParams: [0] };
-        // Adiciona à última página (mais recente)
-        const lastIdx = old.pages.length - 1;
+        // Adiciona ao FIM da página 0 — que é a janela mais recente
+        // (paginação desc: página 0 = últimas 50, em ordem cronológica)
         const updatedPages = old.pages.map((page, i) =>
-          i === lastIdx ? [...page, optimisticMessage] : page,
+          i === 0 ? [...page, optimisticMessage] : page,
         );
         return { ...old, pages: updatedPages };
       });

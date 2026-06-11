@@ -201,6 +201,16 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
             {muted ? <Bell size={17} strokeWidth={2} /> : <BellOff size={17} strokeWidth={2} />}
             {muted ? 'Reativar notificações' : 'Silenciar'}
           </button>
+          <div className="chat-menu__sep" />
+          {/* Apagar fica SEMPRE visível no menu — não escondido no "Mais" */}
+          <button
+            className="chat-menu__item chat-menu__item--danger"
+            role="menuitem"
+            disabled={deleteMutation.isPending}
+            onClick={handleDelete}
+          >
+            <Trash2 size={17} strokeWidth={2} /> Apagar conversa
+          </button>
           {!showMore ? (
             <button className="chat-menu__item" role="menuitem" onClick={() => setShowMore(true)}>
               <MoreHorizontal size={17} strokeWidth={2} /> Mais
@@ -208,7 +218,6 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
             </button>
           ) : (
             <>
-              <div className="chat-menu__sep" />
               <button
                 className="chat-menu__item chat-menu__item--danger"
                 role="menuitem"
@@ -223,14 +232,6 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
                 onClick={handleClear}
               >
                 <Eraser size={17} strokeWidth={2} /> Limpar conversa
-              </button>
-              <button
-                className="chat-menu__item chat-menu__item--danger"
-                role="menuitem"
-                disabled={deleteMutation.isPending}
-                onClick={handleDelete}
-              >
-                <Trash2 size={17} strokeWidth={2} /> Apagar conversa
               </button>
             </>
           )}

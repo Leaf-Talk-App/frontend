@@ -76,6 +76,8 @@
   margin: 0;
   padding: 0;
   overflow-y: auto;
+  /* nunca rola na horizontal — itens encolhem com ellipsis */
+  overflow-x: hidden;
   overscroll-behavior: contain;
   display: grid;
   /* empacota os itens no topo. Sem isto, o grid usa o default (stretch) e,
@@ -84,6 +86,12 @@
   grid-auto-rows: max-content;
   align-content: start;
   gap: 2px;
+}
+
+.chats-page__list > li {
+  /* grid item: sem min-width:0 o conteúdo nowrap (nome/hora) força largura
+     mínima maior que o painel → aparecia scroll horizontal */
+  min-width: 0;
 }
 
 .chats-page__list::-webkit-scrollbar {

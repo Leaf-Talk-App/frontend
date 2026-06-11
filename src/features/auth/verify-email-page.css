@@ -2,13 +2,14 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  /* Usar height (não min-height) + overflow:hidden evita scroll indesejado na página.
-     O conteúdo interno tem overflow-y:auto para rolar em viewports muito pequenas. */
-  height: 100vh;
-  overflow: hidden;
+  /* Altura natural + um único scroll (o da página) apenas se precisar.
+     Mesmo fundo creme do login. */
+  min-height: 100vh;
+  overflow-x: hidden;
   background:
-    radial-gradient(circle at 84% 24%, rgb(206 226 200 / 58%), transparent 24%),
-    linear-gradient(90deg, var(--leaf-color-neutral) 0%, #fbfcf7 50%, #eff1e9 100%);
+    radial-gradient(circle at top left, rgb(121 162 69 / 8%), transparent 30%),
+    radial-gradient(circle at bottom right, rgb(225 234 206 / 32%), transparent 34%),
+    #f7f7ed;
 }
 
 .verify-email-page__topbar {

@@ -1,13 +1,17 @@
 .login-page {
   position: relative;
   display: grid;
-  /* height fixo (não min-height) + overflow hidden → página nunca rola;
-     hero/painel preenchem exatamente a viewport. */
-  height: 100vh;
-  overflow: hidden;
+  /* Altura natural: ocupa a viewport e SÓ cresce se o conteúdo precisar.
+     Um único scroll (o da página), sem espaço em branco no final e sem
+     cortar texto — nada de height fixo + overflow hidden. */
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* Fundo original (vinha do antigo auth-page-base): creme suave com
+     radiais discretos — o gradiente lateral anterior ficou feio. */
   background:
-    radial-gradient(circle at 84% 24%, rgb(206 226 200 / 58%), transparent 24%),
-    linear-gradient(90deg, var(--leaf-color-neutral) 0%, #fbfcf7 50%, #eff1e9 100%);
+    radial-gradient(circle at top left, rgb(121 162 69 / 8%), transparent 30%),
+    radial-gradient(circle at bottom right, rgb(225 234 206 / 32%), transparent 34%),
+    #f7f7ed;
 }
 
 .login-page__topbar {
@@ -100,10 +104,10 @@
   z-index: 1;
   grid-area: 1 / 1;
   display: flex;
-  height: 100%;
+  min-height: 100vh;
   align-items: center;
-  padding: 96px 56vw 96px 96px;
-  overflow: hidden;
+  /* sem overflow:hidden — não corta o título */
+  padding: 80px 56vw 48px 96px;
   pointer-events: none;
 }
 
@@ -171,14 +175,12 @@
   z-index: 2;
   grid-area: 1 / 1;
   display: grid;
-  height: 100%;
+  min-height: 100vh;
   place-items: center end;
   /* topo respeita a topbar fixa (72px); rodapé deixa espaço p/ a faixa de
      criptografia (fixed bottom:16px) sem sobrepor o card.
-     SEM overflow-y:auto — era a causa do segundo scrollbar; o card é
-     compacto o bastante para caber na viewport. */
+     SEM overflow-y:auto — o scroll é um só, o da página. */
   padding: 80px 96px 48px 56vw;
-  overflow: visible;
   pointer-events: none;
 }
 

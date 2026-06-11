@@ -23,10 +23,10 @@
 .message-bubble__body {
   display: inline-block;
   width: fit-content;
-  /* cresce horizontalmente até ~78% do container antes de quebrar linha
+  /* cresce horizontalmente até ~82% do container antes de quebrar linha
      (padrão WhatsApp/Telegram). break-word quebra só palavras/URLs longas
      demais (não break-all); NÃO reduz o min-content a 1 char. */
-  max-width: min(560px, 78%);
+  max-width: min(640px, 82%);
   padding: 8px 12px 6px;
   border-radius: 18px;
   overflow-wrap: break-word;
