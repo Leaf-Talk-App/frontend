@@ -172,6 +172,13 @@ export const chatsApi = {
   hide(data: ChatActionRequest, { token }: AuthedRequest) {
     return chatAction('/chats/hide', data, token);
   },
+
+  delete(chatId: string, { token }: AuthedRequest) {
+    return apiRequest<ApiMessageResponse>(`/chats/${encodeURIComponent(chatId)}`, {
+      method: 'DELETE',
+      token,
+    });
+  },
 };
 
 export const messagesApi = {

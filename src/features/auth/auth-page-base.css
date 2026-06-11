@@ -1,8 +1,10 @@
-/* Shared auth page base styles for login, register and verify email screens */
+/* Base SÓ da tela de cadastro.
+   ANTES este arquivo também estilizava .login-page e .verify-email-page —
+   como o Vite empacota todo CSS num bundle global, o overflow-y:auto e o
+   padding daqui vazavam para o login/verify e criavam o scroll duplo e o
+   espaço vazio abaixo do rodapé. Escopado para .register-page apenas. */
 
-.login-page,
-.register-page,
-.verify-email-page {
+.register-page {
   position: relative;
   display: grid;
   min-height: 100vh;
@@ -15,9 +17,7 @@
   color: #1f2c1a;
 }
 
-.login-page::before,
-.register-page::before,
-.verify-email-page::before {
+.register-page::before {
   content: '';
   position: absolute;
   top: -22%;
@@ -29,9 +29,7 @@
   pointer-events: none;
 }
 
-.login-page::after,
-.register-page::after,
-.verify-email-page::after {
+.register-page::after {
   content: '';
   position: absolute;
   bottom: -16%;

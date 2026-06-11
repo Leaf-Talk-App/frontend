@@ -17,14 +17,19 @@ export function ChatsPage() {
   const { data: chats, isLoading, error } = useChatsQuery();
   const [search, setSearch] = useState('');
 
-  // Coleta IDs únicos de todos os outros participantes
+  // Coleta IDs únicos de todos os outros participantes.
+  // Conversa consigo mesmo (participants = [eu, eu]) não tem "outro" → cai no
+  // fallback do próprio ID, senão o nome ficava num skeleton infinito (tracinho).
   const participantIds = useMemo(() => {
     if (!chats || !currentUser) return [];
     const ids = new Set<string>();
     chats.forEach((chat) => {
-      chat.participants?.forEach((id) => {
-        if (id !== currentUser.id) ids.add(id);
-      });
+      const others = chat.participants?.filter((id) => id !== currentUser.id) ?? [];
+      if (others.length) {
+        others.forEach((id) => ids.add(id));
+      } else if (chat.participants?.length) {
+        ids.add(chat.participants[0]);
+      }
     });
     return Array.from(ids);
   }, [chats, currentUser]);
@@ -68,7 +73,9 @@ export function ChatsPage() {
       if (preview.includes(term)) return true;
 
       // Também filtra pelo nome do outro participante
-      const otherId = chat.participants?.find((id) => id !== currentUser?.id);
+      const otherId =
+        chat.participants?.find((id) => id !== currentUser?.id) ??
+        chat.participants?.[0];
       const other = otherId ? usersMap[otherId] : undefined;
       if (other) {
         const name = (other.display_name || other.name || '').toLowerCase();
@@ -130,7 +137,9 @@ export function ChatsPage() {
         ) : (
           <ul className="chats-page__list">
             {filteredChats.map((chat) => {
-              const otherId = chat.participants?.find((id) => id !== currentUser?.id);
+              const otherId =
+                chat.participants?.find((id) => id !== currentUser?.id) ??
+                chat.participants?.[0];
               const otherUser = otherId ? usersMap[otherId] : undefined;
               const userNotFound = otherId ? failedUserIds.has(otherId) : false;
               return (

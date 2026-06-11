@@ -99,9 +99,12 @@ export function ChatWindowPage() {
   // useChatQuery: primeiro tenta o cache da lista, depois GET /chats/{id}
   const { data: currentChat } = useChatQuery(chatId);
 
-  // Participante do outro lado
+  // Participante do outro lado. Conversa consigo mesmo não tem "outro" →
+  // fallback para o primeiro participante (o próprio usuário).
   const otherParticipantId = useMemo(
-    () => currentChat?.participants?.find((id) => id !== currentUser?.id),
+    () =>
+      currentChat?.participants?.find((id) => id !== currentUser?.id) ??
+      currentChat?.participants?.[0],
     [currentChat, currentUser?.id],
   );
   const { data: otherUser } = useParticipantQuery(otherParticipantId);
@@ -123,6 +126,7 @@ export function ChatWindowPage() {
   const [sendingImage, setSendingImage] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sendError, setSendError] = useState<string | null>(null);
   const chatMenuRef = useRef<ChatHeaderMenuHandle>(null);
 
   // O WebSocket agora é único e global (AuthenticatedShell → GlobalPresence),
@@ -186,8 +190,17 @@ export function ChatWindowPage() {
         receiver_id: receiverId,
         type: 'text',
       });
+      setSendError(null);
     } catch (error) {
       console.error('[Chat] Failed to send message:', error);
+      // Mostra o motivo real na tela — antes a mensagem sumia em silêncio e
+      // parecia que "a conversa travou".
+      const raw = error instanceof Error ? error.message.toLowerCase() : '';
+      setSendError(
+        raw.includes('block') || raw.includes('bloque')
+          ? 'Você foi bloqueado por este contato e não pode enviar mensagens.'
+          : 'Não foi possível enviar a mensagem. Verifique sua conexão e tente novamente.',
+      );
     }
   };
 
@@ -351,6 +364,18 @@ export function ChatWindowPage() {
       </main>
 
       <footer className="chat-window-page__composer-wrap">
+        {sendError && (
+          <div className="chat-window-page__send-error" role="alert">
+            <span>{sendError}</span>
+            <button
+              type="button"
+              aria-label="Fechar aviso"
+              onClick={() => setSendError(null)}
+            >
+              <X size={14} strokeWidth={2.4} />
+            </button>
+          </div>
+        )}
         <MessageComposer
           recipientName={displayName}
           onSend={handleSendMessage}

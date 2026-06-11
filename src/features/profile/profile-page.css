@@ -416,3 +416,84 @@
     width: 100%;
   }
 }
+
+/* ── Contatos bloqueados ─────────────────────────────────────────────────── */
+.blocked-card {
+  margin-top: 14px;
+}
+
+.blocked-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--leaf-color-text);
+}
+
+.blocked-card__empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--leaf-color-text-muted);
+}
+
+.blocked-card__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.blocked-card__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.blocked-card__info {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.blocked-card__info strong {
+  font-size: 14px;
+  color: var(--leaf-color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.blocked-card__info small {
+  font-size: 12px;
+  color: var(--leaf-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.blocked-card__unblock {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--leaf-color-primary-dark);
+  background: transparent;
+  border: 1px solid var(--leaf-color-primary-dark);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.blocked-card__unblock:hover:not(:disabled) {
+  background: rgb(127 162 69 / 12%);
+}
+
+.blocked-card__unblock:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}

@@ -5,6 +5,7 @@ import {
   Bell,
   BellOff,
   ChevronRight,
+  Eraser,
   Images,
   Info,
   MessageSquare,
@@ -137,6 +138,14 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => chatsApi.delete(chatId, { token: accessToken! }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine });
+      navigate(routePaths.chats);
+    },
+  });
+
   const handleBlock = () => {
     setOpen(false);
     setModal(null);
@@ -149,6 +158,13 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
     setOpen(false);
     if (window.confirm('Limpar esta conversa? As mensagens somem só para você.')) {
       clearMutation.mutate();
+    }
+  };
+
+  const handleDelete = () => {
+    setOpen(false);
+    if (window.confirm('Tem certeza? Esta ação não pode ser desfeita para você.')) {
+      deleteMutation.mutate();
     }
   };
 
@@ -206,7 +222,15 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
                 disabled={clearMutation.isPending}
                 onClick={handleClear}
               >
-                <Trash2 size={17} strokeWidth={2} /> Limpar conversa
+                <Eraser size={17} strokeWidth={2} /> Limpar conversa
+              </button>
+              <button
+                className="chat-menu__item chat-menu__item--danger"
+                role="menuitem"
+                disabled={deleteMutation.isPending}
+                onClick={handleDelete}
+              >
+                <Trash2 size={17} strokeWidth={2} /> Apagar conversa
               </button>
             </>
           )}

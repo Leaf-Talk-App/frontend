@@ -1,4 +1,5 @@
 import {
+  Ban,
   Bell,
   Camera,
   Check,
@@ -10,12 +11,13 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Avatar } from '../../components/avatar/Avatar';
 import { ErrorMessage, LoadingSpinner } from '../../components/feedback/FeedbackComponents';
 import { routePaths } from '../../routes/paths';
 import { useCurrentUserQuery, useLogout, useUpdateProfileMutation } from '../auth/auth-hooks';
 import { useAuth } from '../../lib/auth/use-auth';
-import { uploadsApi } from '../../lib/api/endpoints';
+import { uploadsApi, usersApi } from '../../lib/api/endpoints';
 import './profile-page.css';
 
 function formatMemberSince(dateValue?: string) {
@@ -66,6 +68,22 @@ export function ProfilePage() {
     logout();
     navigate(routePaths.login, { replace: true });
   };
+
+  // Contatos bloqueados — lista + desbloqueio (recuperação de bloqueio acidental)
+  const queryClient = useQueryClient();
+  const blockedQuery = useQuery({
+    queryKey: ['users', 'blocked'],
+    queryFn: () => usersApi.blocked({ token: accessToken! }),
+    enabled: Boolean(accessToken),
+  });
+
+  const unblockMutation = useMutation({
+    mutationFn: (userId: string) => usersApi.unblock(userId, { token: accessToken! }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users', 'blocked'] });
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
+    },
+  });
 
   const [displayNameDraft, setDisplayNameDraft] = useState('');
   const [bioDraft, setBioDraft] = useState('');
@@ -341,6 +359,42 @@ export function ProfilePage() {
             >
               <span />
             </button>
+          </article>
+
+          <article className="panel-card blocked-card">
+            <h3 className="blocked-card__title">
+              <Ban size={16} strokeWidth={2.2} />
+              Contatos bloqueados
+            </h3>
+            {blockedQuery.isLoading ? (
+              <p className="blocked-card__empty">Carregando…</p>
+            ) : !blockedQuery.data || blockedQuery.data.length === 0 ? (
+              <p className="blocked-card__empty">Você não bloqueou ninguém.</p>
+            ) : (
+              <ul className="blocked-card__list">
+                {blockedQuery.data.map((blockedUser) => (
+                  <li key={blockedUser._id} className="blocked-card__row">
+                    <Avatar
+                      src={blockedUser.avatar}
+                      initials={(blockedUser.display_name || blockedUser.name || '?').charAt(0).toUpperCase()}
+                      size="sm"
+                    />
+                    <div className="blocked-card__info">
+                      <strong>{blockedUser.display_name || blockedUser.name}</strong>
+                      <small>{blockedUser.email}</small>
+                    </div>
+                    <button
+                      type="button"
+                      className="blocked-card__unblock"
+                      disabled={unblockMutation.isPending}
+                      onClick={() => unblockMutation.mutate(blockedUser._id)}
+                    >
+                      Desbloquear
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </article>
 
           <article className="toggle-card toggle-card--soon">

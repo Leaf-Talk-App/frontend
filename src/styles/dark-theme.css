@@ -86,9 +86,10 @@ html { transition: background-color 280ms ease, color 200ms ease; }
 }
 [data-theme='dark'] .login-page__footer,
 [data-theme='dark'] .verify-email-page__footer {
-  background: rgb(14 19 16 / 60%);
-  border-top-color: rgb(110 150 65 / 8%);
-  color: #8f9b85;
+  /* rodapé é uma faixa transparente fixa — sem fundo/borda nos dois temas */
+  background: transparent;
+  border-top-color: transparent;
+  color: #8ebb48;
 }
 /* cartões de auth (alguns hardcoded em white) */
 [data-theme='dark'] .verify-email-card,

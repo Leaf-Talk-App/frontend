@@ -204,6 +204,34 @@
   background: transparent;
 }
 
+/* Aviso de falha no envio — aparece acima do composer */
+.chat-window-page__send-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: var(--leaf-color-danger, #c9171d);
+  background: rgb(201 23 29 / 8%);
+  border: 1px solid rgb(201 23 29 / 20%);
+  border-radius: 12px;
+}
+
+.chat-window-page__send-error button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
 .chat-window-page__footnote {
   display: block;
   margin: 10px auto 0;
