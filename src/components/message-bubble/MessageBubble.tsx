@@ -125,7 +125,8 @@ export function MessageBubble({
   /* ── Arquivo (PDF / documento) ─────────────────────────────────────────── */
   if (isFile) {
     const pdf = isPdf(fileUrl);
-    const name = fileNameFromUrl(fileUrl);
+    // prefere o nome original enviado em content; cai para o nome derivado da URL
+    const name = (content && content.trim()) || fileNameFromUrl(fileUrl);
     return (
       <div className={`message-bubble ${senderCls}`}>
         <div className="message-bubble__body">

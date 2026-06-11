@@ -83,6 +83,10 @@ export type CreateChatResponse = {
 
 export type ChatActionRequest = {
   chat_id: string;
+  /** silenciar por N minutos; null/ausente = para sempre (ao silenciar) */
+  mute_minutes?: number | null;
+  /** reativar notificações */
+  unmute?: boolean;
 };
 
 export type ChatLastMessage = {

@@ -6,7 +6,11 @@
   /* min-height (não height fixo) → cabe na viewport quando dá e, quando não dá,
      rola a PÁGINA inteira (um único scrollbar à direita), sem scroll interno. */
   min-height: 100vh;
-  background: radial-gradient(circle at 18% 28%, #f3f6ed 0%, #f7f8f4 34%, #f3f4ef 68%, #eef0ea 100%);
+  /* mesmo fundo creme da tela de login (antes era um tom chapado/feio) */
+  background:
+    radial-gradient(circle at top left, rgb(121 162 69 / 8%), transparent 30%),
+    radial-gradient(circle at bottom right, rgb(225 234 206 / 32%), transparent 34%),
+    #f7f7ed;
   color: #1d211b;
   overflow-x: hidden;
   position: relative;

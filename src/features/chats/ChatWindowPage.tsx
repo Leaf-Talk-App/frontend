@@ -1,4 +1,4 @@
-import { ArrowLeft, Camera, ChevronDown, Image, Mic, MicOff, Search, Send, Smile, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Camera, ChevronDown, Image, Mic, MicOff, Paperclip, Search, Send, Smile, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChatHeaderMenuHandle } from './ChatHeaderMenu';
 import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
@@ -398,6 +398,27 @@ export function ChatWindowPage() {
             });
           }}
           onPickFile={(file) => setPendingFile(file)}
+          onPickDocument={async (file) => {
+            if (!accessToken || !otherParticipantId) return;
+            try {
+              const { url } = await uploadsApi.file(file, accessToken);
+              await sendMutation.mutateAsync({
+                chat_id: chatId,
+                content: file.name,
+                receiver_id: otherParticipantId,
+                type: 'file',
+                file_url: url,
+              });
+              setSendError(null);
+            } catch (error) {
+              const raw = error instanceof Error ? error.message.toLowerCase() : '';
+              setSendError(
+                raw.includes('413') || raw.includes('grande')
+                  ? 'Arquivo muito grande (máximo 10 MB).'
+                  : 'Não foi possível enviar o arquivo. Tente novamente.',
+              );
+            }
+          }}
           isLoading={sendMutation.isPending}
         />
         <small className="chat-window-page__footnote">
@@ -528,15 +549,17 @@ interface MessageComposerProps {
   recipientName: string;
   onSend: (content: string) => void;
   onPickFile?: (file: File) => void;
+  onPickDocument?: (file: File) => void;
   onSendAudio?: (blob: Blob) => Promise<void>;
   isLoading?: boolean;
 }
 
-function MessageComposer({ recipientName, onSend, onPickFile, onSendAudio, isLoading = false }: MessageComposerProps) {
+function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, onSendAudio, isLoading = false }: MessageComposerProps) {
   const [message, setMessage] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const emojiWrapRef = useRef<HTMLDivElement>(null);
   const { state: recState, duration, start: startRec, stop: stopRec, cancel: cancelRec } = useAudioRecorder();
@@ -568,6 +591,16 @@ function MessageComposer({ recipientName, onSend, onPickFile, onSendAudio, isLoa
     event.target.value = '';
   };
 
+  // Anexo genérico: imagem → fluxo de preview; qualquer outro → documento
+  const handleDocChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.type.startsWith('image/') && onPickFile) onPickFile(file);
+      else if (onPickDocument) onPickDocument(file);
+    }
+    event.target.value = '';
+  };
+
   const handleEmojiSelect = useCallback((emoji: string) => {
     const input = inputRef.current;
     if (!input) {
@@ -595,6 +628,24 @@ function MessageComposer({ recipientName, onSend, onPickFile, onSendAudio, isLoa
         style={{ display: 'none' }}
         onChange={handleFileChange}
       />
+      {/* Input genérico: aceita qualquer arquivo (pdf, doc, zip, etc.) */}
+      <input
+        ref={docInputRef}
+        type="file"
+        style={{ display: 'none' }}
+        onChange={handleDocChange}
+      />
+
+      {/* Anexar arquivo (qualquer tipo) — estilo clipe */}
+      <button
+        type="button"
+        className="message-composer__icon"
+        aria-label="Anexar arquivo"
+        disabled={isLoading}
+        onClick={() => docInputRef.current?.click()}
+      >
+        <Paperclip size={18} strokeWidth={2.2} />
+      </button>
 
       <button
         type="button"

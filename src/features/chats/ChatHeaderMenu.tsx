@@ -40,6 +40,16 @@ export interface ChatHeaderMenuHandle {
 
 const URL_RE = /(https?:\/\/[^\s]+)/i;
 
+// Durações de silenciamento (minutos). null = para sempre.
+const MUTE_OPTIONS: { label: string; minutes: number | null }[] = [
+  { label: '2 horas', minutes: 120 },
+  { label: '12 horas', minutes: 720 },
+  { label: '1 dia', minutes: 1440 },
+  { label: '1 semana', minutes: 10080 },
+  { label: '1 mês', minutes: 43200 },
+  { label: 'Para sempre', minutes: null },
+];
+
 type ModalKind = 'contact' | 'media' | null;
 
 function formatLastSeenLocal(value?: string): string {
@@ -69,6 +79,7 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [showMore, setShowMore] = useState(false);
+  const [showMute, setShowMute] = useState(false);
   const [modal, setModal] = useState<ModalKind>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -76,9 +87,12 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
     openContact: () => setModal('contact'),
   }));
 
-  // recolhe o submenu "Mais" sempre que o dropdown fecha
+  // recolhe os submenus sempre que o dropdown fecha
   useEffect(() => {
-    if (!open) setShowMore(false);
+    if (!open) {
+      setShowMore(false);
+      setShowMute(false);
+    }
   }, [open]);
 
   // Fecha o dropdown ao clicar fora / Esc
@@ -99,7 +113,8 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
   }, [open]);
 
   const muteMutation = useMutation({
-    mutationFn: () => chatsApi.mute({ chat_id: chatId }, { token: accessToken! }),
+    mutationFn: (vars: { mute_minutes?: number | null; unmute?: boolean }) =>
+      chatsApi.mute({ chat_id: chatId, ...vars }, { token: accessToken! }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine });
       queryClient.invalidateQueries({ queryKey: queryKeys.chats.byId(chatId) });
@@ -181,7 +196,25 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
         <MoreVertical size={18} strokeWidth={2.2} />
       </button>
 
-      {open && (
+      {open && showMute ? (
+        <div className="chat-menu__dropdown" role="menu">
+          <button className="chat-menu__item" role="menuitem" onClick={() => setShowMute(false)}>
+            <ChevronRight size={15} strokeWidth={2} style={{ transform: 'rotate(180deg)' }} /> Silenciar por…
+          </button>
+          <div className="chat-menu__sep" />
+          {MUTE_OPTIONS.map((opt) => (
+            <button
+              key={opt.label}
+              className="chat-menu__item"
+              role="menuitem"
+              disabled={muteMutation.isPending}
+              onClick={() => { setOpen(false); muteMutation.mutate({ mute_minutes: opt.minutes }); }}
+            >
+              <BellOff size={17} strokeWidth={2} /> {opt.label}
+            </button>
+          ))}
+        </div>
+      ) : open && (
         <div className="chat-menu__dropdown" role="menu">
           <button className="chat-menu__item" role="menuitem" onClick={() => { setOpen(false); setModal('contact'); }}>
             <Info size={17} strokeWidth={2} /> Mostrar contato
@@ -192,15 +225,25 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
           <button className="chat-menu__item" role="menuitem" onClick={() => { setOpen(false); setModal('media'); }}>
             <Images size={17} strokeWidth={2} /> Mídia, links e docs
           </button>
-          <button
-            className="chat-menu__item"
-            role="menuitem"
-            disabled={muteMutation.isPending}
-            onClick={() => { setOpen(false); muteMutation.mutate(); }}
-          >
-            {muted ? <Bell size={17} strokeWidth={2} /> : <BellOff size={17} strokeWidth={2} />}
-            {muted ? 'Reativar notificações' : 'Silenciar'}
-          </button>
+          {muted ? (
+            <button
+              className="chat-menu__item"
+              role="menuitem"
+              disabled={muteMutation.isPending}
+              onClick={() => { setOpen(false); muteMutation.mutate({ unmute: true }); }}
+            >
+              <Bell size={17} strokeWidth={2} /> Reativar notificações
+            </button>
+          ) : (
+            <button
+              className="chat-menu__item"
+              role="menuitem"
+              onClick={() => setShowMute(true)}
+            >
+              <BellOff size={17} strokeWidth={2} /> Silenciar
+              <ChevronRight size={15} strokeWidth={2} style={{ marginLeft: 'auto' }} />
+            </button>
+          )}
           <div className="chat-menu__sep" />
           {/* Apagar fica SEMPRE visível no menu — não escondido no "Mais" */}
           <button
