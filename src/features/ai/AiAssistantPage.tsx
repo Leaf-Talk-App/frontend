@@ -11,6 +11,8 @@ import {
   Sprout,
   TrendingUp,
   Users,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { ImagePreviewModal } from '../../components/image-preview-modal/ImagePreviewModal';
 import { CameraCaptureModal } from '../../components/camera-capture-modal/CameraCaptureModal';
@@ -18,6 +20,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth/use-auth';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
+import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis';
 import { aiApi, uploadsApi } from '../../lib/api/endpoints';
 import { useAiChatMutation, useAiHistoryQuery, useClearAiHistoryMutation } from './ai-hooks';
 import type { AiHistoryMessage } from '../../lib/api/contracts';
@@ -175,6 +178,8 @@ export function AiAssistantPage() {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [showCamera, setShowCamera] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [autoSpeak, setAutoSpeak] = useState(false);
+  const tts = useSpeechSynthesis({ lang: 'pt-BR' });
   const composerRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -239,6 +244,10 @@ export function AiAssistantPage() {
         action: parsed.action,
       };
       setMessages((prev) => [...prev, aiMessage]);
+      // Auto-falar: lê a resposta em voz alta se o usuário ativou (acessibilidade)
+      if (autoSpeak && parsed.content.trim()) {
+        tts.speak(parsed.content, aiMessage.id);
+      }
     } catch (error) {
       console.error('[Humberto] Failed to get response:', error);
       const errorMessage: ChatMessage = {
@@ -282,6 +291,7 @@ export function AiAssistantPage() {
 
   const handleNewConversation = () => {
     // Limpa o histórico persistido (POST /ai/history/clear) e reinicia o thread.
+    tts.cancel(); // para qualquer leitura em andamento
     clearHistory.mutate();
     setMessages([WELCOME_MESSAGE]);
     setInput('');
@@ -349,14 +359,40 @@ export function AiAssistantPage() {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="ai-assistant-page__new"
-          onClick={handleNewConversation}
-        >
-          <Plus size={14} strokeWidth={2.4} aria-hidden="true" />
-          Nova conversa
-        </button>
+        <div className="ai-assistant-page__header-actions">
+          {tts.supported && (
+            <button
+              type="button"
+              className={`ai-assistant-page__autospeak${
+                autoSpeak ? ' ai-assistant-page__autospeak--on' : ''
+              }`}
+              aria-pressed={autoSpeak}
+              title={autoSpeak ? 'Desativar leitura automática' : 'Ler respostas em voz alta'}
+              onClick={() => {
+                setAutoSpeak((v) => {
+                  if (v) tts.cancel(); // ao desligar, interrompe fala em andamento
+                  return !v;
+                });
+              }}
+            >
+              {autoSpeak ? (
+                <Volume2 size={14} strokeWidth={2.4} aria-hidden="true" />
+              ) : (
+                <VolumeX size={14} strokeWidth={2.4} aria-hidden="true" />
+              )}
+              Voz {autoSpeak ? 'on' : 'off'}
+            </button>
+          )}
+
+          <button
+            type="button"
+            className="ai-assistant-page__new"
+            onClick={handleNewConversation}
+          >
+            <Plus size={14} strokeWidth={2.4} aria-hidden="true" />
+            Nova conversa
+          </button>
+        </div>
       </header>
 
       <div className="ai-assistant-page__layout">
@@ -411,6 +447,25 @@ export function AiAssistantPage() {
                 ) : null}
                 <small className="ai-message__meta">
                   HUMBERTO · {formatTime(message.timestamp)}
+                  {tts.supported && message.content.trim() ? (
+                    <button
+                      type="button"
+                      className={`ai-message__speak${
+                        tts.speakingId === message.id ? ' ai-message__speak--on' : ''
+                      }`}
+                      aria-label={
+                        tts.speakingId === message.id ? 'Parar leitura' : 'Ouvir resposta'
+                      }
+                      title={tts.speakingId === message.id ? 'Parar leitura' : 'Ouvir resposta'}
+                      onClick={() => tts.speak(message.content, message.id)}
+                    >
+                      {tts.speakingId === message.id ? (
+                        <VolumeX size={13} strokeWidth={2.4} />
+                      ) : (
+                        <Volume2 size={13} strokeWidth={2.4} />
+                      )}
+                    </button>
+                  ) : null}
                 </small>
               </article>
             ),

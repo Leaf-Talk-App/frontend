@@ -75,6 +75,41 @@
   transform: translateY(-1px);
 }
 
+.ai-assistant-page__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Toggle de leitura automática das respostas (acessibilidade) */
+.ai-assistant-page__autospeak {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  background: #ffffff;
+  color: #5d7a2e;
+  border: 1px solid #d6ddc8;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.ai-assistant-page__autospeak:hover {
+  background: #f3f6ec;
+}
+
+.ai-assistant-page__autospeak--on {
+  background: #eef2e6;
+  border-color: #487711;
+  color: #3d5a17;
+}
+
 .ai-assistant-page__layout {
   flex: 1;
   display: grid;
@@ -179,11 +214,45 @@
 }
 
 .ai-message__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
   color: #8a9183;
   text-transform: uppercase;
+}
+
+/* Botão "ouvir" (TTS) ao lado do timestamp do Humberto */
+.ai-message__speak {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #eef2e6;
+  color: #5d7a2e;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.ai-message__speak:hover {
+  background: #e2ead4;
+}
+
+.ai-message__speak--on {
+  background: #487711;
+  color: #ffffff;
+  animation: ai-speak-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes ai-speak-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(72 119 17 / 35%); }
+  50% { box-shadow: 0 0 0 4px rgb(72 119 17 / 0%); }
 }
 
 .ai-message__action {
@@ -625,6 +694,16 @@
     height: 32px;
     padding: 0 12px;
     font-size: 11px;
+  }
+
+  /* compacta o toggle de voz no mobile — só o ícone, sem o "on/off" */
+  .ai-assistant-page__autospeak {
+    height: 32px;
+    padding: 0;
+    width: 32px;
+    justify-content: center;
+    font-size: 0;
+    gap: 0;
   }
 
   /* Hide sidekick on mobile — no room; hero chips cover quick commands */

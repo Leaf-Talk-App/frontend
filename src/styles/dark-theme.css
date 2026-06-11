@@ -249,6 +249,26 @@ html { transition: background-color 280ms ease, color 200ms ease; }
   color: #8ebb48;
 }
 [data-theme='dark'] .ai-message__meta { color: #5e6857; }
+[data-theme='dark'] .ai-message__speak {
+  background: #1c2119;
+  color: #8ebb48;
+}
+[data-theme='dark'] .ai-message__speak:hover { background: #243515; }
+[data-theme='dark'] .ai-message__speak--on {
+  background: #8ebb48;
+  color: #10160b;
+}
+[data-theme='dark'] .ai-assistant-page__autospeak {
+  background: #1c2119;
+  border-color: rgb(142 187 72 / 28%);
+  color: #a2d155;
+}
+[data-theme='dark'] .ai-assistant-page__autospeak:hover { background: #243515; }
+[data-theme='dark'] .ai-assistant-page__autospeak--on {
+  background: #243515;
+  border-color: rgb(142 187 72 / 55%);
+  color: #b6e06a;
+}
 [data-theme='dark'] .ai-message__action {
   background: #1c2119;
   border-color: rgb(110 150 65 / 12%);
