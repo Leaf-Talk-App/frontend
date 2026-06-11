@@ -134,6 +134,8 @@ export type SendMessageResponse = {
   content?: string;
   type?: string;
   file_url?: string | null;
+  reply_to?: string | null;
+  reply_preview?: ReplyPreview | null;
   created_at?: string;
   read?: boolean;
   edited?: boolean;
@@ -162,6 +164,17 @@ export type LeafMessage = {
   edited?: boolean;
   deleted?: boolean;
   created_at?: string;
+  /** id da mensagem citada (resposta) */
+  reply_to?: string | null;
+  /** prévia denormalizada da mensagem citada (montada pelo backend no envio) */
+  reply_preview?: ReplyPreview | null;
+};
+
+export type ReplyPreview = {
+  _id: string;
+  sender_id: string;
+  content: string;
+  type?: MessageType;
 };
 
 export type CreateGroupRequest = {

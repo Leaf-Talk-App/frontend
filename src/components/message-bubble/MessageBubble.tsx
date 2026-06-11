@@ -16,6 +16,20 @@ interface MessageBubbleProps {
   deleted?: boolean;
   /** quando true, nunca exibe o ✓✓ verde (usuário desativou confirmações) */
   suppressReadReceipt?: boolean;
+  /** citação (resposta): autor e texto da mensagem original */
+  replyAuthor?: string;
+  replyText?: string;
+}
+
+/** Bloco de citação exibido no topo do balão quando a mensagem é uma resposta. */
+function ReplyQuote({ author, text }: { author?: string; text?: string }) {
+  if (!author && !text) return null;
+  return (
+    <div className="message-bubble__reply">
+      {author ? <span className="message-bubble__reply-author">{author}</span> : null}
+      <span className="message-bubble__reply-text">{text}</span>
+    </div>
+  );
 }
 
 function StatusIcon({ status }: { status: MessageStatus }) {
@@ -69,6 +83,8 @@ export function MessageBubble({
   edited,
   deleted,
   suppressReadReceipt,
+  replyAuthor,
+  replyText,
 }: MessageBubbleProps) {
   const senderCls = isSender ? 'message-bubble--sender' : 'message-bubble--receiver';
   const variant = isSender ? 'sender' : 'receiver';
@@ -86,6 +102,7 @@ export function MessageBubble({
     return (
       <div className={`message-bubble message-bubble--image ${senderCls}`}>
         <div className="message-bubble__body">
+          <ReplyQuote author={replyAuthor} text={replyText} />
           <button
             type="button"
             className="message-bubble__media-btn"
@@ -166,6 +183,7 @@ export function MessageBubble({
     <div className={`message-bubble ${senderCls}`}>
       <div className="message-bubble__body">
         <div className="message-bubble__inner">
+          {!deleted && <ReplyQuote author={replyAuthor} text={replyText} />}
           {deleted ? (
             <p className="message-bubble__deleted">Mensagem apagada</p>
           ) : (

@@ -1,4 +1,4 @@
-import { ArrowLeft, Camera, ChevronDown, Image, Mic, MicOff, Paperclip, Search, Send, Smile, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Camera, ChevronDown, Image, Mic, MicOff, Paperclip, Reply, Search, Send, Smile, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChatHeaderMenuHandle } from './ChatHeaderMenu';
 import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
@@ -63,6 +63,18 @@ function formatDateDivider(value?: string) {
   return date
     .toLocaleDateString('pt-BR', { month: 'long', day: 'numeric', year: 'numeric' })
     .toUpperCase();
+}
+
+// Texto curto p/ a citação de resposta — usa o conteúdo ou um rótulo de mídia.
+function replyPreviewText(m: { content?: string; type?: string }): string {
+  const text = (m.content || '').trim();
+  if (text) return text;
+  switch (m.type) {
+    case 'image': return '📷 Foto';
+    case 'audio': return '🎤 Áudio';
+    case 'file': return '📄 Arquivo';
+    default: return 'Mensagem';
+  }
 }
 
 type FeedItem =
@@ -144,6 +156,7 @@ export function ChatWindowPage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sendError, setSendError] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<LeafMessage | null>(null);
   const chatMenuRef = useRef<ChatHeaderMenuHandle>(null);
 
   // O WebSocket agora é único e global (AuthenticatedShell → GlobalPresence),
@@ -199,6 +212,7 @@ export function ChatWindowPage() {
 
     atBottomRef.current = true; // envio próprio sempre rola para o fim
     const receiverId = otherParticipantId ?? '';
+    const reply = replyingTo; // captura antes de limpar
 
     try {
       await sendMutation.mutateAsync({
@@ -206,7 +220,17 @@ export function ChatWindowPage() {
         content,
         receiver_id: receiverId,
         type: 'text',
+        reply_to: reply?._id ?? null,
+        reply_preview: reply
+          ? {
+              _id: reply._id,
+              sender_id: reply.sender_id,
+              content: (reply.content || '').slice(0, 120),
+              type: reply.type,
+            }
+          : null,
       });
+      setReplyingTo(null);
       setSendError(null);
     } catch (error) {
       console.error('[Chat] Failed to send message:', error);
@@ -358,7 +382,10 @@ export function ChatWindowPage() {
                 key={item.key}
                 message={item.message}
                 isOwn={item.message.sender_id === currentUser.id}
+                currentUserId={currentUser.id}
+                otherName={displayName}
                 suppressReadReceipt={me?.show_read_receipts === false}
+                onReply={() => setReplyingTo(item.message)}
                 onDeleteForMe={() => deleteForMeMutation.mutate(item.message._id)}
                 onDeleteForEveryone={() => deleteForAllMutation.mutate(item.message._id)}
               />
@@ -378,6 +405,25 @@ export function ChatWindowPage() {
               onClick={() => setSendError(null)}
             >
               <X size={14} strokeWidth={2.4} />
+            </button>
+          </div>
+        )}
+        {replyingTo && (
+          <div className="chat-window-page__reply-bar">
+            <div className="chat-window-page__reply-bar-body">
+              <span className="chat-window-page__reply-bar-author">
+                {replyingTo.sender_id === currentUser.id ? 'Você' : displayName}
+              </span>
+              <span className="chat-window-page__reply-bar-text">
+                {replyPreviewText(replyingTo)}
+              </span>
+            </div>
+            <button
+              type="button"
+              aria-label="Cancelar resposta"
+              onClick={() => setReplyingTo(null)}
+            >
+              <X size={16} strokeWidth={2.4} />
             </button>
           </div>
         )}
@@ -460,7 +506,10 @@ export function ChatWindowPage() {
 interface MessageRowProps {
   message: LeafMessage;
   isOwn: boolean;
+  currentUserId: string;
+  otherName: string;
   suppressReadReceipt?: boolean;
+  onReply: () => void;
   onDeleteForMe: () => void;
   onDeleteForEveryone: () => void;
 }
@@ -468,15 +517,24 @@ interface MessageRowProps {
 function MessageRow({
   message,
   isOwn,
+  currentUserId,
+  otherName,
   suppressReadReceipt,
+  onReply,
   onDeleteForMe,
   onDeleteForEveryone,
 }: MessageRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Mensagem otimista ainda não tem _id real → não dá para apagar
-  const canDelete = !message._id.startsWith('optimistic-');
+  // Mensagem otimista ainda não tem _id real → não dá para apagar/responder
+  const isOptimistic = message._id.startsWith('optimistic-');
+  const canDelete = !isOptimistic;
   const canDeleteForEveryone = isOwn && !message.deleted;
+
+  // Citação (resposta): autor = "Você" se for minha, senão o nome do contato
+  const rp = message.reply_preview;
+  const replyAuthor = rp ? (rp.sender_id === currentUserId ? 'Você' : otherName) : undefined;
+  const replyText = rp ? replyPreviewText(rp) : undefined;
 
   return (
     <div className={`chat-window-page__row${isOwn ? ' chat-window-page__row--own' : ''}`}>
@@ -491,6 +549,8 @@ function MessageRow({
           edited={message.edited}
           deleted={message.deleted}
           suppressReadReceipt={suppressReadReceipt}
+          replyAuthor={replyAuthor}
+          replyText={replyText}
         />
 
         {canDelete && (
@@ -510,6 +570,16 @@ function MessageRow({
               <>
                 <div className="message-row__backdrop" onClick={() => setMenuOpen(false)} />
                 <div className="message-row__menu" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onReply();
+                    }}
+                  >
+                    <Reply size={15} strokeWidth={2} /> Responder
+                  </button>
                   <button
                     type="button"
                     role="menuitem"

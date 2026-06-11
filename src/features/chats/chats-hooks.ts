@@ -7,9 +7,14 @@ import type {
   LeafMessage,
   LeafUser,
   MessageType,
+  ReplyPreview,
   SendMessageRequest,
 } from '../../lib/api/contracts';
 import { useAuth } from '../../lib/auth/use-auth';
+
+// Variáveis do envio: corpo da API + a prévia da citação (só p/ exibição otimista;
+// NÃO vai no corpo — o backend remonta a prévia a partir do reply_to).
+type SendMessageVars = SendMessageRequest & { reply_preview?: ReplyPreview | null };
 
 // ── Lista de chats do usuário ────────────────────────────────────────────────
 interface UseChatsSummaryOptions {
@@ -123,9 +128,11 @@ export function useSendMessageMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: SendMessageRequest) => {
+    mutationFn: async (data: SendMessageVars) => {
       if (!accessToken) throw new Error('No access token');
-      return messagesApi.send(data, { token: accessToken });
+      // reply_preview é só p/ UI otimista — remove antes de enviar ao backend
+      const { reply_preview: _omit, ...body } = data;
+      return messagesApi.send(body, { token: accessToken });
     },
 
     // Atualização otimista: adiciona ao cache InfiniteData<LeafMessage[]>
@@ -149,6 +156,8 @@ export function useSendMessageMutation() {
         read: false,
         edited: false,
         deleted: false,
+        reply_to: data.reply_to ?? null,
+        reply_preview: data.reply_preview ?? null,
         created_at: new Date().toISOString(),
       };
 
@@ -189,6 +198,8 @@ export function useSendMessageMutation() {
           read: response.read ?? false,
           edited: response.edited ?? false,
           deleted: response.deleted ?? false,
+          reply_to: response.reply_to ?? variables.reply_to ?? null,
+          reply_preview: response.reply_preview ?? variables.reply_preview ?? null,
           created_at: response.created_at ?? new Date().toISOString(),
         };
 
