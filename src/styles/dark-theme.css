@@ -399,6 +399,10 @@ html { transition: background-color 280ms ease, color 200ms ease; }
 [data-theme='dark'] .search-page__empty-mark { background: #1c2119; color: #8f9b85; }
 [data-theme='dark'] .user-row:hover { background: #171c14; }
 
+/* rótulo Humberto (resposta da IA dentro da conversa) */
+[data-theme='dark'] .message-row__humberto { color: #a2d155; }
+[data-theme='dark'] .message-row__humberto svg { color: #8ebb48; }
+
 /* ===================== GRUPOS ===================== */
 [data-theme='dark'] .groups-page {
   background: linear-gradient(180deg, #0e1310 0%, #0b100a 100%);

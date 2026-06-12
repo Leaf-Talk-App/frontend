@@ -79,6 +79,30 @@ function fileNameFromUrl(url?: string | null): string {
   }
 }
 
+/**
+ * Baixa o arquivo preservando o nome/extensão originais. O atributo `download`
+ * de um <a> é ignorado em links cross-origin (Cloudinary), então buscamos os
+ * bytes e geramos um blob local — assim o arquivo volta no formato certo.
+ */
+async function downloadFile(url: string, name: string) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(String(res.status));
+    const blob = await res.blob();
+    const objUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objUrl;
+    a.download = name || 'arquivo';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objUrl);
+  } catch {
+    // fallback: abre em nova aba se o fetch falhar (CORS / offline)
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+}
+
 export function MessageBubble({
   content,
   type = 'text',
@@ -165,16 +189,15 @@ export function MessageBubble({
               <span className="message-bubble__file-name">{name}</span>
             </button>
           ) : (
-            <a
+            <button
+              type="button"
               className="message-bubble__file"
-              href={fileUrl}
-              download={name}
-              target="_blank"
-              rel="noopener noreferrer"
+              onClick={() => fileUrl && downloadFile(fileUrl, name)}
+              aria-label={`Baixar ${name}`}
             >
               <FileText size={20} strokeWidth={2} />
               <span className="message-bubble__file-name">{name}</span>
-            </a>
+            </button>
           )}
           <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} favorited={favorited} />
         </div>

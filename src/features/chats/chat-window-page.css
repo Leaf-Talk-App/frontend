@@ -182,6 +182,21 @@
   min-width: 0;
 }
 
+/* Rótulo "Humberto" acima da resposta da IA dentro da conversa */
+.message-row__humberto {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #5d7a2e;
+}
+
+.message-row__humberto svg {
+  color: #7da23f;
+}
+
 .message-row__menu-wrap {
   position: absolute;
   top: 2px;

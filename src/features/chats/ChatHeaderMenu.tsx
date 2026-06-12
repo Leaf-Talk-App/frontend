@@ -19,7 +19,7 @@ import {
   X,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatsApi, messagesApi, usersApi } from '../../lib/api/endpoints';
 import { queryKeys } from '../../lib/api/query-keys';
 import { useAuth } from '../../lib/auth/use-auth';
@@ -46,11 +46,8 @@ const URL_RE = /(https?:\/\/[^\s]+)/i;
 
 // Durações de silenciamento (minutos). null = para sempre.
 const MUTE_OPTIONS: { label: string; minutes: number | null }[] = [
-  { label: '2 horas', minutes: 120 },
-  { label: '12 horas', minutes: 720 },
-  { label: '1 dia', minutes: 1440 },
+  { label: '8 horas', minutes: 480 },
   { label: '1 semana', minutes: 10080 },
-  { label: '1 mês', minutes: 43200 },
   { label: 'Para sempre', minutes: null },
 ];
 
@@ -136,6 +133,32 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
       navigate(routePaths.chats);
     },
   });
+
+  // Estado de bloqueio do contato → alterna entre "Bloquear" e "Desbloquear"
+  // (WhatsApp-like: desbloqueio acessível direto do menu da conversa).
+  const blockedQuery = useQuery({
+    queryKey: ['users', 'blocked'],
+    queryFn: () => usersApi.blocked({ token: accessToken! }),
+    enabled: Boolean(accessToken),
+    staleTime: 30_000,
+  });
+  const isBlocked = Boolean(
+    otherUserId && (blockedQuery.data ?? []).some((u) => u._id === otherUserId),
+  );
+
+  const unblockMutation = useMutation({
+    mutationFn: () => usersApi.unblock(otherUserId!, { token: accessToken! }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users', 'blocked'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine });
+    },
+  });
+
+  const handleUnblock = () => {
+    setOpen(false);
+    setModal(null);
+    if (otherUserId) unblockMutation.mutate();
+  };
 
   const name = otherUser?.display_name || otherUser?.name || 'Contato';
   const initials = name.charAt(0).toUpperCase();
@@ -288,13 +311,24 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
             </button>
           ) : (
             <>
-              <button
-                className="chat-menu__item chat-menu__item--danger"
-                role="menuitem"
-                onClick={handleBlock}
-              >
-                <Ban size={17} strokeWidth={2} /> Bloquear
-              </button>
+              {isBlocked ? (
+                <button
+                  className="chat-menu__item"
+                  role="menuitem"
+                  disabled={unblockMutation.isPending}
+                  onClick={handleUnblock}
+                >
+                  <Ban size={17} strokeWidth={2} /> Desbloquear
+                </button>
+              ) : (
+                <button
+                  className="chat-menu__item chat-menu__item--danger"
+                  role="menuitem"
+                  onClick={handleBlock}
+                >
+                  <Ban size={17} strokeWidth={2} /> Bloquear
+                </button>
+              )}
               <button
                 className="chat-menu__item chat-menu__item--danger"
                 role="menuitem"

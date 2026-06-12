@@ -67,7 +67,7 @@ export function GroupChatPage() {
     })),
   });
   const nameById = useMemo(() => {
-    const map: Record<string, string> = {};
+    const map: Record<string, string> = { humberto: 'Humberto' };
     memberIds.forEach((id, i) => {
       const u = memberQueries[i]?.data as LeafUser | undefined;
       if (u) map[id] = u.display_name || u.name || '';
@@ -214,7 +214,7 @@ export function GroupChatPage() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Mensagem para o grupo…"
+            placeholder="Mensagem… (chame a IA com @Humberto)"
             className="group-composer__input"
             aria-label="Mensagem para o grupo"
           />

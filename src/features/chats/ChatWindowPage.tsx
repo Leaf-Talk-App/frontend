@@ -1,4 +1,4 @@
-import { ArrowLeft, Camera, ChevronDown, Forward, Image, Mic, MicOff, Paperclip, Reply, Search, Send, Smile, Star, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Camera, ChevronDown, Forward, Image, Mic, MicOff, Paperclip, Reply, Search, Send, Smile, Sprout, Star, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChatHeaderMenuHandle } from './ChatHeaderMenu';
 import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
@@ -556,6 +556,9 @@ function MessageRow({
 }: MessageRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Resposta do Humberto (IA) dentro da conversa → rótulo identificando o autor.
+  const isHumberto = message.sender_id === 'humberto';
+
   // Sem menu em mensagem otimista (sem _id real) nem em mensagem já apagada.
   const isOptimistic = message._id.startsWith('optimistic-');
   const canDelete = !isOptimistic && !message.deleted;
@@ -569,6 +572,11 @@ function MessageRow({
   return (
     <div className={`chat-window-page__row${isOwn ? ' chat-window-page__row--own' : ''}`}>
       <div className="message-row__wrap">
+        {isHumberto && (
+          <span className="message-row__humberto">
+            <Sprout size={12} strokeWidth={2.4} aria-hidden="true" /> Humberto
+          </span>
+        )}
         <MessageBubble
           content={message.content}
           type={message.type}
