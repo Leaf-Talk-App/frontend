@@ -220,6 +220,21 @@ export function useSendMessageMutation() {
   });
 }
 
+// ── Fixar/desafixar conversa (máx. 3) ────────────────────────────────────────
+export function usePinChatMutation() {
+  const { accessToken } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (chatId: string) => {
+      if (!accessToken) throw new Error('No access token');
+      return chatsApi.pin({ chat_id: chatId }, { token: accessToken });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine });
+    },
+  });
+}
+
 // ── Chats enriquecidos com dados do outro usuário (usado na lista) ────────────
 export interface EnrichedChatItem extends LeafChatSummary {
   otherUser?: LeafUser;

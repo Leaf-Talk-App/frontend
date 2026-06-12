@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Captions, CaptionsOff } from 'lucide-react';
+import { Captions, CaptionsOff, Mic, MicOff } from 'lucide-react';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import './dictation-button.css';
 
@@ -13,6 +13,8 @@ interface DictationButtonProps {
   className?: string;
   /** rótulo acessível (varia: "Ditar mensagem" / "Falar com o Humberto") */
   label?: string;
+  /** "captions" (texto, padrão) ou "mic" (fala — mais claro p/ o Humberto) */
+  icon?: 'captions' | 'mic';
 }
 
 /**
@@ -27,6 +29,7 @@ export function DictationButton({
   size = 18,
   className = 'message-composer__icon',
   label = 'Ditar mensagem por voz',
+  icon = 'captions',
 }: DictationButtonProps) {
   const baseRef = useRef('');
   const [error, setError] = useState(false);
@@ -65,7 +68,13 @@ export function DictationButton({
         }
       }}
     >
-      {listening ? (
+      {icon === 'mic' ? (
+        listening ? (
+          <MicOff size={size} strokeWidth={2.2} />
+        ) : (
+          <Mic size={size} strokeWidth={2.2} />
+        )
+      ) : listening ? (
         <CaptionsOff size={size} strokeWidth={2.2} />
       ) : (
         <Captions size={size} strokeWidth={2.2} />

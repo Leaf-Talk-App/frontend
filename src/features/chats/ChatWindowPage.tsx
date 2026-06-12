@@ -173,9 +173,16 @@ export function ChatWindowPage() {
   // (o segundo sobrescrevia o primeiro e bagunçava o status online).
 
   // ── Scroll automático ─────────────────────────────────────────────────────
-  // Só rola para o fim se o usuário JÁ estava no fim (não arrasta quem subiu
-  // para ler mensagens antigas). Envio próprio força o fim (handleSendMessage).
+  // Primeira carga: pula direto para o fim SEM animar (antes "puxava do topo até
+  // o fim" toda vez que abria). Depois disso, rola suave só se já estava no fim.
+  const didInitialScrollRef = useRef(false);
   useEffect(() => {
+    if (!messages?.length) return;
+    if (!didInitialScrollRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      didInitialScrollRef.current = true;
+      return;
+    }
     if (atBottomRef.current) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }

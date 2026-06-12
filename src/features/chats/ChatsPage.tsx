@@ -1,118 +1,130 @@
-import { Archive, ChevronDown, MessageSquare, Plus, Search } from 'lucide-react';
+import { Archive, ChevronDown, LogIn, MessageSquare, Plus, Search, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQueries } from '@tanstack/react-query';
 import { Button } from '../../components/button/Button';
 import { ChatItem } from '../../components/chat-item/ChatItem';
 import { routePaths } from '../../routes/paths';
-import { useAuth } from '../../lib/auth/use-auth';
-import { usersApi } from '../../lib/api/endpoints';
-import { useChatsQuery } from './chats-hooks';
-import type { LeafChatSummary, LeafUser } from '../../lib/api/contracts';
+import { useChatsQuery, usePinChatMutation } from './chats-hooks';
+import { CreateGroupModal } from '../groups/CreateGroupModal';
+import { useJoinGroupMutation } from '../groups/groups-hooks';
+import type { LeafChatSummary } from '../../lib/api/contracts';
 import './chats-page.css';
+
+type Filter = 'unread' | 'groups';
 
 export function ChatsPage() {
   const navigate = useNavigate();
-  const { accessToken, user: currentUser } = useAuth();
   const { data: chats, isLoading, error } = useChatsQuery();
+  const pinMutation = usePinChatMutation();
+  const joinMutation = useJoinGroupMutation();
+
   const [search, setSearch] = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  const [filters, setFilters] = useState<Set<Filter>>(new Set());
+  const [creating, setCreating] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [code, setCode] = useState('');
+  const [pinError, setPinError] = useState<string | null>(null);
 
-  // Coleta IDs únicos de todos os outros participantes.
-  // Conversa consigo mesmo (participants = [eu, eu]) não tem "outro" → cai no
-  // fallback do próprio ID, senão o nome ficava num skeleton infinito (tracinho).
-  const participantIds = useMemo(() => {
-    if (!chats || !currentUser) return [];
-    const ids = new Set<string>();
-    chats.forEach((chat) => {
-      const others = chat.participants?.filter((id) => id !== currentUser.id) ?? [];
-      if (others.length) {
-        others.forEach((id) => ids.add(id));
-      } else if (chat.participants?.length) {
-        ids.add(chat.participants[0]);
-      }
+  const toggleFilter = (f: Filter) =>
+    setFilters((prev) => {
+      const next = new Set(prev);
+      next.has(f) ? next.delete(f) : next.add(f);
+      return next;
     });
-    return Array.from(ids);
-  }, [chats, currentUser]);
 
-  // Busca todos em paralelo com useQueries
-  const userQueries = useQueries({
-    queries: participantIds.map((userId) => ({
-      queryKey: ['users', 'id', userId],
-      queryFn: () => usersApi.getById(userId, { token: accessToken! }),
-      enabled: Boolean(accessToken),
-      staleTime: 5 * 60_000,
-    })),
-  });
+  const goToItem = (chat: LeafChatSummary) =>
+    navigate(chat.kind === 'group' ? `/groups/${chat._id}` : `/chats/${chat._id}`);
 
-  // Mapa id → LeafUser para lookup rápido
-  const usersMap = useMemo(() => {
-    const map: Record<string, LeafUser> = {};
-    userQueries.forEach((q, i) => {
-      if (q.data) map[participantIds[i]] = q.data;
+  const togglePin = (chat: LeafChatSummary) => {
+    setPinError(null);
+    pinMutation.mutate(chat._id, {
+      onSuccess: (res) => {
+        if (res && 'error' in res && res.error) setPinError(res.error);
+      },
     });
-    return map;
-  }, [userQueries, participantIds]);
-
-  // IDs cujas queries falharam (usuário deletado / inválido → mostra "Usuário removido")
-  const failedUserIds = useMemo(() => {
-    const s = new Set<string>();
-    userQueries.forEach((q, i) => {
-      if (q.isError) s.add(participantIds[i]);
-    });
-    return s;
-  }, [userQueries, participantIds]);
-
-  // Filtro por nome OU por prévia da última mensagem
-  const filteredChats = useMemo(() => {
-    if (!chats) return [];
-    const term = search.trim().toLowerCase();
-    if (!term) return chats;
-
-    return chats.filter((chat) => {
-      const preview = chat.last_message?.content?.toLowerCase() ?? '';
-      if (preview.includes(term)) return true;
-
-      // Também filtra pelo nome do outro participante
-      const otherId =
-        chat.participants?.find((id) => id !== currentUser?.id) ??
-        chat.participants?.[0];
-      const other = otherId ? usersMap[otherId] : undefined;
-      if (other) {
-        const name = (other.display_name || other.name || '').toLowerCase();
-        const email = (other.email || '').toLowerCase();
-        return name.includes(term) || email.includes(term);
-      }
-      return false;
-    });
-  }, [chats, search, currentUser?.id, usersMap]);
-
-  // Arquivadas ficam numa seção recolhível; ativas na lista principal.
-  const activeChats = useMemo(() => filteredChats.filter((c) => !c.archived), [filteredChats]);
-  const archivedChats = useMemo(() => filteredChats.filter((c) => c.archived), [filteredChats]);
-
-  const renderChatLi = (chat: LeafChatSummary) => {
-    const otherId =
-      chat.participants?.find((id) => id !== currentUser?.id) ?? chat.participants?.[0];
-    const otherUser = otherId ? usersMap[otherId] : undefined;
-    const userNotFound = otherId ? failedUserIds.has(otherId) : false;
-    return (
-      <li key={chat._id}>
-        <ChatItem
-          chat={chat}
-          otherUser={otherUser}
-          userNotFound={userNotFound}
-          onClick={() => navigate(`/chats/${chat._id}`)}
-        />
-      </li>
-    );
   };
+
+  const handleJoin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!code.trim()) return;
+    joinMutation.mutate(code.trim(), {
+      onSuccess: (res) => {
+        setCode('');
+        setJoinOpen(false);
+        if (res && 'group_id' in res && res.group_id) navigate(`/groups/${res.group_id}`);
+      },
+    });
+  };
+
+  // Filtro por texto (nome do contato/grupo, e-mail ou prévia) + chips
+  // (não lidas / grupos). Multi-filtro: combinam com AND.
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return (chats ?? []).filter((c) => {
+      if (filters.has('unread') && !(c.unread_count ?? 0)) return false;
+      if (filters.has('groups') && c.kind !== 'group') return false;
+      if (!term) return true;
+      const name =
+        c.kind === 'group'
+          ? c.name ?? ''
+          : c.other_user?.display_name || c.other_user?.name || '';
+      const email = c.other_user?.email ?? '';
+      const preview = c.last_message?.content ?? '';
+      return (
+        name.toLowerCase().includes(term) ||
+        email.toLowerCase().includes(term) ||
+        preview.toLowerCase().includes(term)
+      );
+    });
+  }, [chats, search, filters]);
+
+  const activeChats = useMemo(() => filtered.filter((c) => !c.archived), [filtered]);
+  const archivedChats = useMemo(() => filtered.filter((c) => c.archived), [filtered]);
+
+  const renderItem = (chat: LeafChatSummary) => (
+    <li key={chat._id}>
+      <ChatItem chat={chat} onClick={() => goToItem(chat)} onTogglePin={() => togglePin(chat)} />
+    </li>
+  );
+
+  const FilterChip = ({ f, label }: { f: Filter; label: string }) => (
+    <button
+      type="button"
+      className={`chats-page__filter${filters.has(f) ? ' chats-page__filter--on' : ''}`}
+      aria-pressed={filters.has(f)}
+      onClick={() => toggleFilter(f)}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div className="chats-page">
       <aside className="chats-page__list-pane" aria-label="Conversas">
         <header className="chats-page__heading">
           <h1>Conversas</h1>
+          <div className="chats-page__heading-actions">
+            <button
+              type="button"
+              className="chats-page__head-btn"
+              onClick={() => setJoinOpen((v) => !v)}
+              title="Entrar em grupo por código"
+              aria-label="Entrar em grupo por código"
+            >
+              <LogIn size={15} strokeWidth={2.4} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="chats-page__head-btn chats-page__head-btn--primary"
+              onClick={() => setCreating(true)}
+              title="Novo grupo"
+              aria-label="Novo grupo"
+            >
+              <Users size={15} strokeWidth={2.4} aria-hidden="true" />
+              <Plus size={11} strokeWidth={3} aria-hidden="true" />
+            </button>
+          </div>
         </header>
 
         <div className="chats-page__search">
@@ -125,6 +137,39 @@ export function ChatsPage() {
             aria-label="Buscar conversas"
           />
         </div>
+
+        {/* Filtros combináveis */}
+        <div className="chats-page__filters" role="group" aria-label="Filtros">
+          <button
+            type="button"
+            className={`chats-page__filter${filters.size === 0 ? ' chats-page__filter--on' : ''}`}
+            aria-pressed={filters.size === 0}
+            onClick={() => setFilters(new Set())}
+          >
+            Todas
+          </button>
+          <FilterChip f="unread" label="Não lidas" />
+          <FilterChip f="groups" label="Grupos" />
+        </div>
+
+        {joinOpen && (
+          <form className="chats-page__join-form" onSubmit={handleJoin}>
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Código de convite…"
+              aria-label="Código de convite"
+              autoFocus
+            />
+            <button type="submit" disabled={!code.trim() || joinMutation.isPending}>
+              {joinMutation.isPending ? '…' : 'Entrar'}
+            </button>
+          </form>
+        )}
+        {joinMutation.isError && (
+          <p className="chats-page__inline-error" role="alert">Código inválido. Confira e tente de novo.</p>
+        )}
+        {pinError && <p className="chats-page__inline-error" role="alert">{pinError}</p>}
 
         {isLoading ? (
           <div className="chats-page__status">
@@ -140,9 +185,7 @@ export function ChatsPage() {
         ) : !chats || chats.length === 0 ? (
           <div className="chats-page__status">
             <p className="chats-page__status-title">Nenhuma conversa ainda</p>
-            <p className="chats-page__status-hint">
-              Encontre alguém para iniciar uma conversa.
-            </p>
+            <p className="chats-page__status-hint">Encontre alguém para iniciar uma conversa.</p>
             <Button
               variant="primary"
               size="sm"
@@ -152,9 +195,9 @@ export function ChatsPage() {
               Buscar pessoas
             </Button>
           </div>
-        ) : filteredChats.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="chats-page__status">
-            <p>Nenhum resultado para "{search}".</p>
+            <p>Nenhum resultado{search.trim() ? ` para "${search}"` : ''}.</p>
           </div>
         ) : (
           <ul className="chats-page__list">
@@ -180,8 +223,8 @@ export function ChatsPage() {
                 </button>
               </li>
             )}
-            {(showArchived || search.trim()) && archivedChats.map(renderChatLi)}
-            {activeChats.map(renderChatLi)}
+            {(showArchived || search.trim()) && archivedChats.map(renderItem)}
+            {activeChats.map(renderItem)}
           </ul>
         )}
       </aside>
@@ -193,21 +236,24 @@ export function ChatsPage() {
           </span>
           <h2>Selecione uma conversa</h2>
           <p>
-            Escolha uma conversa na lista para ler mensagens, compartilhar arquivos e
-            continuar seu trabalho com a comunidade Leaf.
+            Escolha uma conversa ou grupo na lista para ler mensagens, compartilhar arquivos e
+            continuar com a comunidade Leaf.
           </p>
-          <Button
-            variant="primary"
-            icon={<Plus size={16} />}
-            onClick={() => navigate(routePaths.search)}
-          >
+          <Button variant="primary" icon={<Plus size={16} />} onClick={() => navigate(routePaths.search)}>
             Iniciar conversa
           </Button>
-          <small className="chats-page__welcome-foot">
-            CRIPTOGRAFIA ATIVA · POWERED BY LEAF 1.4
-          </small>
         </div>
       </section>
+
+      {creating && (
+        <CreateGroupModal
+          onClose={() => setCreating(false)}
+          onCreated={(groupId) => {
+            setCreating(false);
+            navigate(`/groups/${groupId}`);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -164,7 +164,11 @@ export const chatsApi = {
   },
 
   pin(data: ChatActionRequest, { token }: AuthedRequest) {
-    return chatAction('/chats/pin', data, token);
+    return apiRequest<{ message?: string; pinned?: boolean; error?: string }>('/chats/pin', {
+      method: 'POST',
+      body: data,
+      token,
+    });
   },
 
   mute(data: ChatActionRequest, { token }: AuthedRequest) {

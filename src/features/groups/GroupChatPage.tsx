@@ -101,8 +101,12 @@ export function GroupChatPage() {
   );
   useWebSocket({ userId: currentUser?.id, enabled: Boolean(currentUser?.id), onMessage: handleWs });
 
+  const didInitialScrollRef = useRef(false);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: didInitialScrollRef.current ? 'smooth' : 'auto',
+    });
+    didInitialScrollRef.current = true;
   }, [messages, sendMutation.isPending]);
 
   const handleSend = (e: React.FormEvent) => {

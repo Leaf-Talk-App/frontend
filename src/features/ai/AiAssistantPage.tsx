@@ -175,7 +175,6 @@ export function AiAssistantPage() {
   const [uploading, setUploading] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [showCamera, setShowCamera] = useState(false);
-  const [autoSpeak, setAutoSpeak] = useState(false);
   const tts = useSpeechSynthesis({ lang: 'pt-BR' });
   const composerRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -200,8 +199,13 @@ export function AiAssistantPage() {
     setHydrated(true);
   }, [history, historyLoading, historyFetching, hydrated]);
 
+  // Primeira carga: pula direto pro fim sem animar; depois rola suave.
+  const didInitialScrollRef = useRef(false);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: didInitialScrollRef.current ? 'smooth' : 'auto',
+    });
+    didInitialScrollRef.current = true;
   }, [messages, aiChat.isPending]);
 
   const isEmptyConversation = useMemo(
@@ -241,10 +245,6 @@ export function AiAssistantPage() {
         action: parsed.action,
       };
       setMessages((prev) => [...prev, aiMessage]);
-      // Auto-falar: lê a resposta em voz alta se o usuário ativou (acessibilidade)
-      if (autoSpeak && parsed.content.trim()) {
-        tts.speak(parsed.content, aiMessage.id);
-      }
     } catch (error) {
       console.error('[Humberto] Failed to get response:', error);
       const errorMessage: ChatMessage = {
@@ -336,30 +336,6 @@ export function AiAssistantPage() {
         </div>
 
         <div className="ai-assistant-page__header-actions">
-          {tts.supported && (
-            <button
-              type="button"
-              className={`ai-assistant-page__autospeak${
-                autoSpeak ? ' ai-assistant-page__autospeak--on' : ''
-              }`}
-              aria-pressed={autoSpeak}
-              title={autoSpeak ? 'Desativar leitura automática' : 'Ler respostas em voz alta'}
-              onClick={() => {
-                setAutoSpeak((v) => {
-                  if (v) tts.cancel(); // ao desligar, interrompe fala em andamento
-                  return !v;
-                });
-              }}
-            >
-              {autoSpeak ? (
-                <Volume2 size={14} strokeWidth={2.4} aria-hidden="true" />
-              ) : (
-                <VolumeX size={14} strokeWidth={2.4} aria-hidden="true" />
-              )}
-              Voz {autoSpeak ? 'on' : 'off'}
-            </button>
-          )}
-
           <button
             type="button"
             className="ai-assistant-page__new"
@@ -559,6 +535,7 @@ export function AiAssistantPage() {
             size={16}
             className="ai-composer__icon"
             label="Falar com o Humberto"
+            icon="mic"
           />
 
           <button

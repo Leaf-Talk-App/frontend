@@ -1,4 +1,4 @@
-import { FileText, Image as ImageIcon, Mic, Video } from 'lucide-react';
+import { FileText, Image as ImageIcon, Mic, Pin, Users, Video } from 'lucide-react';
 import { Avatar } from '../avatar/Avatar';
 import './chat-item.css';
 import { parseServerDate } from '../../lib/date';
@@ -34,11 +34,14 @@ function LastMessagePreview({ message }: { message?: LeafChatSummary['last_messa
 
 interface ChatItemProps {
   chat: LeafChatSummary;
+  /** override opcional; por padrão usa chat.other_user (embutido pelo backend) */
   otherUser?: LeafUser;
   isSelected?: boolean;
-  /** true quando a query do participante falhou (usuário deletado / ID inválido) */
+  /** true quando o participante não existe mais (usuário removido) */
   userNotFound?: boolean;
   onClick?: () => void;
+  /** fixar/desafixar — se ausente, o botão de pin não aparece */
+  onTogglePin?: () => void;
 }
 
 function formatTimestamp(dateString?: string): string {
@@ -68,13 +71,18 @@ export function ChatItem({
   isSelected = false,
   userNotFound = false,
   onClick,
+  onTogglePin,
 }: ChatItemProps) {
-  // loading: dados ainda carregando (não mostra skeleton quando já sabemos que falhou)
-  const loading = !otherUser && !userNotFound;
-  const displayName = userNotFound
+  const isGroup = chat.kind === 'group';
+  const user = otherUser ?? chat.other_user ?? undefined;
+
+  const displayName = isGroup
+    ? chat.name || 'Grupo'
+    : userNotFound
     ? 'Usuário removido'
-    : otherUser?.display_name || otherUser?.name || '';
-  const avatar = otherUser?.avatar;
+    : user?.display_name || user?.name || 'Usuário removido';
+
+  const avatar = isGroup ? chat.photo ?? undefined : user?.avatar;
   const initials = displayName
     .split(' ')
     .map((n) => n[0])
@@ -86,18 +94,28 @@ export function ChatItem({
   const hasUnread = Boolean(chat.unread_count);
 
   return (
-    <button
+    <div
       className={`chat-item${isSelected ? ' chat-item--selected' : ''}${hasUnread ? ' chat-item--unread' : ''}`}
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      type="button"
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick?.()}
       aria-current={isSelected ? 'page' : undefined}
     >
-      <Avatar src={avatar} initials={initials} size="md" online={otherUser?.online} />
+      <span className="chat-item__avatar-wrap">
+        <Avatar src={avatar} initials={initials} size="md" online={isGroup ? undefined : user?.online} />
+        {isGroup && (
+          <span className="chat-item__group-badge" aria-hidden="true">
+            <Users size={11} strokeWidth={2.6} />
+          </span>
+        )}
+      </span>
 
       <div className="chat-item__content">
         <div className="chat-item__header">
           <h3 className="chat-item__name">
-            {loading ? <span className="chat-item__skeleton-bar" /> : displayName}
+            {chat.pinned && <Pin size={12} strokeWidth={2.6} className="chat-item__pin-icon" aria-label="Fixada" />}
+            {displayName}
           </h3>
           <time className="chat-item__time">{timestamp}</time>
         </div>
@@ -112,6 +130,21 @@ export function ChatItem({
           {chat.unread_count}
         </span>
       ) : null}
-    </button>
+
+      {onTogglePin && (
+        <button
+          type="button"
+          className={`chat-item__pin-btn${chat.pinned ? ' chat-item__pin-btn--on' : ''}`}
+          aria-label={chat.pinned ? 'Desafixar' : 'Fixar'}
+          title={chat.pinned ? 'Desafixar' : 'Fixar (máx. 3)'}
+          onClick={(e) => {
+            e.stopPropagation();
+            onTogglePin();
+          }}
+        >
+          <Pin size={15} strokeWidth={2.2} />
+        </button>
+      )}
+    </div>
   );
 }

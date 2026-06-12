@@ -31,5 +31,6 @@ export function useUserSearch({ query, enabled = true }: UseUserSearchOptions) {
       return usersApi.search(debouncedQuery, { token: accessToken });
     },
     enabled: enabled && Boolean(accessToken),
+    staleTime: 60_000, // cacheia o termo por 1min (evita refetch ao voltar)
   });
 }

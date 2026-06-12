@@ -106,6 +106,14 @@ export type LeafChat = {
 };
 
 export type LeafChatSummary = LeafChat & {
+  /** discrimina conversa 1:1 ("chat") de grupo ("group") na lista unificada */
+  kind?: 'chat' | 'group';
+  /** dados básicos do outro participante embutidos pelo backend (evita N+1) */
+  other_user?: LeafUser | null;
+  /** grupos: nome, foto e contagem de membros */
+  name?: string;
+  photo?: string | null;
+  member_count?: number;
   pinned?: boolean;
   archived?: boolean;
   muted?: boolean;

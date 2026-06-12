@@ -2,14 +2,21 @@
 .humberto-hint {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   margin: 0 0 8px;
-  padding: 7px 12px;
-  background: linear-gradient(90deg, rgb(72 119 17 / 12%), rgb(125 162 63 / 10%));
-  border: 1px solid rgb(125 162 63 / 35%);
-  border-radius: 999px;
-  font-size: 12.5px;
-  color: #3d5a17;
+  padding: 8px 14px;
+  background: linear-gradient(90deg, rgb(72 119 17 / 18%), rgb(125 162 63 / 12%));
+  border: 1.5px solid rgb(93 141 34 / 55%);
+  border-left: 4px solid #5d8d22;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #2f4a12;
+  animation: humberto-hint-in 0.18s ease;
+}
+
+@keyframes humberto-hint-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .humberto-hint strong {

@@ -495,3 +495,39 @@ html { transition: background-color 280ms ease, color 200ms ease; }
   border-color: rgb(110 150 65 / 18%);
   color: #cfe3a6;
 }
+
+/* ===== CONVERSAS: filtros, ações de cabeçalho, pin, badge de grupo ===== */
+[data-theme='dark'] .chats-page__head-btn {
+  background: #1c2119;
+  border-color: rgb(142 187 72 / 28%);
+  color: #a2d155;
+}
+[data-theme='dark'] .chats-page__head-btn:hover { background: #232b1e; }
+[data-theme='dark'] .chats-page__head-btn--primary {
+  background: linear-gradient(90deg, #487711, #7da23f);
+  color: #fff;
+}
+[data-theme='dark'] .chats-page__filter {
+  background: #1c2119;
+  color: #aebaa2;
+}
+[data-theme='dark'] .chats-page__filter:hover { background: #232b1e; }
+[data-theme='dark'] .chats-page__filter--on {
+  background: #5d8d22;
+  color: #fff;
+  border-color: #5d8d22;
+}
+[data-theme='dark'] .chats-page__join-form input {
+  background: #1c2119;
+  border-color: rgb(110 150 65 / 18%);
+  color: #dfe6d4;
+}
+[data-theme='dark'] .chats-page__join-form input:focus {
+  background: #232b1e;
+  border-color: rgb(142 187 72 / 40%);
+}
+[data-theme='dark'] .chat-item__group-badge { border-color: #131811; }
+[data-theme='dark'] .chat-item__pin-icon { color: #8ebb48; }
+[data-theme='dark'] .chat-item__pin-btn { color: #6b7563; }
+[data-theme='dark'] .chat-item__pin-btn:hover { background: #232b1e; color: #a2d155; }
+[data-theme='dark'] .chat-item__pin-btn--on { color: #8ebb48; }
