@@ -468,3 +468,26 @@ html { transition: background-color 280ms ease, color 200ms ease; }
   background: #232b1e;
   border-color: rgb(142 187 72 / 40%);
 }
+[data-theme='dark'] .group-composer__icon { color: #a2d155; }
+[data-theme='dark'] .group-composer__icon:hover:not(:disabled) { background: #232b1e; }
+[data-theme='dark'] .groups-page__join {
+  background: #1c2119;
+  border-color: rgb(142 187 72 / 28%);
+  color: #a2d155;
+}
+[data-theme='dark'] .groups-page__join:hover { background: #232b1e; }
+[data-theme='dark'] .groups-page__join-form input {
+  background: #1c2119;
+  border-color: rgb(110 150 65 / 18%);
+  color: #dfe6d4;
+}
+[data-theme='dark'] .groups-page__join-form input:focus {
+  background: #232b1e;
+  border-color: rgb(142 187 72 / 40%);
+}
+[data-theme='dark'] .group-invite__hint { color: #8f9b85; }
+[data-theme='dark'] .group-invite__code code {
+  background: #1c2119;
+  border-color: rgb(110 150 65 / 18%);
+  color: #cfe3a6;
+}

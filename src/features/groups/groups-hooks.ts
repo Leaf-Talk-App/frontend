@@ -176,3 +176,41 @@ export function useLeaveGroupMutation() {
     },
   });
 }
+
+// ── Adicionar membro (admin) ─────────────────────────────────────────────────
+export function useAddMemberMutation(groupId?: string) {
+  const { accessToken } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      if (!accessToken || !groupId) throw new Error('Missing params');
+      const res = await groupsApi.addMember(
+        { group_id: groupId, user_id: userId },
+        { token: accessToken },
+      );
+      if (hasError(res)) throw new Error(res.error);
+      return res;
+    },
+    onSuccess: () => {
+      if (groupId) queryClient.invalidateQueries({ queryKey: queryKeys.groups.byId(groupId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.mine });
+    },
+  });
+}
+
+// ── Entrar por código de convite ─────────────────────────────────────────────
+export function useJoinGroupMutation() {
+  const { accessToken } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (code: string) => {
+      if (!accessToken) throw new Error('No access token');
+      const res = await groupsApi.join(code.trim(), { token: accessToken });
+      if (hasError(res)) throw new Error(res.error);
+      return res;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.mine });
+    },
+  });
+}
