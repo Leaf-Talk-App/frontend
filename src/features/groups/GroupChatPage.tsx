@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Copy, LogOut, Mic, Paperclip, Send, Sprout, UserPlus, Users, X } from 'lucide-react';
+import { ArrowLeft, Copy, Lock, LogOut, Mic, Paperclip, Send, Settings2, Sprout, UserPlus, Users, X } from 'lucide-react';
 import { Avatar } from '../../components/avatar/Avatar';
 import { MessageBubble } from '../../components/message-bubble/MessageBubble';
 import { DictationButton } from '../../components/dictation/DictationButton';
@@ -20,6 +20,7 @@ import {
   useSendGroupMessageMutation,
 } from './groups-hooks';
 import { AddMemberModal } from './AddMemberModal';
+import { GroupSettingsModal } from './GroupSettingsModal';
 import type { LeafUser, MessageType } from '../../lib/api/contracts';
 import '../chats/chat-window-page.css';
 import './groups.css';
@@ -60,6 +61,7 @@ export function GroupChatPage() {
   const [input, setInput] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
@@ -92,9 +94,12 @@ export function GroupChatPage() {
   // WS: novas mensagens do grupo → invalida o histórico (refetch).
   const handleWs = useCallback(
     (data: any) => {
-      if (groupId && data?.type === 'group_message' && data.group_id === groupId) {
+      if (!groupId || data?.group_id !== groupId) return;
+      if (data?.type === 'group_message') {
         queryClient.invalidateQueries({ queryKey: queryKeys.groups.messages(groupId) });
         queryClient.invalidateQueries({ queryKey: queryKeys.groups.mine });
+      } else if (data?.type === 'group_updated') {
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.byId(groupId) });
       }
     },
     [groupId, queryClient],
@@ -112,7 +117,7 @@ export function GroupChatPage() {
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     const content = input.trim();
-    if (!content || !groupId || sendMutation.isPending) return;
+    if (!content || !groupId || sendMutation.isPending || !canSend) return;
     sendMutation.mutate({ group_id: groupId, content });
     setInput('');
   };
@@ -194,6 +199,7 @@ export function GroupChatPage() {
 
   const groupName = group?.name ?? (groupLoading ? '' : 'Grupo');
   const memberCount = group?.member_count ?? memberIds.length;
+  const canSend = isAdmin || !group?.only_admins_can_send;
 
   return (
     <div className="chat-window-page">
@@ -215,7 +221,11 @@ export function GroupChatPage() {
             </h2>
             <p className="chat-window-page__status">
               {memberCount > 0 ? `${memberCount} ${memberCount === 1 ? 'membro' : 'membros'}` : ''}
+              {group?.only_admins_can_send ? ' · só admins enviam' : ''}
             </p>
+            {group?.description ? (
+              <p className="group-header__desc" title={group.description}>{group.description}</p>
+            ) : null}
           </div>
         </div>
 
@@ -232,6 +242,18 @@ export function GroupChatPage() {
             <>
               <div className="group-menu__backdrop" onClick={() => setMenuOpen(false)} />
               <div className="group-menu__sheet" role="menu">
+                {isAdmin && (
+                  <button
+                    type="button"
+                    className="group-menu__item"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setShowSettings(true);
+                    }}
+                  >
+                    <Settings2 size={15} strokeWidth={2.2} /> Editar grupo
+                  </button>
+                )}
                 {isAdmin && (
                   <button
                     type="button"
@@ -317,6 +339,13 @@ export function GroupChatPage() {
       </main>
 
       <footer className="chat-window-page__composer-wrap">
+        {!canSend ? (
+          <div className="group-readonly">
+            <Lock size={15} strokeWidth={2.2} aria-hidden="true" />
+            Somente administradores podem enviar mensagens neste grupo.
+          </div>
+        ) : (
+        <>
         <HumbertoMentionHint active={mentionsHumberto(input)} />
         <form className="group-composer" onSubmit={handleSend}>
           <input
@@ -396,6 +425,8 @@ export function GroupChatPage() {
             </button>
           )}
         </form>
+        </>
+        )}
         <small className="chat-window-page__footnote">CRIPTOGRAFIA ATIVA · POWERED BY LEAF 1.4</small>
       </footer>
 
@@ -424,6 +455,15 @@ export function GroupChatPage() {
           groupId={groupId}
           currentMembers={memberIds}
           onClose={() => setShowAddMember(false)}
+        />
+      )}
+
+      {showSettings && group && (
+        <GroupSettingsModal
+          group={group}
+          nameById={nameById}
+          currentUserId={currentUser.id}
+          onClose={() => setShowSettings(false)}
         />
       )}
 

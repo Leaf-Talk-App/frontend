@@ -14,6 +14,8 @@ import type {
   LeafGroup,
   MessageType,
   SendGroupMessageRequest,
+  SetAdminRequest,
+  UpdateGroupRequest,
 } from '../../lib/api/contracts';
 
 // helper: erro vindo do backend ({ error: "..." })
@@ -194,6 +196,41 @@ export function useAddMemberMutation(groupId?: string) {
     onSuccess: () => {
       if (groupId) queryClient.invalidateQueries({ queryKey: queryKeys.groups.byId(groupId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.mine });
+    },
+  });
+}
+
+// ── Editar grupo: nome, descrição, regra de envio (admin) ────────────────────
+export function useUpdateGroupMutation(groupId?: string) {
+  const { accessToken } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Omit<UpdateGroupRequest, 'group_id'>) => {
+      if (!accessToken || !groupId) throw new Error('Missing params');
+      const res = await groupsApi.update({ group_id: groupId, ...data }, { token: accessToken });
+      if (hasError(res)) throw new Error(res.error);
+      return res;
+    },
+    onSuccess: () => {
+      if (groupId) queryClient.invalidateQueries({ queryKey: queryKeys.groups.byId(groupId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.mine });
+    },
+  });
+}
+
+// ── Promover/rebaixar administrador (admin) ──────────────────────────────────
+export function useSetAdminMutation(groupId?: string) {
+  const { accessToken } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Omit<SetAdminRequest, 'group_id'>) => {
+      if (!accessToken || !groupId) throw new Error('Missing params');
+      const res = await groupsApi.setAdmin({ group_id: groupId, ...data }, { token: accessToken });
+      if (hasError(res)) throw new Error(res.error);
+      return res;
+    },
+    onSuccess: () => {
+      if (groupId) queryClient.invalidateQueries({ queryKey: queryKeys.groups.byId(groupId) });
     },
   });
 }

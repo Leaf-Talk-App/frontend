@@ -23,6 +23,8 @@ import type {
   LeafMessage,
   LeafUser,
   RemoveMemberRequest,
+  SetAdminRequest,
+  UpdateGroupRequest,
   SendGroupMessageRequest,
   SendMessageRequest,
   SendMessageResponse,
@@ -307,6 +309,22 @@ export const groupsApi = {
 
   removeMember(data: RemoveMemberRequest, { token }: AuthedRequest) {
     return apiRequest<ApiMessageResponse | { error: string }>('/groups/remove-member', {
+      method: 'POST',
+      body: data,
+      token,
+    });
+  },
+
+  update(data: UpdateGroupRequest, { token }: AuthedRequest) {
+    return apiRequest<LeafGroup | { error: string }>('/groups/update', {
+      method: 'POST',
+      body: data,
+      token,
+    });
+  },
+
+  setAdmin(data: SetAdminRequest, { token }: AuthedRequest) {
+    return apiRequest<{ message: string; group: LeafGroup } | { error: string }>('/groups/set-admin', {
       method: 'POST',
       body: data,
       token,
