@@ -90,7 +90,7 @@ export function GroupChatPage() {
   // WS: novas mensagens do grupo → invalida o histórico (refetch).
   const handleWs = useCallback(
     (data: any) => {
-      if (data?.type === 'group_message' && data.group_id === groupId) {
+      if (groupId && data?.type === 'group_message' && data.group_id === groupId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.groups.messages(groupId) });
         queryClient.invalidateQueries({ queryKey: queryKeys.groups.mine });
       }
