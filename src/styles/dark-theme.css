@@ -400,7 +400,11 @@ html { transition: background-color 280ms ease, color 200ms ease; }
 [data-theme='dark'] .user-row:hover { background: #171c14; }
 
 /* rótulo Humberto (resposta da IA dentro da conversa) */
-[data-theme='dark'] .message-row__humberto { color: #a2d155; }
+[data-theme='dark'] .message-row__humberto {
+  color: #b6e06a;
+  background: linear-gradient(90deg, rgb(142 187 72 / 14%), rgb(142 187 72 / 8%));
+  border-color: rgb(142 187 72 / 40%);
+}
 [data-theme='dark'] .message-row__humberto svg { color: #8ebb48; }
 
 /* ===================== GRUPOS ===================== */

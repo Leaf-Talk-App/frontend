@@ -561,6 +561,11 @@
   background: #eef2e6;
 }
 
+.group-composer__icon--active {
+  background: #eef2e6;
+  color: #3d5a17;
+}
+
 .group-composer__icon:disabled {
   opacity: 0.45;
   cursor: not-allowed;

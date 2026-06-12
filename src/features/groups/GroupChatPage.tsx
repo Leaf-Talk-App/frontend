@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Copy, LogOut, Mic, Paperclip, Send, UserPlus, Users, X } from 'lucide-react';
+import { ArrowLeft, Copy, LogOut, Mic, Paperclip, Send, Sprout, UserPlus, Users, X } from 'lucide-react';
 import { Avatar } from '../../components/avatar/Avatar';
 import { MessageBubble } from '../../components/message-bubble/MessageBubble';
+import { DictationButton } from '../../components/dictation/DictationButton';
+import { HumbertoMentionHint, mentionsHumberto } from '../../components/humberto/HumbertoMentionHint';
 import { ImagePreviewModal } from '../../components/image-preview-modal/ImagePreviewModal';
 import { usersApi, uploadsApi } from '../../lib/api/endpoints';
 import { queryKeys } from '../../lib/api/query-keys';
@@ -311,6 +313,7 @@ export function GroupChatPage() {
       </main>
 
       <footer className="chat-window-page__composer-wrap">
+        <HumbertoMentionHint active={mentionsHumberto(input)} />
         <form className="group-composer" onSubmit={handleSend}>
           <input
             ref={fileInputRef}
@@ -333,14 +336,34 @@ export function GroupChatPage() {
           {recorder.state === 'recording' ? (
             <span className="group-composer__rec">● {recorder.duration}s</span>
           ) : (
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Mensagem… (chame a IA com @Humberto)"
-              className="group-composer__input"
-              aria-label="Mensagem para o grupo"
-            />
+            <>
+              <button
+                type="button"
+                className={`group-composer__icon${mentionsHumberto(input) ? ' group-composer__icon--active' : ''}`}
+                aria-label="Marcar o Humberto"
+                title="Marcar o Humberto (ele responde aqui)"
+                disabled={uploading}
+                onClick={() =>
+                  setInput((m) => (mentionsHumberto(m) ? m : `@Humberto ${m}`.trimEnd() + ' '))
+                }
+              >
+                <Sprout size={18} strokeWidth={2.2} />
+              </button>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Mensagem… (chame a IA com @Humberto)"
+                className="group-composer__input"
+                aria-label="Mensagem para o grupo"
+              />
+              <DictationButton
+                currentText={input}
+                onTranscript={setInput}
+                disabled={uploading}
+                className="group-composer__icon"
+              />
+            </>
           )}
 
           {input.trim() ? (

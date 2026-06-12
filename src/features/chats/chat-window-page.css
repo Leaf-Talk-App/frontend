@@ -182,19 +182,23 @@
   min-width: 0;
 }
 
-/* Rótulo "Humberto" acima da resposta da IA dentro da conversa */
+/* Rótulo "Humberto" acima da resposta da IA dentro da conversa (chip) */
 .message-row__humberto {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin: 0 0 3px 8px;
+  gap: 5px;
+  margin: 0 0 4px 8px;
+  padding: 2px 9px 2px 6px;
+  background: linear-gradient(90deg, rgb(72 119 17 / 12%), rgb(125 162 63 / 10%));
+  border: 1px solid rgb(125 162 63 / 35%);
+  border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
-  color: #5d7a2e;
+  color: #3d5a17;
 }
 
 .message-row__humberto svg {
-  color: #7da23f;
+  color: #5d8d22;
 }
 
 .message-row__menu-wrap {

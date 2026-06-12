@@ -7,6 +7,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar } from '../../components/avatar/Avatar';
 import { ErrorMessage, LoadingSpinner } from '../../components/feedback/FeedbackComponents';
 import { MessageBubble } from '../../components/message-bubble/MessageBubble';
+import { DictationButton } from '../../components/dictation/DictationButton';
+import { HumbertoMentionHint, mentionsHumberto } from '../../components/humberto/HumbertoMentionHint';
 import { ImagePreviewModal } from '../../components/image-preview-modal/ImagePreviewModal';
 import { CameraCaptureModal } from '../../components/camera-capture-modal/CameraCaptureModal';
 import { ChatHeaderMenu } from './ChatHeaderMenu';
@@ -765,6 +767,8 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
   }, [message]);
 
   return (
+    <>
+    <HumbertoMentionHint active={mentionsHumberto(message)} />
     <form className="message-composer" onSubmit={handleSubmit} noValidate>
       <input
         ref={fileInputRef}
@@ -836,6 +840,24 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
         spellCheck
         lang="pt-BR"
       />
+
+      {/* Marcar o Humberto rapidamente (insere @Humberto no texto) */}
+      <button
+        type="button"
+        className={`message-composer__icon${mentionsHumberto(message) ? ' message-composer__icon--active' : ''}`}
+        aria-label="Marcar o Humberto"
+        title="Marcar o Humberto (ele responde aqui)"
+        disabled={isLoading}
+        onClick={() => {
+          setMessage((m) => (mentionsHumberto(m) ? m : `@Humberto ${m}`.trimEnd() + ' '));
+          inputRef.current?.focus();
+        }}
+      >
+        <Sprout size={18} strokeWidth={2.2} />
+      </button>
+
+      {/* Ditado por voz → texto (transcreve no campo, sem enviar) */}
+      <DictationButton currentText={message} onTranscript={setMessage} disabled={isLoading} />
 
       {/* Emoji picker */}
       <div ref={emojiWrapRef} style={{ position: 'relative' }}>
@@ -913,5 +935,6 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
         </button>
       )}
     </form>
+    </>
   );
 }
