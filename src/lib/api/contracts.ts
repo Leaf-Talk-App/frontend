@@ -262,6 +262,8 @@ export type AiChatRequest = {
   message: string;
   attachment_url?: string | null;
   attachment_mime?: string | null;
+  timezone?: string;
+  tz_offset?: number;
 };
 
 export type AiActionCard = {

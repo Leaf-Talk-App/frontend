@@ -235,6 +235,9 @@ export function AiAssistantPage() {
         message: prompt,
         attachment_url: attachment?.url,
         attachment_mime: attachment?.mime,
+        // fuso real do usuário → agendamento na hora certa dele
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        tz_offset: new Date().getTimezoneOffset(),
       });
       const parsed = parseAiResponse(response);
       const aiMessage: ChatMessage = {
