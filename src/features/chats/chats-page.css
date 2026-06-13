@@ -258,6 +258,11 @@
     padding: 16px 16px 24px;
   }
 
+  /* folga p/ o botão de tema flutuante (fixed, top-right) não tampar as ações */
+  .chats-page__heading {
+    padding-right: 44px;
+  }
+
   .chats-page__welcome {
     display: none;
   }

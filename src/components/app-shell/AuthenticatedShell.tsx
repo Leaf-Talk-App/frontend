@@ -7,7 +7,7 @@ import {
   Sprout,
   UserRound,
 } from 'lucide-react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { matchPath, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { routePaths } from '../../routes/paths';
 import { useAuth } from '../../lib/auth/use-auth';
 import { useWebSocket } from '../../features/chats/useWebSocket';
@@ -86,15 +86,26 @@ function GlobalPresence() {
   return null;
 }
 
+// Rotas "imersivas" (tela cheia com composer no rodapé): a barra inferior fixa
+// do mobile tampava os botões do composer. Some nessas telas — o botão Voltar
+// já cobre a navegação.
+const IMMERSIVE_ROUTES = [routePaths.chat, routePaths.group];
+
+function useIsImmersive(): boolean {
+  const { pathname } = useLocation();
+  return IMMERSIVE_ROUTES.some((p) => matchPath(p, pathname) !== null);
+}
+
 export function AuthenticatedShell() {
+  const immersive = useIsImmersive();
   return (
     <div className="authenticated-shell">
       <GlobalPresence />
       <DesktopSidebar />
-      <main className="authenticated-shell__main">
+      <main className={`authenticated-shell__main${immersive ? ' authenticated-shell__main--immersive' : ''}`}>
         <Outlet />
       </main>
-      <MobileBottomNav />
+      {!immersive && <MobileBottomNav />}
     </div>
   );
 }

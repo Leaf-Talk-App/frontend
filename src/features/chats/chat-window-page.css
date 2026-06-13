@@ -507,8 +507,11 @@
 }
 
 @media (max-width: 767px) {
+  /* dvh = altura real do viewport mobile (desconta a barra de URL), evita o
+     composer ficar escondido abaixo da dobra. */
   .chat-window-page {
     height: 100vh;
+    height: 100dvh;
   }
 
   .chat-window-page__header {

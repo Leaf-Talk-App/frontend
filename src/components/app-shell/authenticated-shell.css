@@ -180,6 +180,11 @@
   .authenticated-shell__main {
     padding-bottom: 112px;
   }
+
+  /* Telas imersivas (chat/grupo) não têm a barra inferior → sem folga extra. */
+  .authenticated-shell__main--immersive {
+    padding-bottom: 0;
+  }
 }
 
 /* ── Badges de não lidas ───────────────────────────────────────────────── */

@@ -924,6 +924,12 @@
   .groups-page {
     grid-template-columns: 1fr;
     height: calc(100vh - 112px);
+    height: calc(100dvh - 112px);
+  }
+
+  /* folga p/ o botão de tema flutuante (fixed, top-right) */
+  .groups-page__heading {
+    padding-right: 44px;
   }
 
   .groups-page__welcome {
