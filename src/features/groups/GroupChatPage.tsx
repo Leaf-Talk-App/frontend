@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Copy, Lock, LogOut, Mic, Paperclip, Send, Settings2, Sprout, UserPlus, Users, X } from 'lucide-react';
@@ -67,6 +67,8 @@ export function GroupChatPage() {
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLElement>(null);
+  const atBottomRef = useRef(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recorder = useAudioRecorder();
 
@@ -106,13 +108,30 @@ export function GroupChatPage() {
   );
   useWebSocket({ userId: currentUser?.id, enabled: Boolean(currentUser?.id), onMessage: handleWs });
 
-  const didInitialScrollRef = useRef(false);
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: didInitialScrollRef.current ? 'smooth' : 'auto',
-    });
-    didInitialScrollRef.current = true;
-  }, [messages, sendMutation.isPending]);
+  // Posiciona no FIM antes da pintura (sem "puxão" do topo). Rola o container,
+  // reposiciona após imagens carregarem, e reseta por groupId (componente
+  // reusado entre grupos). Igual à conversa 1:1.
+  const scrolledGroupRef = useRef<string | undefined>(undefined);
+  useLayoutEffect(() => {
+    if (!messages?.length) return;
+    const el = messagesContainerRef.current;
+    if (!el) return;
+
+    const toBottom = () => {
+      el.scrollTop = el.scrollHeight;
+    };
+
+    if (scrolledGroupRef.current !== groupId) {
+      toBottom();
+      scrolledGroupRef.current = groupId;
+      atBottomRef.current = true;
+      requestAnimationFrame(toBottom);
+      const t = window.setTimeout(toBottom, 220);
+      return () => window.clearTimeout(t);
+    }
+
+    if (atBottomRef.current) toBottom();
+  }, [messages, groupId, sendMutation.isPending]);
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -293,7 +312,15 @@ export function GroupChatPage() {
         </div>
       </header>
 
-      <main className="chat-window-page__messages" aria-live="polite">
+      <main
+        ref={messagesContainerRef}
+        className="chat-window-page__messages"
+        aria-live="polite"
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+        }}
+      >
         {hasOlderMessages && !messagesLoading && (
           <div className="chat-window-page__load-more">
             <button

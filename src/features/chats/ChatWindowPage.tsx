@@ -1,5 +1,5 @@
 import { ArrowLeft, Camera, ChevronDown, Forward, Image, Mic, MicOff, Paperclip, Reply, Search, Send, Smile, Sprout, Star, Trash2, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ChatHeaderMenuHandle } from './ChatHeaderMenu';
 import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
@@ -173,20 +173,35 @@ export function ChatWindowPage() {
   // (o segundo sobrescrevia o primeiro e bagunçava o status online).
 
   // ── Scroll automático ─────────────────────────────────────────────────────
-  // Primeira carga: pula direto para o fim SEM animar (antes "puxava do topo até
-  // o fim" toda vez que abria). Depois disso, rola suave só se já estava no fim.
-  const didInitialScrollRef = useRef(false);
-  useEffect(() => {
+  // Posiciona no FIM antes da pintura (useLayoutEffect → sem o "puxão" do topo
+  // pro fim). Rola o próprio container (scrollTop), não a página, e reposiciona
+  // quando imagens/áudios carregam depois (mudam a altura). Reset por chatId:
+  // o componente é reusado entre conversas, então a 1ª carga de CADA conversa
+  // precisa cair no fim de novo.
+  const scrolledChatRef = useRef<string | undefined>(undefined);
+  useLayoutEffect(() => {
     if (!messages?.length) return;
-    if (!didInitialScrollRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-      didInitialScrollRef.current = true;
-      return;
+    const el = messagesContainerRef.current;
+    if (!el) return;
+
+    const toBottom = () => {
+      el.scrollTop = el.scrollHeight;
+    };
+
+    if (scrolledChatRef.current !== chatId) {
+      // primeira carga desta conversa → fim instantâneo (+ reposiciona após o
+      // layout assentar: avatares/imagens carregam e empurram o conteúdo)
+      toBottom();
+      scrolledChatRef.current = chatId;
+      atBottomRef.current = true;
+      requestAnimationFrame(toBottom);
+      const t = window.setTimeout(toBottom, 220);
+      return () => window.clearTimeout(t);
     }
-    if (atBottomRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
+
+    // mensagens novas: só acompanha o fim se o usuário já estava lá
+    if (atBottomRef.current) toBottom();
+  }, [messages, chatId]);
 
   // ── Read receipts: marca recebidas como lidas ao abrir / ao chegar novas ──
   useEffect(() => {
