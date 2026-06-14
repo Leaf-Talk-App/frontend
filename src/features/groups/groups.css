@@ -946,6 +946,17 @@
     padding-right: 44px;
   }
 
+  /* composer do grupo enxuto no mobile (sem wrap, campo aproveita o espaço) */
+  .group-composer {
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .group-composer__input {
+    height: 42px;
+    padding: 0 12px;
+    min-width: 0;
+  }
+
   .groups-page__welcome {
     display: none;
   }
