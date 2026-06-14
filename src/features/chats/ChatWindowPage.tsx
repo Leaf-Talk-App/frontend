@@ -1,8 +1,9 @@
-import { ArrowLeft, Camera, ChevronDown, Forward, Image, Mic, MicOff, Paperclip, Reply, Search, Send, Smile, Sprout, Star, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Camera, ChevronDown, Forward, Image, Mic, MicOff, Paperclip, Plus, Reply, Search, Send, Smile, Sprout, Star, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ChatHeaderMenuHandle } from './ChatHeaderMenu';
 import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
+import { useLongPress } from '../../hooks/useLongPress';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar } from '../../components/avatar/Avatar';
 import { ErrorMessage, LoadingSpinner } from '../../components/feedback/FeedbackComponents';
@@ -446,7 +447,11 @@ export function ChatWindowPage() {
           <div className="chat-window-page__reply-bar">
             <div className="chat-window-page__reply-bar-body">
               <span className="chat-window-page__reply-bar-author">
-                {replyingTo.sender_id === currentUser.id ? 'Você' : displayName}
+                {replyingTo.sender_id === currentUser.id
+                  ? 'Você'
+                  : replyingTo.sender_id === 'humberto'
+                  ? 'Humberto'
+                  : displayName}
               </span>
               <span className="chat-window-page__reply-bar-text">
                 {replyPreviewText(replyingTo)}
@@ -583,6 +588,9 @@ function MessageRow({
   // Resposta do Humberto (IA) dentro da conversa → rótulo identificando o autor.
   const isHumberto = message.sender_id === 'humberto';
 
+  // Toque longo (mobile) / clique-direito (desktop) abre o menu de opções.
+  const longPress = useLongPress(() => setMenuOpen(true));
+
   // Sem menu em mensagem otimista (sem _id real) nem em mensagem já apagada.
   const isOptimistic = message._id.startsWith('optimistic-');
   const canDelete = !isOptimistic && !message.deleted;
@@ -590,12 +598,18 @@ function MessageRow({
 
   // Citação (resposta): autor = "Você" se for minha, senão o nome do contato
   const rp = message.reply_preview;
-  const replyAuthor = rp ? (rp.sender_id === currentUserId ? 'Você' : otherName) : undefined;
+  const replyAuthor = rp
+    ? rp.sender_id === currentUserId
+      ? 'Você'
+      : rp.sender_id === 'humberto'
+      ? 'Humberto'
+      : otherName
+    : undefined;
   const replyText = rp ? replyPreviewText(rp) : undefined;
 
   return (
     <div className={`chat-window-page__row${isOwn ? ' chat-window-page__row--own' : ''}`}>
-      <div className="message-row__wrap">
+      <div className="message-row__wrap" {...longPress}>
         {isHumberto && (
           <span className="message-row__humberto">
             <Sprout size={12} strokeWidth={2.4} aria-hidden="true" /> Humberto
@@ -711,6 +725,7 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
   const [message, setMessage] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [showTools, setShowTools] = useState(false); // menu "+" no mobile
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -807,37 +822,73 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
         onChange={handleDocChange}
       />
 
-      {/* Anexar arquivo (qualquer tipo) — estilo clipe */}
+      {/* Botão "+" (só no mobile) abre o menu de anexos/ferramentas. No desktop
+          fica escondido e as ferramentas aparecem inline (CSS display:contents). */}
       <button
         type="button"
-        className="message-composer__icon"
-        aria-label="Anexar arquivo"
+        className={`message-composer__icon message-composer__more${showTools ? ' message-composer__icon--active' : ''}`}
+        aria-label="Mais opções"
+        aria-expanded={showTools}
         disabled={isLoading}
-        onClick={() => docInputRef.current?.click()}
+        onClick={() => setShowTools((v) => !v)}
       >
-        <Paperclip size={18} strokeWidth={2.2} />
+        <Plus size={20} strokeWidth={2.4} />
       </button>
 
-      <button
-        type="button"
-        className="message-composer__icon"
-        aria-label="Anexar imagem"
-        disabled={isLoading}
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <Image size={18} strokeWidth={2.2} />
-      </button>
+      {/* Ferramentas: inline no desktop, popover do "+" no mobile */}
+      <div className={`message-composer__tools${showTools ? ' message-composer__tools--open' : ''}`}>
+        {/* Anexar arquivo (qualquer tipo) — estilo clipe */}
+        <button
+          type="button"
+          className="message-composer__icon"
+          aria-label="Anexar arquivo"
+          disabled={isLoading}
+          onClick={() => { setShowTools(false); docInputRef.current?.click(); }}
+        >
+          <Paperclip size={18} strokeWidth={2.2} />
+        </button>
 
-      {/* Câmera ao vivo (getUserMedia) — funciona no desktop e no mobile */}
-      <button
-        type="button"
-        className="message-composer__icon"
-        aria-label="Tirar foto"
-        disabled={isLoading}
-        onClick={() => setShowCamera(true)}
-      >
-        <Camera size={18} strokeWidth={2.2} />
-      </button>
+        <button
+          type="button"
+          className="message-composer__icon"
+          aria-label="Anexar imagem"
+          disabled={isLoading}
+          onClick={() => { setShowTools(false); fileInputRef.current?.click(); }}
+        >
+          <Image size={18} strokeWidth={2.2} />
+        </button>
+
+        {/* Câmera ao vivo (getUserMedia) — funciona no desktop e no mobile */}
+        <button
+          type="button"
+          className="message-composer__icon"
+          aria-label="Tirar foto"
+          disabled={isLoading}
+          onClick={() => { setShowTools(false); setShowCamera(true); }}
+        >
+          <Camera size={18} strokeWidth={2.2} />
+        </button>
+
+        {/* Marcar o Humberto rapidamente (insere @Humberto no texto) */}
+        <button
+          type="button"
+          className={`message-composer__icon${mentionsHumberto(message) ? ' message-composer__icon--active' : ''}`}
+          aria-label="Marcar o Humberto"
+          title="Marcar o Humberto (ele responde aqui)"
+          disabled={isLoading}
+          onClick={() => {
+            setShowTools(false);
+            setMessage((m) => (mentionsHumberto(m) ? m : `@Humberto ${m}`.trimEnd() + ' '));
+            inputRef.current?.focus();
+          }}
+        >
+          <Sprout size={18} strokeWidth={2.2} />
+        </button>
+
+        {/* Ditado por voz → texto (transcreve no campo, sem enviar) */}
+        <DictationButton currentText={message} onTranscript={setMessage} disabled={isLoading} />
+      </div>
+
       {showCamera && (
         <CameraCaptureModal
           onClose={() => setShowCamera(false)}
@@ -856,30 +907,12 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
         onChange={(event) => setMessage(event.target.value)}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
-        placeholder={`Escreva uma mensagem para ${recipientName}…`}
+        placeholder={`Mensagem para ${recipientName}…`}
         aria-label="Escreva uma mensagem"
         autoComplete="off"
         spellCheck
         lang="pt-BR"
       />
-
-      {/* Marcar o Humberto rapidamente (insere @Humberto no texto) */}
-      <button
-        type="button"
-        className={`message-composer__icon${mentionsHumberto(message) ? ' message-composer__icon--active' : ''}`}
-        aria-label="Marcar o Humberto"
-        title="Marcar o Humberto (ele responde aqui)"
-        disabled={isLoading}
-        onClick={() => {
-          setMessage((m) => (mentionsHumberto(m) ? m : `@Humberto ${m}`.trimEnd() + ' '));
-          inputRef.current?.focus();
-        }}
-      >
-        <Sprout size={18} strokeWidth={2.2} />
-      </button>
-
-      {/* Ditado por voz → texto (transcreve no campo, sem enviar) */}
-      <DictationButton currentText={message} onTranscript={setMessage} disabled={isLoading} />
 
       {/* Emoji picker */}
       <div ref={emojiWrapRef} style={{ position: 'relative' }}>

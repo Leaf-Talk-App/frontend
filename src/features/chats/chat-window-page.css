@@ -234,6 +234,14 @@
   opacity: 1;
 }
 
+/* Mobile/touch: sem hover → o botão de opções fica sempre visível (além do
+   toque longo na mensagem, que também abre o menu). */
+@media (hover: none) {
+  .message-row__menu-btn {
+    opacity: 0.6;
+  }
+}
+
 [data-theme='dark'] .message-row__menu-btn {
   background: rgb(28 33 25 / 85%);
   color: #c4ccb8;
@@ -427,6 +435,15 @@
   border: 1px solid #e6e9df;
   border-radius: 22px;
   box-shadow: 0 10px 24px rgb(79 95 57 / 8%);
+  position: relative;
+}
+
+/* Desktop: o "+" some e as ferramentas ficam inline (como antes). */
+.message-composer__more {
+  display: none;
+}
+.message-composer__tools {
+  display: contents;
 }
 
 .message-composer__input {
@@ -525,6 +542,48 @@
   .chat-window-page__composer-wrap {
     padding: 10px 14px 14px;
   }
+
+  /* Composer enxuto: [+] [texto…] [emoji] [enviar] numa linha só, sem wrap.
+     As ferramentas de anexo ficam num popover aberto pelo "+". */
+  .message-composer {
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .message-composer__more {
+    display: grid;
+  }
+
+  /* fecha o conjunto de ferramentas → vira popover só quando aberto */
+  .message-composer__tools {
+    display: none;
+  }
+
+  .message-composer__tools--open {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: calc(100% + 8px);
+    padding: 8px;
+    background: #ffffff;
+    border: 1px solid #e6e9df;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgb(79 95 57 / 16%);
+    z-index: 6;
+  }
+
+  /* o campo de texto ganha a maior parte do espaço */
+  .message-composer__input {
+    min-height: 36px;
+  }
+}
+
+[data-theme='dark'] .message-composer__tools--open {
+  background: #1b2019;
+  border-color: #313a2a;
 }
 
 .chat-window-page__load-more {

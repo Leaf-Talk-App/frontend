@@ -46,8 +46,11 @@ const URL_RE = /(https?:\/\/[^\s]+)/i;
 
 // Durações de silenciamento (minutos). null = para sempre.
 const MUTE_OPTIONS: { label: string; minutes: number | null }[] = [
+  { label: '1 hora', minutes: 60 },
   { label: '8 horas', minutes: 480 },
+  { label: '1 dia', minutes: 1440 },
   { label: '1 semana', minutes: 10080 },
+  { label: '1 mês', minutes: 43200 },
   { label: 'Para sempre', minutes: null },
 ];
 

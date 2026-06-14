@@ -65,10 +65,6 @@ function Footer({
   );
 }
 
-function isPdf(url?: string | null): boolean {
-  return Boolean(url && /\.pdf(\?|#|$)/i.test(url));
-}
-
 function fileNameFromUrl(url?: string | null): string {
   if (!url) return 'arquivo';
   try {
@@ -172,38 +168,25 @@ export function MessageBubble({
 
   /* ── Arquivo (PDF / documento) ─────────────────────────────────────────── */
   if (isFile) {
-    const pdf = isPdf(fileUrl);
     // prefere o nome original enviado em content; cai para o nome derivado da URL
     const name = (content && content.trim()) || fileNameFromUrl(fileUrl);
+    // Todos os arquivos (inclusive PDF) BAIXAM ao clicar — não abrem mais um
+    // visualizador dentro do Leaf (isso dava "falha ao carregar"). O usuário
+    // baixa e abre no leitor do aparelho.
     return (
       <div className={`message-bubble ${senderCls}`}>
         <div className="message-bubble__body">
-          {pdf ? (
-            <button
-              type="button"
-              className="message-bubble__file"
-              onClick={() => setViewerOpen(true)}
-              aria-label={`Abrir ${name}`}
-            >
-              <FileText size={20} strokeWidth={2} />
-              <span className="message-bubble__file-name">{name}</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="message-bubble__file"
-              onClick={() => fileUrl && downloadFile(fileUrl, name)}
-              aria-label={`Baixar ${name}`}
-            >
-              <FileText size={20} strokeWidth={2} />
-              <span className="message-bubble__file-name">{name}</span>
-            </button>
-          )}
+          <button
+            type="button"
+            className="message-bubble__file"
+            onClick={() => fileUrl && downloadFile(fileUrl, name)}
+            aria-label={`Baixar ${name}`}
+          >
+            <FileText size={20} strokeWidth={2} />
+            <span className="message-bubble__file-name">{name}</span>
+          </button>
           <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} favorited={favorited} />
         </div>
-        {pdf && (
-          <MediaViewer open={viewerOpen} onClose={() => setViewerOpen(false)} url={fileUrl} kind="pdf" name={name} />
-        )}
       </div>
     );
   }

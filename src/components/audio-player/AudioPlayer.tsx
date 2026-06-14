@@ -40,6 +40,7 @@ function seededBars(seed: string, n: number): number[] {
 export function AudioPlayer({ src, variant = 'receiver' }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const waveRef = useRef<HTMLDivElement>(null);
+  const fixingRef = useRef(false); // durante o hack de duração, ignora timeupdate
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -52,20 +53,29 @@ export function AudioPlayer({ src, variant = 'receiver' }: AudioPlayerProps) {
     else el.pause();
   }, []);
 
-  // webm do MediaRecorder reporta duration=Infinity até ser percorrido.
+  // webm do MediaRecorder reporta duration=Infinity (ou um valor-lixo enorme)
+  // até ser percorrido. Forçamos um seek pro fim p/ o browser recalcular. O
+  // flag fixingRef impede que o tempo gigante do seek apareça no visual
+  // (era o bug do "331:15"). Duração absurda (>24h) é tratada como desconhecida.
+  const SANE_MAX = 86400; // 24h
   const handleLoadedMetadata = useCallback(() => {
     const el = audioRef.current;
     if (!el) return;
-    if (el.duration === Infinity || Number.isNaN(el.duration)) {
+    const d = el.duration;
+    if (d === Infinity || Number.isNaN(d) || d > SANE_MAX) {
+      fixingRef.current = true;
       const fix = () => {
         el.removeEventListener('timeupdate', fix);
+        const real = el.duration;
         el.currentTime = 0;
-        setDuration(Number.isFinite(el.duration) ? el.duration : 0);
+        fixingRef.current = false;
+        setCurrent(0);
+        setDuration(Number.isFinite(real) && real <= SANE_MAX ? real : 0);
       };
       el.addEventListener('timeupdate', fix);
       el.currentTime = 1e7;
     } else {
-      setDuration(el.duration);
+      setDuration(d);
     }
   }, []);
 
@@ -119,7 +129,10 @@ export function AudioPlayer({ src, variant = 'receiver' }: AudioPlayerProps) {
         src={src}
         preload="metadata"
         onLoadedMetadata={handleLoadedMetadata}
-        onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime)}
+        onTimeUpdate={(e) => {
+          if (fixingRef.current) return; // ignora o seek-hack de duração
+          setCurrent(e.currentTarget.currentTime);
+        }}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => {
