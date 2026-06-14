@@ -200,6 +200,42 @@ export function useAddMemberMutation(groupId?: string) {
   });
 }
 
+// ── Ações em mensagem do grupo (favoritar / apagar) ──────────────────────────
+export function useGroupMessageActions(groupId?: string) {
+  const { accessToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  const invalidate = () => {
+    if (groupId) queryClient.invalidateQueries({ queryKey: queryKeys.groups.messages(groupId) });
+  };
+
+  const favorite = useMutation({
+    mutationFn: async (messageId: string) => {
+      if (!accessToken) throw new Error('No access token');
+      return groupsApi.favoriteMessage(messageId, { token: accessToken });
+    },
+    onSuccess: invalidate,
+  });
+
+  const deleteForMe = useMutation({
+    mutationFn: async (messageId: string) => {
+      if (!accessToken) throw new Error('No access token');
+      return groupsApi.deleteMessageForMe(messageId, { token: accessToken });
+    },
+    onSuccess: invalidate,
+  });
+
+  const deleteForEveryone = useMutation({
+    mutationFn: async (messageId: string) => {
+      if (!accessToken) throw new Error('No access token');
+      return groupsApi.deleteMessage(messageId, { token: accessToken });
+    },
+    onSuccess: invalidate,
+  });
+
+  return { favorite, deleteForMe, deleteForEveryone };
+}
+
 // ── Editar grupo: nome, descrição, regra de envio (admin) ────────────────────
 export function useUpdateGroupMutation(groupId?: string) {
   const { accessToken } = useAuth();

@@ -1,5 +1,6 @@
 import { BadgeCheck, MessageSquare, Search as SearchIcon, X } from 'lucide-react';
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Avatar } from '../../components/avatar/Avatar';
 import {
@@ -27,6 +28,7 @@ export function SearchPage() {
   const [query, setQuery] = useState('');
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const [creatingFor, setCreatingFor] = useState<string | null>(null);
+  const [profileUser, setProfileUser] = useState<LeafUser | null>(null);
 
   const {
     data: results,
@@ -112,27 +114,34 @@ export function SearchPage() {
                 const name = user.display_name || user.name || 'Membro do Leaf';
                 return (
                   <li key={user._id} className="user-row">
-                    <Avatar
-                      src={user.avatar}
-                      initials={initialsFor(name)}
-                      size="md"
-                      online={user.online}
-                    />
-                    <div className="user-row__info">
-                      <p className="user-row__name">
-                        {name}
-                        {user.verified ? (
-                          <BadgeCheck
-                            size={16}
-                            strokeWidth={2.4}
-                            className="user-row__verified"
-                            aria-label="Verificado"
-                          />
-                        ) : null}
-                      </p>
-                      <p className="user-row__handle">{user.email}</p>
-                      {user.bio ? <p className="user-row__role">{user.bio}</p> : null}
-                    </div>
+                    <button
+                      type="button"
+                      className="user-row__open"
+                      onClick={() => setProfileUser(user)}
+                      aria-label={`Ver perfil de ${name}`}
+                    >
+                      <Avatar
+                        src={user.avatar}
+                        initials={initialsFor(name)}
+                        size="md"
+                        online={user.online}
+                      />
+                      <div className="user-row__info">
+                        <p className="user-row__name">
+                          {name}
+                          {user.verified ? (
+                            <BadgeCheck
+                              size={16}
+                              strokeWidth={2.4}
+                              className="user-row__verified"
+                              aria-label="Verificado"
+                            />
+                          ) : null}
+                        </p>
+                        <p className="user-row__handle">{user.email}</p>
+                        {user.bio ? <p className="user-row__role">{user.bio}</p> : null}
+                      </div>
+                    </button>
                     <button
                       type="button"
                       className="user-row__btn"
@@ -155,6 +164,49 @@ export function SearchPage() {
           </>
         )}
       </section>
+
+      {profileUser &&
+        createPortal(
+          <div className="chat-modal" role="dialog" aria-modal="true" onClick={() => setProfileUser(null)}>
+            <div className="chat-modal__card" onClick={(e) => e.stopPropagation()}>
+              <button className="chat-modal__close" onClick={() => setProfileUser(null)} aria-label="Fechar">
+                <X size={20} strokeWidth={2.2} />
+              </button>
+              {(() => {
+                const u = profileUser;
+                const nm = u.display_name || u.name || 'Membro do Leaf';
+                return (
+                  <>
+                    <div className="chat-modal__contact-head">
+                      <Avatar src={u.avatar} initials={initialsFor(nm)} size="lg" online={u.online} />
+                      <h3 className="chat-modal__name">{nm}</h3>
+                      {u.username ? <p className="chat-modal__handle">@{u.username}</p> : null}
+                      <p className={`chat-modal__online-status${u.online ? ' chat-modal__online-status--on' : ''}`}>
+                        {u.online ? 'Online agora' : 'Offline'}
+                      </p>
+                    </div>
+                    <dl className="chat-modal__fields">
+                      {u.bio ? <div><dt>Bio</dt><dd>{u.bio}</dd></div> : null}
+                      {u.email ? <div><dt>E-mail</dt><dd>{u.email}</dd></div> : null}
+                      {u.phone ? <div><dt>Telefone</dt><dd>{u.phone}</dd></div> : null}
+                    </dl>
+                    <div className="chat-modal__actions">
+                      <button
+                        className="chat-modal__btn chat-modal__btn--primary"
+                        type="button"
+                        disabled={isCreatingChat}
+                        onClick={() => { setProfileUser(null); handleStartChat(u); }}
+                      >
+                        <MessageSquare size={15} strokeWidth={2} /> Conversar
+                      </button>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

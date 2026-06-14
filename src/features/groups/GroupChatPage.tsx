@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Copy, Lock, LogOut, Mic, Paperclip, Send, Settings2, Sprout, UserPlus, Users, X } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Copy, Forward, Lock, LogOut, Mic, Paperclip, Reply, Send, Settings2, Sprout, Star, Trash2, UserPlus, Users, X } from 'lucide-react';
 import { Avatar } from '../../components/avatar/Avatar';
 import { MessageBubble } from '../../components/message-bubble/MessageBubble';
 import { DictationButton } from '../../components/dictation/DictationButton';
@@ -12,16 +12,19 @@ import { queryKeys } from '../../lib/api/query-keys';
 import { routePaths } from '../../routes/paths';
 import { useAuth } from '../../lib/auth/use-auth';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
+import { useLongPress } from '../../hooks/useLongPress';
 import { useWebSocket } from '../chats/useWebSocket';
+import { ForwardModal } from '../chats/ForwardModal';
 import {
   useGroupMessagesQuery,
   useGroupQuery,
+  useGroupMessageActions,
   useLeaveGroupMutation,
   useSendGroupMessageMutation,
 } from './groups-hooks';
 import { AddMemberModal } from './AddMemberModal';
 import { GroupSettingsModal } from './GroupSettingsModal';
-import type { LeafUser, MessageType } from '../../lib/api/contracts';
+import type { GroupMessage, LeafMessage, LeafUser, MessageType } from '../../lib/api/contracts';
 import '../chats/chat-window-page.css';
 import './groups.css';
 
@@ -66,6 +69,9 @@ export function GroupChatPage() {
   const [copied, setCopied] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<GroupMessage | null>(null);
+  const [forwarding, setForwarding] = useState<LeafMessage | null>(null);
+  const msgActions = useGroupMessageActions(groupId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLElement>(null);
   const atBottomRef = useRef(true);
@@ -97,7 +103,7 @@ export function GroupChatPage() {
   const handleWs = useCallback(
     (data: any) => {
       if (!groupId || data?.group_id !== groupId) return;
-      if (data?.type === 'group_message') {
+      if (data?.type === 'group_message' || data?.type === 'group_message_deleted') {
         queryClient.invalidateQueries({ queryKey: queryKeys.groups.messages(groupId) });
         queryClient.invalidateQueries({ queryKey: queryKeys.groups.mine });
       } else if (data?.type === 'group_updated') {
@@ -137,8 +143,9 @@ export function GroupChatPage() {
     e.preventDefault();
     const content = input.trim();
     if (!content || !groupId || sendMutation.isPending || !canSend) return;
-    sendMutation.mutate({ group_id: groupId, content });
+    sendMutation.mutate({ group_id: groupId, content, reply_to: replyingTo?._id ?? null });
     setInput('');
+    setReplyingTo(null);
   };
 
   // Anexo: imagem → pré-visualização com legenda; outros → envia direto.
@@ -344,23 +351,31 @@ export function GroupChatPage() {
             <p>Seja o primeiro a falar no grupo 👋</p>
           </div>
         ) : (
-          messages.map((m) => {
-            const isOwn = m.sender_id === currentUser.id;
-            const author = nameById[m.sender_id] || 'Membro';
-            return (
-              <div key={m._id} className={`group-msg-row${isOwn ? ' group-msg-row--own' : ''}`}>
-                {!isOwn && <span className="group-msg-row__author">{author}</span>}
-                <MessageBubble
-                  content={m.content}
-                  type={m.type ?? 'text'}
-                  fileUrl={m.file_url}
-                  isSender={isOwn}
-                  timestamp={formatTime(m.created_at)}
-                  status={isOwn ? 'sent' : undefined}
-                />
+          messages.map((m) =>
+            m.type === 'system' ? (
+              <div key={m._id} className="chat-window-page__divider" role="separator">
+                <span className="group-system-msg">{m.content}</span>
               </div>
-            );
-          })
+            ) : (
+              <GroupMessageRow
+                key={m._id}
+                message={m}
+                isOwn={m.sender_id === currentUser.id}
+                authorName={
+                  nameById[m.sender_id] ||
+                  (m.sender_id === 'humberto' ? 'Humberto' : 'Membro')
+                }
+                nameById={nameById}
+                currentUserId={currentUser.id}
+                canDeleteForEveryone={m.sender_id === currentUser.id || isAdmin}
+                onReply={() => setReplyingTo(m)}
+                onForward={() => setForwarding(toLeafMessage(m))}
+                onToggleFavorite={() => msgActions.favorite.mutate(m._id)}
+                onDeleteForMe={() => msgActions.deleteForMe.mutate(m._id)}
+                onDeleteForEveryone={() => msgActions.deleteForEveryone.mutate(m._id)}
+              />
+            ),
+          )
         )}
         <div ref={messagesEndRef} />
       </main>
@@ -373,6 +388,29 @@ export function GroupChatPage() {
           </div>
         ) : (
         <>
+        {replyingTo && (
+          <div className="chat-window-page__reply-bar">
+            <div className="chat-window-page__reply-bar-body">
+              <span className="chat-window-page__reply-bar-author">
+                {replyingTo.sender_id === currentUser.id
+                  ? 'Você'
+                  : nameById[replyingTo.sender_id] ||
+                    (replyingTo.sender_id === 'humberto' ? 'Humberto' : 'Membro')}
+              </span>
+              <span className="chat-window-page__reply-bar-text">
+                {(replyingTo.content || '').trim() ||
+                  (replyingTo.type === 'image'
+                    ? '📷 Foto'
+                    : replyingTo.type === 'audio'
+                    ? '🎤 Áudio'
+                    : '📄 Arquivo')}
+              </span>
+            </div>
+            <button type="button" aria-label="Cancelar resposta" onClick={() => setReplyingTo(null)}>
+              <X size={16} strokeWidth={2.4} />
+            </button>
+          </div>
+        )}
         <HumbertoMentionHint active={mentionsHumberto(input)} />
         <form className="group-composer" onSubmit={handleSend}>
           <input
@@ -503,6 +541,136 @@ export function GroupChatPage() {
           onSend={(caption) => uploadAndSend(pendingImage, 'image', caption)}
         />
       )}
+
+      {forwarding && (
+        <ForwardModal message={forwarding} onClose={() => setForwarding(null)} />
+      )}
+    </div>
+  );
+}
+
+/** Converte uma mensagem de grupo no formato esperado pelo ForwardModal. */
+function toLeafMessage(m: GroupMessage): LeafMessage {
+  return {
+    _id: m._id,
+    chat_id: '',
+    sender_id: m.sender_id,
+    receiver_id: '',
+    content: m.content,
+    type: (m.type === 'system' ? 'text' : m.type) ?? 'text',
+    file_url: m.file_url ?? null,
+    read: false,
+  } as LeafMessage;
+}
+
+interface GroupMessageRowProps {
+  message: GroupMessage;
+  isOwn: boolean;
+  authorName: string;
+  nameById: Record<string, string>;
+  currentUserId: string;
+  canDeleteForEveryone: boolean;
+  onReply: () => void;
+  onForward: () => void;
+  onToggleFavorite: () => void;
+  onDeleteForMe: () => void;
+  onDeleteForEveryone: () => void;
+}
+
+function GroupMessageRow({
+  message,
+  isOwn,
+  authorName,
+  nameById,
+  currentUserId,
+  canDeleteForEveryone,
+  onReply,
+  onForward,
+  onToggleFavorite,
+  onDeleteForMe,
+  onDeleteForEveryone,
+}: GroupMessageRowProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const longPress = useLongPress(() => setMenuOpen(true));
+
+  const isOptimistic = message._id.startsWith('optimistic-');
+  const canOpenMenu = !isOptimistic && !message.deleted;
+
+  const rp = message.reply_preview;
+  const replyAuthor = rp
+    ? rp.sender_id === currentUserId
+      ? 'Você'
+      : nameById[rp.sender_id] || (rp.sender_id === 'humberto' ? 'Humberto' : 'Membro')
+    : undefined;
+  const replyText = rp
+    ? (rp.content || '').trim() ||
+      (rp.type === 'image' ? '📷 Foto' : rp.type === 'audio' ? '🎤 Áudio' : '📄 Arquivo')
+    : undefined;
+
+  return (
+    <div className={`group-msg-row${isOwn ? ' group-msg-row--own' : ''}`}>
+      {!isOwn && <span className="group-msg-row__author">{authorName}</span>}
+      <div className="message-row__wrap" {...(canOpenMenu ? longPress : {})}>
+        <MessageBubble
+          content={message.content}
+          type={message.type === 'system' ? 'text' : message.type ?? 'text'}
+          fileUrl={message.file_url}
+          isSender={isOwn}
+          timestamp={formatTime(message.created_at)}
+          status={isOwn ? 'sent' : undefined}
+          deleted={message.deleted}
+          favorited={message.favorited}
+          replyAuthor={replyAuthor}
+          replyText={replyText}
+        />
+
+        {canOpenMenu && (
+          <div className="message-row__menu-wrap">
+            <button
+              type="button"
+              className="message-row__menu-btn"
+              aria-label="Opções da mensagem"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              <ChevronDown size={16} strokeWidth={2.4} />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="message-row__backdrop" onClick={() => setMenuOpen(false)} />
+                <div className="message-row__menu" role="menu">
+                  <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); onReply(); }}>
+                    <Reply size={15} strokeWidth={2} /> Responder
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); onForward(); }}>
+                    <Forward size={15} strokeWidth={2} /> Encaminhar
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); onToggleFavorite(); }}>
+                    <Star size={15} strokeWidth={2} /> {message.favorited ? 'Desfavoritar' : 'Favoritar'}
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); onDeleteForMe(); }}>
+                    <Trash2 size={15} strokeWidth={2} /> Apagar para mim
+                  </button>
+                  {canDeleteForEveryone && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="message-row__menu-danger"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        if (window.confirm('Apagar esta mensagem para todos?')) onDeleteForEveryone();
+                      }}
+                    >
+                      <Trash2 size={15} strokeWidth={2} /> Apagar para todos
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

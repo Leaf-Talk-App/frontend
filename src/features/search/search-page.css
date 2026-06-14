@@ -11,6 +11,20 @@
   overflow-y: auto;
 }
 
+/* Área clicável (avatar + nome) abre o perfil da pessoa */
+.user-row__open {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
 .search-page__head {
   padding: 24px 0 4px;
 }

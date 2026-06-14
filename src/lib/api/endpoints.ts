@@ -344,6 +344,27 @@ export const groupsApi = {
       { method: 'POST', token },
     );
   },
+
+  favoriteMessage(messageId: string, { token }: AuthedRequest) {
+    return apiRequest<{ message: string; favorited: boolean } | { error: string }>(
+      `/groups/messages/${encodeURIComponent(messageId)}/favorite`,
+      { method: 'POST', token },
+    );
+  },
+
+  deleteMessageForMe(messageId: string, { token }: AuthedRequest) {
+    return apiRequest<ApiMessageResponse | { error: string }>(
+      `/groups/messages/${encodeURIComponent(messageId)}/delete-for-me`,
+      { method: 'POST', token },
+    );
+  },
+
+  deleteMessage(messageId: string, { token }: AuthedRequest) {
+    return apiRequest<ApiMessageResponse | { error: string }>(
+      `/groups/messages/${encodeURIComponent(messageId)}/delete`,
+      { method: 'POST', token },
+    );
+  },
 };
 
 export const aiApi = {

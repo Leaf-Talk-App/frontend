@@ -211,6 +211,7 @@ export type SendGroupMessageRequest = {
   content: string;
   type?: MessageType;
   file_url?: string | null;
+  reply_to?: string | null;
 };
 
 export type GroupLastMessage = {
@@ -253,8 +254,13 @@ export type GroupMessage = {
   group_id: string;
   sender_id: string;
   content: string;
-  type?: MessageType;
+  type?: MessageType | 'system';
   file_url?: string | null;
+  reply_to?: string | null;
+  reply_preview?: ReplyPreview | null;
+  deleted?: boolean;
+  edited?: boolean;
+  favorited?: boolean;
   created_at?: string | null;
 };
 

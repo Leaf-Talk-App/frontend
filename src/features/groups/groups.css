@@ -352,6 +352,20 @@
   color: #5d7a2e;
 }
 
+/* Mensagem de sistema (entrou/saiu/alterações) — centralizada, discreta */
+.group-system-msg {
+  max-width: 80%;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+/* Menu de opções da mensagem dentro do grupo (ancora à direita/esquerda) */
+.group-msg-row .message-row__menu-wrap { right: 4px; }
+.group-msg-row .message-row__menu { right: 0; left: auto; }
+.group-msg-row:not(.group-msg-row--own) .message-row__menu-wrap { left: 4px; right: auto; }
+.group-msg-row:not(.group-msg-row--own) .message-row__menu { left: 0; right: auto; }
+
 .group-menu {
   position: relative;
 }
