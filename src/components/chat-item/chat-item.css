@@ -190,3 +190,58 @@
   opacity: 1;
   color: #5d8d22;
 }
+
+/* ── Menu de contexto (toque longo / clique-direito) ─────────────────────── */
+.chat-item__menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.chat-item__menu {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  z-index: 50;
+  min-width: 190px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  background: var(--leaf-color-surface, #fff);
+  border: 1px solid var(--leaf-color-hairline, rgb(69 92 42 / 12%));
+  border-radius: 12px;
+  box-shadow: 0 14px 40px rgb(0 0 0 / 18%);
+}
+
+.chat-item__menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--leaf-color-text, #1f2520);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chat-item__menu button:hover {
+  background: var(--leaf-color-muted-surface, rgb(69 92 42 / 8%));
+}
+
+.chat-item__menu-danger {
+  color: #c0392b !important;
+}
+
+.chat-item__menu-danger:hover {
+  background: rgb(192 57 43 / 10%) !important;
+}
+
+[data-theme='dark'] .chat-item__menu {
+  background: #1b2019;
+  border-color: #313a2a;
+}

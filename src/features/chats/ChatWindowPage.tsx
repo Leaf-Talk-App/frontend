@@ -197,7 +197,15 @@ export function ChatWindowPage() {
       atBottomRef.current = true;
       requestAnimationFrame(toBottom);
       const t = window.setTimeout(toBottom, 220);
-      return () => window.clearTimeout(t);
+      // mantém colado no fim enquanto as mídias carregam (1,5s) → sem "puxão"
+      const onMediaLoad = () => { if (atBottomRef.current) el.scrollTop = el.scrollHeight; };
+      el.addEventListener('load', onMediaLoad, true);
+      const stop = window.setTimeout(() => el.removeEventListener('load', onMediaLoad, true), 1500);
+      return () => {
+        window.clearTimeout(t);
+        window.clearTimeout(stop);
+        el.removeEventListener('load', onMediaLoad, true);
+      };
     }
 
     // mensagens novas: só acompanha o fim se o usuário já estava lá

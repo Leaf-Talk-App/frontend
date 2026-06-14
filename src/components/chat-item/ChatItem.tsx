@@ -1,7 +1,13 @@
-import { FileText, Image as ImageIcon, Mic, Pin, Users, Video } from 'lucide-react';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Archive, ArchiveRestore, Bell, BellOff, FileText, Image as ImageIcon, LogOut, Mic, Pin, Trash2, Users, Video } from 'lucide-react';
 import { Avatar } from '../avatar/Avatar';
 import './chat-item.css';
 import { parseServerDate } from '../../lib/date';
+import { chatsApi, groupsApi } from '../../lib/api/endpoints';
+import { queryKeys } from '../../lib/api/query-keys';
+import { useAuth } from '../../lib/auth/use-auth';
+import { useLongPress } from '../../hooks/useLongPress';
 import type { LeafChatSummary, LeafUser } from '../../lib/api/contracts';
 
 // Indicador de mídia (ícone outline + texto) quando a última mensagem não tem texto.
@@ -76,6 +82,31 @@ export function ChatItem({
   const isGroup = chat.kind === 'group';
   const user = otherUser ?? chat.other_user ?? undefined;
 
+  const { accessToken } = useAuth();
+  const queryClient = useQueryClient();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine });
+
+  const archiveMutation = useMutation({
+    mutationFn: () => chatsApi.archive({ chat_id: chat._id }, { token: accessToken! }),
+    onSuccess: invalidate,
+  });
+  const muteMutation = useMutation({
+    mutationFn: (vars: { mute_minutes?: number | null; unmute?: boolean }) =>
+      chatsApi.mute({ chat_id: chat._id, ...vars }, { token: accessToken! }),
+    onSuccess: invalidate,
+  });
+  const deleteMutation = useMutation({
+    mutationFn: () =>
+      isGroup
+        ? groupsApi.leave(chat._id, { token: accessToken! })
+        : chatsApi.delete(chat._id, { token: accessToken! }),
+    onSuccess: invalidate,
+  });
+
+  // Toque longo (mobile) / clique-direito (desktop) → menu de ações da conversa.
+  const longPress = useLongPress(() => setMenuOpen(true), { onClick });
+
   const displayName = isGroup
     ? chat.name || 'Grupo'
     : userNotFound
@@ -98,7 +129,7 @@ export function ChatItem({
       className={`chat-item${isSelected ? ' chat-item--selected' : ''}${hasUnread ? ' chat-item--unread' : ''}`}
       role="button"
       tabIndex={0}
-      onClick={onClick}
+      {...longPress}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick?.()}
       aria-current={isSelected ? 'page' : undefined}
     >
@@ -144,6 +175,48 @@ export function ChatItem({
         >
           <Pin size={15} strokeWidth={2.2} />
         </button>
+      )}
+
+      {menuOpen && (
+        <>
+          <div
+            className="chat-item__menu-backdrop"
+            onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}
+          />
+          <div className="chat-item__menu" role="menu" onClick={(e) => e.stopPropagation()}>
+            {onTogglePin && (
+              <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); onTogglePin(); }}>
+                <Pin size={15} strokeWidth={2} /> {chat.pinned ? 'Desafixar' : 'Fixar'}
+              </button>
+            )}
+            {chat.muted ? (
+              <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); muteMutation.mutate({ unmute: true }); }}>
+                <Bell size={15} strokeWidth={2} /> Reativar notificações
+              </button>
+            ) : (
+              <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); muteMutation.mutate({ mute_minutes: null }); }}>
+                <BellOff size={15} strokeWidth={2} /> Silenciar
+              </button>
+            )}
+            <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); archiveMutation.mutate(); }}>
+              {chat.archived ? <ArchiveRestore size={15} strokeWidth={2} /> : <Archive size={15} strokeWidth={2} />}
+              {chat.archived ? 'Desarquivar' : 'Arquivar'}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="chat-item__menu-danger"
+              onClick={() => {
+                setMenuOpen(false);
+                const msg = isGroup ? 'Sair deste grupo?' : 'Apagar esta conversa? (só para você)';
+                if (window.confirm(msg)) deleteMutation.mutate();
+              }}
+            >
+              {isGroup ? <LogOut size={15} strokeWidth={2} /> : <Trash2 size={15} strokeWidth={2} />}
+              {isGroup ? 'Sair do grupo' : 'Apagar conversa'}
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
