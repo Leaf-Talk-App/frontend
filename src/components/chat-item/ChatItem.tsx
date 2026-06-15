@@ -173,20 +173,8 @@ export function ChatItem({
         </span>
       ) : null}
 
-      {onTogglePin && (
-        <button
-          type="button"
-          className={`chat-item__pin-btn${chat.pinned ? ' chat-item__pin-btn--on' : ''}`}
-          aria-label={chat.pinned ? 'Desafixar' : 'Fixar'}
-          title={chat.pinned ? 'Desafixar' : 'Fixar (máx. 3)'}
-          onClick={(e) => {
-            e.stopPropagation();
-            onTogglePin();
-          }}
-        >
-          <Pin size={15} strokeWidth={2.2} />
-        </button>
-      )}
+      {/* Fixar fica no menu de contexto (toque longo / clique-direito) — antes
+          havia um botão flutuante que cobria o horário e duplicava o pin. */}
 
       {menuOpen && (
         <>

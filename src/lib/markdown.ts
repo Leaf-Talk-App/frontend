@@ -12,7 +12,10 @@ export function renderMarkdown(src: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  // 2) blocos de código ```...```
+  // 2) títulos markdown (# / ## ...) → vira negrito, sem mostrar os "#"
+  s = s.replace(/^\s*#{1,6}\s*(.*)$/gm, (_m, t) => (t ? `<strong>${t}</strong>` : ''));
+
+  // 3) blocos de código ```...```
   s = s.replace(/```([\s\S]*?)```/g, (_m, code) =>
     `<pre class="md-pre"><code>${String(code).replace(/^\n/, '').replace(/\n$/, '')}</code></pre>`,
   );
