@@ -31,10 +31,11 @@ export function useChatsQuery({ enabled = true }: UseChatsSummaryOptions = {}) {
       return chatsApi.mine({ token: accessToken });
     },
     enabled: enabled && Boolean(accessToken),
-    staleTime: 5_000,
+    staleTime: 4_000,
     // Garantia de tempo real (além do WebSocket, que no Render free pode cair):
-    // revalida a lista a cada 6s e ao focar a aba.
-    refetchInterval: 6_000,
+    // revalida a lista a cada 5s, mesmo em background, e ao focar a aba.
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
   });
 }
@@ -107,9 +108,10 @@ export function useMessagesQuery({ chatId, enabled = true }: UseMessagesQueryOpt
       return allPages.flat().length; // skip = total já carregado
     },
     enabled: enabled && Boolean(accessToken) && Boolean(chatId),
-    staleTime: 2_000,
-    // Tempo real garantido: revalida a conversa aberta a cada 3s (fallback do WS).
-    refetchInterval: 3_000,
+    staleTime: 1_500,
+    // Tempo real garantido: revalida a conversa aberta a cada 2,5s (fallback do WS).
+    refetchInterval: 2_500,
+    refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
   });
 

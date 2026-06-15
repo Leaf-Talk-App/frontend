@@ -25,6 +25,7 @@ import {
 } from './groups-hooks';
 import { AddMemberModal } from './AddMemberModal';
 import { GroupSettingsModal } from './GroupSettingsModal';
+import { UserProfileModal } from '../../components/user-profile/UserProfileModal';
 import type { GroupMessage, LeafMessage, LeafUser, MessageType } from '../../lib/api/contracts';
 import '../chats/chat-window-page.css';
 import './groups.css';
@@ -67,6 +68,7 @@ export function GroupChatPage() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
+  const [profileId, setProfileId] = useState<string | null>(null);
   const [showInvite, setShowInvite] = useState(false);
   const removeMemberMutation = useRemoveMemberMutation(groupId);
   const [copied, setCopied] = useState(false);
@@ -397,6 +399,11 @@ export function GroupChatPage() {
                   (m.sender_id === 'humberto' ? 'Humberto' : 'Membro')
                 }
                 authorLeft={m.sender_id !== 'humberto' && !memberSet.has(m.sender_id)}
+                onOpenProfile={
+                  m.sender_id !== 'humberto' && m.sender_id !== currentUser.id
+                    ? () => setProfileId(m.sender_id)
+                    : undefined
+                }
                 nameById={nameById}
                 currentUserId={currentUser.id}
                 canDeleteForEveryone={m.sender_id === currentUser.id || isAdmin}
@@ -580,11 +587,18 @@ export function GroupChatPage() {
                 const label = isMe ? 'Você' : nameById[id] || 'Membro';
                 return (
                   <li key={id} className="group-members__item">
-                    <Avatar initials={(label[0] || '?').toUpperCase()} size="sm" />
-                    <span className="group-members__name">
-                      {label}
-                      {isCreator ? ' · criador' : isMemberAdmin ? ' · admin' : ''}
-                    </span>
+                    <button
+                      type="button"
+                      className="group-members__open"
+                      disabled={isMe || id === 'humberto'}
+                      onClick={() => { setShowMembers(false); setProfileId(id); }}
+                    >
+                      <Avatar initials={(label[0] || '?').toUpperCase()} size="sm" />
+                      <span className="group-members__name">
+                        {label}
+                        {isCreator ? ' · criador' : isMemberAdmin ? ' · admin' : ''}
+                      </span>
+                    </button>
                     {isAdmin && !isMe && !isCreator && (
                       <button
                         type="button"
@@ -629,6 +643,10 @@ export function GroupChatPage() {
       {forwarding && (
         <ForwardModal message={forwarding} onClose={() => setForwarding(null)} />
       )}
+
+      {profileId && (
+        <UserProfileModal userId={profileId} onClose={() => setProfileId(null)} />
+      )}
     </div>
   );
 }
@@ -652,6 +670,7 @@ interface GroupMessageRowProps {
   isOwn: boolean;
   authorName: string;
   authorLeft?: boolean;
+  onOpenProfile?: () => void;
   nameById: Record<string, string>;
   currentUserId: string;
   canDeleteForEveryone: boolean;
@@ -667,6 +686,7 @@ function GroupMessageRow({
   isOwn,
   authorName,
   authorLeft,
+  onOpenProfile,
   nameById,
   currentUserId,
   canDeleteForEveryone,
@@ -696,9 +716,19 @@ function GroupMessageRow({
   return (
     <div className={`group-msg-row${isOwn ? ' group-msg-row--own' : ''}`}>
       {!isOwn && (
-        <span className={`group-msg-row__author${authorLeft ? ' group-msg-row__author--left' : ''}`}>
-          {authorName}{authorLeft ? ' · saiu' : ''}
-        </span>
+        onOpenProfile ? (
+          <button
+            type="button"
+            className={`group-msg-row__author group-msg-row__author--btn${authorLeft ? ' group-msg-row__author--left' : ''}`}
+            onClick={onOpenProfile}
+          >
+            {authorName}{authorLeft ? ' · saiu' : ''}
+          </button>
+        ) : (
+          <span className={`group-msg-row__author${authorLeft ? ' group-msg-row__author--left' : ''}`}>
+            {authorName}{authorLeft ? ' · saiu' : ''}
+          </span>
+        )
       )}
       <div className="message-row__wrap" {...(canOpenMenu ? longPress : {})}>
         <MessageBubble
@@ -712,6 +742,7 @@ function GroupMessageRow({
           favorited={message.favorited}
           replyAuthor={replyAuthor}
           replyText={replyText}
+          markdown={message.sender_id === 'humberto'}
         />
 
         {canOpenMenu && (

@@ -4,6 +4,7 @@ import type { MessageStatus, MessageType } from '../../lib/api/contracts';
 import { Check, CheckCheck, FileText, Star } from 'lucide-react';
 import { AudioPlayer } from '../audio-player/AudioPlayer';
 import { MediaViewer } from '../media-viewer/MediaViewer';
+import { renderMarkdown } from '../../lib/markdown';
 
 interface MessageBubbleProps {
   content: string;
@@ -21,6 +22,8 @@ interface MessageBubbleProps {
   replyText?: string;
   /** favoritada pelo usuário atual → mostra ★ no rodapé */
   favorited?: boolean;
+  /** renderiza markdown (negrito/itálico/código) — usado p/ o Humberto */
+  markdown?: boolean;
 }
 
 /** Bloco de citação exibido no topo do balão quando a mensagem é uma resposta. */
@@ -131,6 +134,7 @@ export function MessageBubble({
   replyAuthor,
   replyText,
   favorited,
+  markdown,
 }: MessageBubbleProps) {
   const senderCls = isSender ? 'message-bubble--sender' : 'message-bubble--receiver';
   const variant = isSender ? 'sender' : 'receiver';
@@ -218,6 +222,11 @@ export function MessageBubble({
           {!deleted && <ReplyQuote author={replyAuthor} text={replyText} />}
           {deleted ? (
             <p className="message-bubble__deleted">Mensagem apagada</p>
+          ) : markdown ? (
+            <p
+              className="message-bubble__text md-body"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
+            />
           ) : (
             <p className="message-bubble__text">{content}</p>
           )}

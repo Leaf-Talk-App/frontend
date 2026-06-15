@@ -633,6 +633,7 @@ function MessageRow({
           replyAuthor={replyAuthor}
           replyText={replyText}
           favorited={message.favorited}
+          markdown={isHumberto}
         />
 
         {canDelete && (
@@ -912,7 +913,7 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
         onChange={(event) => setMessage(event.target.value)}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
-        placeholder={`Mensagem para ${recipientName}…`}
+        placeholder={`Mensagem para ${recipientName.length > 18 ? recipientName.slice(0, 18).trimEnd() + '…' : recipientName}`}
         aria-label="Escreva uma mensagem"
         autoComplete="off"
         spellCheck

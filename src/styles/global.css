@@ -6,6 +6,36 @@
   box-sizing: border-box;
 }
 
+/* ── Markdown nas respostas do Humberto ──────────────────────────────────── */
+.md-body { white-space: normal; }
+.md-body strong { font-weight: 700; }
+.md-body em { font-style: italic; }
+.md-body del { opacity: 0.75; }
+.md-body a { color: inherit; text-decoration: underline; }
+.md-body .md-code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: rgb(0 0 0 / 8%);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.9em;
+}
+.md-body .md-pre {
+  margin: 6px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgb(0 0 0 / 8%);
+  overflow-x: auto;
+}
+.md-body .md-pre code {
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.88em;
+  white-space: pre;
+}
+.message-bubble--sender .md-body .md-code,
+.message-bubble--sender .md-body .md-pre { background: rgb(255 255 255 / 22%); }
+[data-theme='dark'] .md-body .md-code,
+[data-theme='dark'] .md-body .md-pre { background: rgb(255 255 255 / 10%); }
+
 html {
   background: var(--leaf-color-neutral);
   color: var(--leaf-color-text);

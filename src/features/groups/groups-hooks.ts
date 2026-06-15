@@ -71,8 +71,9 @@ export function useGroupMessagesQuery(groupId?: string, enabled = true) {
       return allPages.flat().length;
     },
     enabled: enabled && Boolean(accessToken) && Boolean(groupId),
-    staleTime: 2_000,
-    refetchInterval: 3_000,
+    staleTime: 1_500,
+    refetchInterval: 2_500,
+    refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
   });
 

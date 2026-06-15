@@ -22,6 +22,7 @@ import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis';
 import { aiApi, uploadsApi } from '../../lib/api/endpoints';
 import { useAiChatMutation, useAiHistoryQuery, useClearAiHistoryMutation } from './ai-hooks';
 import type { AiHistoryMessage } from '../../lib/api/contracts';
+import { renderMarkdown } from '../../lib/markdown';
 import './ai-assistant-page.css';
 
 interface ActionCard {
@@ -379,9 +380,11 @@ export function AiAssistantPage() {
               </article>
             ) : (
               <article key={message.id} className="ai-message ai-message--ai">
-                <div className="ai-message__bubble ai-message__bubble--ai">
-                  {message.content}
-                </div>
+                <div
+                  className="ai-message__bubble ai-message__bubble--ai md-body"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                />
+                {/* JSON cru de ação nunca aparece como texto — vira card abaixo */}
                 {message.action && typeof message.action === 'object' && 'type' in (message.action as object) ? (
                   <ActionCardBlock action={message.action as ActionCard} />
                 ) : message.action ? (
