@@ -1,4 +1,5 @@
-import { Archive, ChevronDown, LogIn, MessageSquare, Plus, Search, Users } from 'lucide-react';
+import { Archive, ChevronDown, LogIn, Plus, Search, Users } from 'lucide-react';
+import { LeafMark } from '../../components/brand/LeafLogo';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/button/Button';
@@ -232,7 +233,7 @@ export function ChatsPage() {
       <section className="chats-page__welcome" aria-label="Conversa ativa">
         <div className="chats-page__welcome-card">
           <span className="chats-page__welcome-mark" aria-hidden="true">
-            <MessageSquare size={28} strokeWidth={2.2} />
+            <LeafMark size={30} strokeWidth={2.4} />
           </span>
           <h2>Selecione uma conversa</h2>
           <p>

@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight, Eye, EyeOff, Lock, Mail, Sprout, User } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
+import { LeafMark } from '../../components/brand/LeafLogo';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
@@ -90,7 +91,7 @@ export function RegisterPage() {
   return (
     <main className="register-page" aria-labelledby="register-title">
       <Link className="register-page__brand register-page__brand--floating" to={routePaths.login}>
-        <Sprout size={24} strokeWidth={2.4} aria-hidden="true" />
+        <LeafMark size={24} strokeWidth={2.4} />
         <span>Leaf</span>
       </Link>
 
@@ -111,7 +112,7 @@ export function RegisterPage() {
         <section className="register-page__panel" aria-label="Criar conta">
           <form className="register-card" onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="register-card__mark" aria-hidden="true">
-              <Sprout size={40} strokeWidth={2.3} />
+              <LeafMark size={40} strokeWidth={2.3} />
             </div>
 
             <div className="register-card__heading">

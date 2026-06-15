@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ChevronDown, Copy, Forward, Lock, LogOut, Mic, Paperclip, Reply, Send, Settings2, Sprout, Star, Trash2, UserPlus, Users, X } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Copy, Forward, Lock, LogOut, Mic, MoreVertical, Paperclip, Reply, Send, Settings2, Sprout, Star, Trash2, UserMinus, UserPlus, Users, X } from 'lucide-react';
 import { Avatar } from '../../components/avatar/Avatar';
 import { MessageBubble } from '../../components/message-bubble/MessageBubble';
 import { DictationButton } from '../../components/dictation/DictationButton';
@@ -20,6 +20,7 @@ import {
   useGroupQuery,
   useGroupMessageActions,
   useLeaveGroupMutation,
+  useRemoveMemberMutation,
   useSendGroupMessageMutation,
 } from './groups-hooks';
 import { AddMemberModal } from './AddMemberModal';
@@ -65,7 +66,9 @@ export function GroupChatPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+  const removeMemberMutation = useRemoveMemberMutation(groupId);
   const [copied, setCopied] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -280,12 +283,22 @@ export function GroupChatPage() {
             aria-label="Opções do grupo"
             onClick={() => setMenuOpen((v) => !v)}
           >
-            <Users size={18} strokeWidth={2.2} />
+            <MoreVertical size={18} strokeWidth={2.2} />
           </button>
           {menuOpen && (
             <>
               <div className="group-menu__backdrop" onClick={() => setMenuOpen(false)} />
               <div className="group-menu__sheet" role="menu">
+                <button
+                  type="button"
+                  className="group-menu__item"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setShowMembers(true);
+                  }}
+                >
+                  <Users size={15} strokeWidth={2.2} /> Membros ({memberCount})
+                </button>
                 {isAdmin && (
                   <button
                     type="button"
@@ -548,6 +561,59 @@ export function GroupChatPage() {
           currentUserId={currentUser.id}
           onClose={() => setShowSettings(false)}
         />
+      )}
+
+      {showMembers && group && (
+        <div className="chat-modal" role="dialog" aria-modal="true" onClick={() => setShowMembers(false)}>
+          <div className="chat-modal__card" onClick={(e) => e.stopPropagation()}>
+            <button className="chat-modal__close" onClick={() => setShowMembers(false)} aria-label="Fechar">
+              <X size={20} strokeWidth={2.2} />
+            </button>
+            <h3 className="chat-modal__name">
+              <Users size={18} strokeWidth={2.2} aria-hidden="true" /> Membros ({memberCount})
+            </h3>
+            <ul className="group-members__list">
+              {memberIds.map((id) => {
+                const isMe = id === currentUser.id;
+                const isCreator = id === group.created_by;
+                const isMemberAdmin = group.admins?.includes(id);
+                const label = isMe ? 'Você' : nameById[id] || 'Membro';
+                return (
+                  <li key={id} className="group-members__item">
+                    <Avatar initials={(label[0] || '?').toUpperCase()} size="sm" />
+                    <span className="group-members__name">
+                      {label}
+                      {isCreator ? ' · criador' : isMemberAdmin ? ' · admin' : ''}
+                    </span>
+                    {isAdmin && !isMe && !isCreator && (
+                      <button
+                        type="button"
+                        className="group-members__remove"
+                        disabled={removeMemberMutation.isPending}
+                        onClick={() => {
+                          if (window.confirm(`Remover ${label} do grupo?`)) {
+                            removeMemberMutation.mutate(id);
+                          }
+                        }}
+                      >
+                        <UserMinus size={14} strokeWidth={2.2} /> Remover
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+            {isAdmin && (
+              <button
+                type="button"
+                className="create-group__submit"
+                onClick={() => { setShowMembers(false); setShowAddMember(true); }}
+              >
+                <UserPlus size={15} strokeWidth={2.2} /> Adicionar membro
+              </button>
+            )}
+          </div>
+        </div>
       )}
 
       {pendingImage && (

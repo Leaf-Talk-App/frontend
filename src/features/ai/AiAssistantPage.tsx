@@ -6,12 +6,12 @@ import {
   Plus,
   Send,
   Sparkles,
-  Sprout,
   TrendingUp,
   Users,
   Volume2,
   VolumeX,
 } from 'lucide-react';
+import { HumbertoAvatar } from '../../components/humberto/HumbertoAvatar';
 import { ImagePreviewModal } from '../../components/image-preview-modal/ImagePreviewModal';
 import { CameraCaptureModal } from '../../components/camera-capture-modal/CameraCaptureModal';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -335,9 +335,7 @@ export function AiAssistantPage() {
     <div className="ai-assistant-page">
       <header className="ai-assistant-page__header">
         <div className="ai-assistant-page__title">
-          <span className="ai-assistant-page__title-mark" aria-hidden="true">
-            <Sprout size={18} strokeWidth={2.4} />
-          </span>
+          <HumbertoAvatar size={44} className="ai-assistant-page__title-avatar" />
           <div>
             <h1>Humberto</h1>
             <p>Seu assistente de IA pessoal</p>

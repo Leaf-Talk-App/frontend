@@ -370,6 +370,49 @@
   line-height: 1.35;
 }
 
+/* Lista de membros (modal) */
+.group-members__list {
+  list-style: none;
+  margin: 8px 0 14px;
+  padding: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.group-members__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 2px;
+}
+.group-members__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: #2a3324;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.group-members__remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #b4452f;
+  background: transparent;
+  border: 1.5px solid rgb(180 69 47 / 40%);
+  cursor: pointer;
+}
+.group-members__remove:disabled { opacity: 0.5; cursor: default; }
+[data-theme='dark'] .group-members__name { color: #dde6d0; }
+
 /* Menu de opções da mensagem dentro do grupo (ancora à direita/esquerda) */
 .group-msg-row .message-row__menu-wrap { right: 4px; }
 .group-msg-row .message-row__menu { right: 0; left: auto; }

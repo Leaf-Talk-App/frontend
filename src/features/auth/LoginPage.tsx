@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, HelpCircle, Moon, Sprout, Sun } from 'lucide-react';
+import { Eye, HelpCircle, Moon, Sun } from 'lucide-react';
+import { LeafMark } from '../../components/brand/LeafLogo';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTheme } from '../../hooks/useTheme';
@@ -117,7 +118,7 @@ export function LoginPage() {
     <main className="login-page" aria-labelledby="login-title">
       <header className="login-page__topbar" aria-label="Leaf">
         <Link className="login-page__brand" to={routePaths.login}>
-          <Sprout size={25} strokeWidth={2.5} aria-hidden="true" />
+          <LeafMark size={25} strokeWidth={2.5} />
           <span>Leaf</span>
         </Link>
 
@@ -158,7 +159,7 @@ export function LoginPage() {
       <section className="login-page__panel" aria-label="Entrar">
         <form className="login-card" onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="login-card__mark" aria-hidden="true">
-            <Sprout size={40} strokeWidth={2.3} />
+            <LeafMark size={40} strokeWidth={2.3} />
           </div>
 
           <div className="login-card__heading">

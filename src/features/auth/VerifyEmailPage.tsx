@@ -5,7 +5,8 @@ import { useAuth } from '../../lib/auth/use-auth';
 import { useVerifyEmailMutation, useResendCodeMutation } from './auth-hooks';
 import { routePaths } from '../../routes/paths';
 import './verify-email-page.css';
-import { CheckCircle2, Leaf, Loader2, Sprout } from 'lucide-react';
+import { CheckCircle2, Loader2 } from 'lucide-react';
+import { LeafMark } from '../../components/brand/LeafLogo';
 
 const REDIRECT_DELAY_MS = 2200;
 
@@ -126,7 +127,7 @@ export function VerifyEmailPage() {
     <main className="verify-email-page" aria-labelledby="verify-title">
       <header className="verify-email-page__topbar" aria-label="Leaf">
         <Link className="verify-email-page__brand" to={routePaths.login}>
-          <Sprout size={25} strokeWidth={2.5} aria-hidden="true" />
+          <LeafMark size={25} strokeWidth={2.5} />
           <span>Leaf</span>
         </Link>
       </header>
@@ -152,7 +153,7 @@ export function VerifyEmailPage() {
         ) : (
           <div className="verify-email-card">
             <div className="verify-email-card__mark" aria-hidden="true">
-              <Leaf size={40} strokeWidth={2.3} />
+              <LeafMark size={40} strokeWidth={2.3} />
             </div>
 
             <div className="verify-email-card__heading">

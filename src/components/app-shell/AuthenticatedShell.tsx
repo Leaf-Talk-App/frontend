@@ -4,9 +4,9 @@ import {
   MessageSquare,
   Plus,
   Search,
-  Sprout,
   UserRound,
 } from 'lucide-react';
+import { LeafMark } from '../brand/LeafLogo';
 import { useEffect } from 'react';
 import { matchPath, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { routePaths } from '../../routes/paths';
@@ -130,7 +130,7 @@ function DesktopSidebar() {
     <aside className="desktop-sidebar" aria-label="Navegação principal">
       <div className="desktop-sidebar__brand">
         <span className="desktop-sidebar__brand-mark" aria-hidden="true">
-          <Sprout size={22} strokeWidth={2.4} />
+          <LeafMark size={22} strokeWidth={2.6} />
         </span>
         <span>
           <strong>Leaf</strong>

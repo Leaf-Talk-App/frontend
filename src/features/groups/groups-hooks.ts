@@ -273,6 +273,27 @@ export function useSetAdminMutation(groupId?: string) {
   });
 }
 
+// ── Remover membro (admin) ───────────────────────────────────────────────────
+export function useRemoveMemberMutation(groupId?: string) {
+  const { accessToken } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      if (!accessToken || !groupId) throw new Error('Missing params');
+      const res = await groupsApi.removeMember(
+        { group_id: groupId, user_id: userId },
+        { token: accessToken },
+      );
+      if (hasError(res)) throw new Error(res.error);
+      return res;
+    },
+    onSuccess: () => {
+      if (groupId) queryClient.invalidateQueries({ queryKey: queryKeys.groups.byId(groupId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.mine });
+    },
+  });
+}
+
 // ── Entrar por código de convite ─────────────────────────────────────────────
 export function useJoinGroupMutation() {
   const { accessToken } = useAuth();
