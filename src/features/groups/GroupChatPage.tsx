@@ -268,7 +268,10 @@ export function GroupChatPage() {
 
   const groupName = group?.name ?? (groupLoading ? '' : 'Grupo');
   const memberCount = group?.member_count ?? memberIds.length;
-  const canSend = isAdmin || !group?.only_admins_can_send;
+  // ex-membro (removido/saiu mas ainda vê o histórico): só-leitura
+  const isMember = Boolean(group && currentUser && group.members?.includes(currentUser.id));
+  const removed = Boolean(group) && !isMember;
+  const canSend = isMember && (isAdmin || !group?.only_admins_can_send);
 
   return (
     <div className="chat-window-page">
@@ -440,7 +443,12 @@ export function GroupChatPage() {
       </main>
 
       <footer className="chat-window-page__composer-wrap">
-        {!canSend ? (
+        {removed ? (
+          <div className="group-readonly">
+            <Lock size={15} strokeWidth={2.2} aria-hidden="true" />
+            Você não está mais neste grupo. Apague a conversa quando quiser (menu ⋮ → Sair do grupo).
+          </div>
+        ) : !canSend ? (
           <div className="group-readonly">
             <Lock size={15} strokeWidth={2.2} aria-hidden="true" />
             Somente administradores podem enviar mensagens neste grupo.
