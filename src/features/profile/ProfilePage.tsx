@@ -1,6 +1,5 @@
 import {
   Ban,
-  Bell,
   Camera,
   Check,
   Fingerprint,
@@ -13,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Avatar } from '../../components/avatar/Avatar';
+import { NotificationsBell } from '../../components/notifications/NotificationsBell';
 import { ErrorMessage, LoadingSpinner } from '../../components/feedback/FeedbackComponents';
 import { routePaths } from '../../routes/paths';
 import { useCurrentUserQuery, useLogout, useUpdateProfileMutation } from '../auth/auth-hooks';
@@ -212,14 +212,7 @@ export function ProfilePage() {
     <div className="profile-page">
       <header className="profile-page__topbar">
         <h1>Leaf — Perfil</h1>
-        <button
-          type="button"
-          className="profile-page__notif-btn"
-          aria-label="Notificações"
-          onClick={() => alert('Notificações em breve.')}
-        >
-          <Bell size={18} strokeWidth={2} />
-        </button>
+        <NotificationsBell />
       </header>
 
       <div className="profile-page__layout">

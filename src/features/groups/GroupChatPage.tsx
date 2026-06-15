@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, ChevronDown, Copy, Forward, Lock, LogOut, Mic, MoreVertical, Paperclip, Reply, Send, Settings2, Sprout, Star, Trash2, UserMinus, UserPlus, Users, X } from 'lucide-react';
@@ -6,6 +6,7 @@ import { Avatar } from '../../components/avatar/Avatar';
 import { MessageBubble } from '../../components/message-bubble/MessageBubble';
 import { DictationButton } from '../../components/dictation/DictationButton';
 import { HumbertoMentionHint, mentionsHumberto } from '../../components/humberto/HumbertoMentionHint';
+import { MentionSuggest, applyMention } from '../../components/mention/MentionSuggest';
 import { ImagePreviewModal } from '../../components/image-preview-modal/ImagePreviewModal';
 import { usersApi, uploadsApi } from '../../lib/api/endpoints';
 import { queryKeys } from '../../lib/api/query-keys';
@@ -115,6 +116,17 @@ export function GroupChatPage() {
     return map;
   }, [authorIds, memberQueries]);
 
+  // Nomes para o autocomplete de @menção (Humberto + membros, menos você).
+  const mentionNames = useMemo(() => {
+    const names = ['Humberto'];
+    memberIds.forEach((id) => {
+      if (id === currentUser?.id || id === 'humberto') return;
+      const n = nameById[id];
+      if (n) names.push(n);
+    });
+    return names;
+  }, [memberIds, nameById, currentUser?.id]);
+
   // WS: novas mensagens do grupo → invalida o histórico (refetch).
   const handleWs = useCallback(
     (data: any) => {
@@ -129,6 +141,14 @@ export function GroupChatPage() {
     [groupId, queryClient],
   );
   useWebSocket({ userId: currentUser?.id, enabled: Boolean(currentUser?.id), onMessage: handleWs });
+
+  // Removido/saiu do grupo → o detalhe vem null (não é mais membro) → sai da
+  // tela e volta às conversas (o grupo some da lista no próximo refetch).
+  useEffect(() => {
+    if (groupId && !groupLoading && group === null) {
+      navigate(routePaths.chats);
+    }
+  }, [group, groupLoading, groupId, navigate]);
 
   // Posiciona no FIM antes da pintura (sem "puxão" do topo). Rola o container,
   // reposiciona após imagens carregarem, e reseta por groupId (componente
@@ -450,6 +470,11 @@ export function GroupChatPage() {
             </button>
           </div>
         )}
+        <MentionSuggest
+          text={input}
+          names={mentionNames}
+          onPick={(name) => setInput((m) => applyMention(m, name))}
+        />
         <HumbertoMentionHint active={mentionsHumberto(input)} />
         <form className="group-composer" onSubmit={handleSend}>
           <input

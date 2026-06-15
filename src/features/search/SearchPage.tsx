@@ -73,7 +73,6 @@ export function SearchPage() {
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar por nome ou e-mail…"
           aria-label="Buscar pessoas"
-          autoFocus
         />
         {query ? (
           <button

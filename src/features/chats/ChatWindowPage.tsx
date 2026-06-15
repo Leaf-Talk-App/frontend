@@ -1,4 +1,4 @@
-import { ArrowLeft, Camera, ChevronDown, Forward, Image, Mic, MicOff, Paperclip, Plus, Reply, Search, Send, Smile, Sprout, Star, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Camera, ChevronDown, Copy, Forward, Image, Mic, MicOff, Paperclip, Pencil, Plus, Reply, Search, Send, Smile, Sprout, Star, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ChatHeaderMenuHandle } from './ChatHeaderMenu';
 import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
@@ -10,6 +10,7 @@ import { ErrorMessage, LoadingSpinner } from '../../components/feedback/Feedback
 import { MessageBubble } from '../../components/message-bubble/MessageBubble';
 import { DictationButton } from '../../components/dictation/DictationButton';
 import { HumbertoMentionHint, mentionsHumberto } from '../../components/humberto/HumbertoMentionHint';
+import { MentionSuggest, applyMention } from '../../components/mention/MentionSuggest';
 import { ImagePreviewModal } from '../../components/image-preview-modal/ImagePreviewModal';
 import { CameraCaptureModal } from '../../components/camera-capture-modal/CameraCaptureModal';
 import { ChatHeaderMenu } from './ChatHeaderMenu';
@@ -158,6 +159,12 @@ export function ChatWindowPage() {
 
   const favoriteMutation = useMutation({
     mutationFn: (messageId: string) => messagesApi.favorite(messageId, { token: accessToken! }),
+    onSuccess: invalidateMessages,
+  });
+
+  const editMutation = useMutation({
+    mutationFn: (v: { id: string; content: string }) =>
+      messagesApi.edit(v.id, { content: v.content }, { token: accessToken! }),
     onSuccess: invalidateMessages,
   });
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -429,6 +436,15 @@ export function ChatWindowPage() {
                 onReply={() => setReplyingTo(item.message)}
                 onForward={() => setForwarding(item.message)}
                 onToggleFavorite={() => favoriteMutation.mutate(item.message._id)}
+                onCopy={() => {
+                  navigator.clipboard?.writeText(item.message.content || '').catch(() => {});
+                }}
+                onEdit={() => {
+                  const next = window.prompt('Editar mensagem:', item.message.content || '');
+                  if (next != null && next.trim() && next.trim() !== item.message.content) {
+                    editMutation.mutate({ id: item.message._id, content: next.trim() });
+                  }
+                }}
                 onDeleteForMe={() => deleteForMeMutation.mutate(item.message._id)}
                 onDeleteForEveryone={() => deleteForAllMutation.mutate(item.message._id)}
               />
@@ -572,6 +588,8 @@ interface MessageRowProps {
   onReply: () => void;
   onForward: () => void;
   onToggleFavorite: () => void;
+  onCopy: () => void;
+  onEdit: () => void;
   onDeleteForMe: () => void;
   onDeleteForEveryone: () => void;
 }
@@ -585,6 +603,8 @@ function MessageRow({
   onReply,
   onForward,
   onToggleFavorite,
+  onCopy,
+  onEdit,
   onDeleteForMe,
   onDeleteForEveryone,
 }: MessageRowProps) {
@@ -683,6 +703,30 @@ function MessageRow({
                   >
                     <Star size={15} strokeWidth={2} /> {message.favorited ? 'Desfavoritar' : 'Favoritar'}
                   </button>
+                  {(message.content || '').trim() && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onCopy();
+                      }}
+                    >
+                      <Copy size={15} strokeWidth={2} /> Copiar
+                    </button>
+                  )}
+                  {isOwn && (!message.type || message.type === 'text') && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onEdit();
+                      }}
+                    >
+                      <Pencil size={15} strokeWidth={2} /> Editar
+                    </button>
+                  )}
                   <button
                     type="button"
                     role="menuitem"
@@ -811,6 +855,14 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
 
   return (
     <>
+    <MentionSuggest
+      text={message}
+      names={['Humberto']}
+      onPick={(name) => {
+        setMessage((m) => applyMention(m, name));
+        inputRef.current?.focus();
+      }}
+    />
     <HumbertoMentionHint active={mentionsHumberto(message)} />
     <form className="message-composer" onSubmit={handleSubmit} noValidate>
       <input

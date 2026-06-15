@@ -246,16 +246,25 @@
 }
 
 @media (max-width: 767px) {
+  /* Altura real (VisualViewport) → o painel tem altura definida e a LISTA rola
+     internamente (antes a página não descia). */
   .chats-page {
     grid-template-columns: 1fr;
-    height: auto;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
+    height: var(--app-height, 100dvh);
   }
 
   .chats-page__list-pane {
     border-right: 0;
     background: transparent;
-    padding: 16px 16px 24px;
+    padding: 16px 16px 0;
+    min-height: 0;
+  }
+
+  /* folga no fim p/ os últimos itens não ficarem atrás da barra inferior */
+  .chats-page__list {
+    padding-bottom: 120px;
   }
 
   /* folga p/ o botão de tema flutuante (fixed, top-right) não tampar as ações */
