@@ -76,9 +76,22 @@ function fileNameFromUrl(url?: string | null): string {
 }
 
 /**
- * Baixa o arquivo preservando o nome/extensão originais. O atributo `download`
- * de um <a> é ignorado em links cross-origin (Cloudinary), então buscamos os
- * bytes e geramos um blob local — assim o arquivo volta no formato certo.
+ * Insere o flag fl_attachment do Cloudinary → o servidor responde com
+ * Content-Disposition: attachment, forçando o navegador a BAIXAR (não abrir um
+ * visualizador que falhava em PDF). Mantém o nome original no download.
+ */
+function withCloudinaryAttachment(url: string, name: string): string {
+  if (url.includes('/upload/')) {
+    const safe = (name || 'arquivo').replace(/[^\w.\-]+/g, '_');
+    return url.replace('/upload/', `/upload/fl_attachment:${encodeURIComponent(safe)}/`);
+  }
+  return url;
+}
+
+/**
+ * Baixa o arquivo. 1º tenta blob local (preserva nome/extensão quando o CORS
+ * permite); se falhar, usa a URL com fl_attachment que força o download direto
+ * — nunca mais abre o PDF dentro do navegador/leaf antes de baixar.
  */
 async function downloadFile(url: string, name: string) {
   try {
@@ -94,8 +107,14 @@ async function downloadFile(url: string, name: string) {
     a.remove();
     URL.revokeObjectURL(objUrl);
   } catch {
-    // fallback: abre em nova aba se o fetch falhar (CORS / offline)
-    window.open(url, '_blank', 'noopener,noreferrer');
+    // fallback robusto: força o download pelo Cloudinary (sem abrir viewer)
+    const a = document.createElement('a');
+    a.href = withCloudinaryAttachment(url, name);
+    a.download = name || 'arquivo';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   }
 }
 

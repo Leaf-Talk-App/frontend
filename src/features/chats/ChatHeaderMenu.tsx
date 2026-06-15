@@ -127,13 +127,14 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
   });
 
   const blockMutation = useMutation({
+    // Bloquear apenas impede a entrega de mensagens — NÃO remove/esconde a
+    // conversa nem o perfil (o usuário pediu para deixar a conversa na lista).
     mutationFn: async () => {
       if (otherUserId) await usersApi.block({ user_id: otherUserId }, { token: accessToken! });
-      await chatsApi.hide({ chat_id: chatId }, { token: accessToken! });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine });
-      navigate(routePaths.chats);
+      queryClient.invalidateQueries({ queryKey: ['users', 'blocked'] });
     },
   });
 
@@ -205,7 +206,7 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
   const handleBlock = () => {
     setOpen(false);
     setModal(null);
-    if (window.confirm(`Bloquear ${name}? A conversa será removida da sua lista.`)) {
+    if (window.confirm(`Bloquear ${name}? Ele não receberá mais suas mensagens. A conversa continua na sua lista.`)) {
       blockMutation.mutate();
     }
   };

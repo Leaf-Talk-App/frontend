@@ -516,9 +516,6 @@ export function ChatWindowPage() {
           }}
           isLoading={sendMutation.isPending}
         />
-        <small className="chat-window-page__footnote">
-          CRIPTOGRAFIA ATIVA · POWERED BY LEAF 1.4
-        </small>
       </footer>
 
       {pendingFile && (

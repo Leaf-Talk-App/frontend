@@ -352,6 +352,16 @@
   color: #5d7a2e;
 }
 
+/* Autor que saiu do grupo → cinza (claro e escuro), nome preservado */
+.group-msg-row__author--left {
+  color: #9aa08f;
+  font-weight: 600;
+  font-style: italic;
+}
+[data-theme='dark'] .group-msg-row__author--left {
+  color: #7c8472;
+}
+
 /* Mensagem de sistema (entrou/saiu/alterações) — centralizada, discreta */
 .group-system-msg {
   max-width: 80%;

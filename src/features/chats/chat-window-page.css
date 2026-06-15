@@ -524,15 +524,18 @@
 }
 
 @media (max-width: 767px) {
-  /* dvh = altura real do viewport mobile (desconta a barra de URL), evita o
-     composer ficar escondido abaixo da dobra. */
+  /* Altura REAL visível (VisualViewport via --app-height): acompanha o teclado
+     no mobile (composer cola acima dele, sem vão) e nunca estoura a tela.
+     Fallbacks: 100dvh → 100vh. */
   .chat-window-page {
     height: 100vh;
     height: 100dvh;
+    height: var(--app-height, 100dvh);
   }
 
+  /* respeita a barra de status (hora/bateria) com safe-area */
   .chat-window-page__header {
-    padding: 12px 56px 12px 14px;
+    padding: max(12px, env(safe-area-inset-top)) 56px 12px 14px;
   }
 
   .chat-window-page__messages {
@@ -540,7 +543,7 @@
   }
 
   .chat-window-page__composer-wrap {
-    padding: 10px 14px 14px;
+    padding: 10px 14px max(14px, env(safe-area-inset-bottom));
   }
 
   /* Composer enxuto: [+] [texto…] [emoji] [enviar] numa linha só, sem wrap.

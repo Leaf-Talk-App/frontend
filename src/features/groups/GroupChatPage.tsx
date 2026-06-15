@@ -80,10 +80,21 @@ export function GroupChatPage() {
 
   const isAdmin = Boolean(currentUser && group?.admins?.includes(currentUser.id));
 
-  // Resolve nomes dos membros para exibir o autor de cada mensagem recebida.
+  // Resolve nomes de TODOS os autores (membros atuais + quem já saiu) para o
+  // nome nunca virar "Membro". Ex-membros são sinalizados (cinza) via memberSet.
   const memberIds = group?.members ?? [];
+  const memberSet = useMemo(() => new Set(memberIds), [memberIds]);
+  const authorIds = useMemo(() => {
+    const s = new Set<string>(memberIds);
+    (messages ?? []).forEach((m) => {
+      if (m.sender_id && m.sender_id !== 'system' && m.sender_id !== 'humberto') {
+        s.add(m.sender_id);
+      }
+    });
+    return Array.from(s);
+  }, [memberIds, messages]);
   const memberQueries = useQueries({
-    queries: memberIds.map((id) => ({
+    queries: authorIds.map((id) => ({
       queryKey: ['users', 'id', id],
       queryFn: () => usersApi.getById(id, { token: accessToken! }),
       enabled: Boolean(accessToken) && id !== currentUser?.id,
@@ -92,12 +103,12 @@ export function GroupChatPage() {
   });
   const nameById = useMemo(() => {
     const map: Record<string, string> = { humberto: 'Humberto' };
-    memberIds.forEach((id, i) => {
+    authorIds.forEach((id, i) => {
       const u = memberQueries[i]?.data as LeafUser | undefined;
       if (u) map[id] = u.display_name || u.name || '';
     });
     return map;
-  }, [memberIds, memberQueries]);
+  }, [authorIds, memberQueries]);
 
   // WS: novas mensagens do grupo → invalida o histórico (refetch).
   const handleWs = useCallback(
@@ -372,6 +383,7 @@ export function GroupChatPage() {
                   nameById[m.sender_id] ||
                   (m.sender_id === 'humberto' ? 'Humberto' : 'Membro')
                 }
+                authorLeft={m.sender_id !== 'humberto' && !memberSet.has(m.sender_id)}
                 nameById={nameById}
                 currentUserId={currentUser.id}
                 canDeleteForEveryone={m.sender_id === currentUser.id || isAdmin}
@@ -499,7 +511,6 @@ export function GroupChatPage() {
         </form>
         </>
         )}
-        <small className="chat-window-page__footnote">CRIPTOGRAFIA ATIVA · POWERED BY LEAF 1.4</small>
       </footer>
 
       {showInvite && group?.invite_code && (
@@ -574,6 +585,7 @@ interface GroupMessageRowProps {
   message: GroupMessage;
   isOwn: boolean;
   authorName: string;
+  authorLeft?: boolean;
   nameById: Record<string, string>;
   currentUserId: string;
   canDeleteForEveryone: boolean;
@@ -588,6 +600,7 @@ function GroupMessageRow({
   message,
   isOwn,
   authorName,
+  authorLeft,
   nameById,
   currentUserId,
   canDeleteForEveryone,
@@ -616,7 +629,11 @@ function GroupMessageRow({
 
   return (
     <div className={`group-msg-row${isOwn ? ' group-msg-row--own' : ''}`}>
-      {!isOwn && <span className="group-msg-row__author">{authorName}</span>}
+      {!isOwn && (
+        <span className={`group-msg-row__author${authorLeft ? ' group-msg-row__author--left' : ''}`}>
+          {authorName}{authorLeft ? ' · saiu' : ''}
+        </span>
+      )}
       <div className="message-row__wrap" {...(canOpenMenu ? longPress : {})}>
         <MessageBubble
           content={message.content}

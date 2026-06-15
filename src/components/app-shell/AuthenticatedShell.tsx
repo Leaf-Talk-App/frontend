@@ -7,11 +7,13 @@ import {
   Sprout,
   UserRound,
 } from 'lucide-react';
+import { useEffect } from 'react';
 import { matchPath, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { routePaths } from '../../routes/paths';
 import { useAuth } from '../../lib/auth/use-auth';
 import { useWebSocket } from '../../features/chats/useWebSocket';
 import { useChatsQuery } from '../../features/chats/chats-hooks';
+import { usersApi } from '../../lib/api/endpoints';
 import './authenticated-shell.css';
 
 // Badge da sidebar = QUANTAS CONVERSAS têm ao menos 1 não lida (não a soma de
@@ -81,8 +83,19 @@ const mobileNavItems = [
  * aberto) e recebe os eventos de presença/novas mensagens em qualquer tela.
  */
 function GlobalPresence() {
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
   useWebSocket({ userId: user?.id, enabled: Boolean(user?.id) });
+
+  // Heartbeat HTTP a cada 25s → mantém "online" mesmo se o WebSocket cair
+  // (Render free derruba sockets ociosos). Corrige "aparece offline online".
+  useEffect(() => {
+    if (!accessToken) return;
+    const ping = () => { void usersApi.heartbeat({ token: accessToken }).catch(() => {}); };
+    ping();
+    const id = window.setInterval(ping, 25_000);
+    return () => window.clearInterval(id);
+  }, [accessToken]);
+
   return null;
 }
 

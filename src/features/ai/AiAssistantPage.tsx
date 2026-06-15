@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { ImagePreviewModal } from '../../components/image-preview-modal/ImagePreviewModal';
 import { CameraCaptureModal } from '../../components/camera-capture-modal/CameraCaptureModal';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth/use-auth';
 import { DictationButton } from '../../components/dictation/DictationButton';
@@ -179,6 +179,7 @@ export function AiAssistantPage() {
   const composerRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLElement>(null);
 
   // Hidrata o thread com o histórico persistido no backend (uma única vez).
   // Antes, as mensagens viviam só em estado local e sumiam ao sair da tela.
@@ -199,14 +200,19 @@ export function AiAssistantPage() {
     setHydrated(true);
   }, [history, historyLoading, historyFetching, hydrated]);
 
-  // Primeira carga: pula direto pro fim sem animar; depois rola suave.
+  // Abre DIRETO no fim (rola o container antes da pintura — sem descer
+  // gradativamente). Depois acompanha o fim em novas mensagens.
   const didInitialScrollRef = useRef(false);
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: didInitialScrollRef.current ? 'smooth' : 'auto',
-    });
-    didInitialScrollRef.current = true;
-  }, [messages, aiChat.isPending]);
+  useLayoutEffect(() => {
+    const el = threadRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+    if (!didInitialScrollRef.current) {
+      didInitialScrollRef.current = true;
+      requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+      window.setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+    }
+  }, [messages, aiChat.isPending, hydrated]);
 
   const isEmptyConversation = useMemo(
     () => messages.length === 1 && messages[0].id === 'welcome',
@@ -351,7 +357,7 @@ export function AiAssistantPage() {
       </header>
 
       <div className="ai-assistant-page__layout">
-        <main className="ai-assistant-page__thread" aria-live="polite">
+        <main className="ai-assistant-page__thread" aria-live="polite" ref={threadRef}>
           {messages.map((message) =>
             message.isUser ? (
               <article key={message.id} className="ai-message ai-message--user">

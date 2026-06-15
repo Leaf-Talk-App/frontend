@@ -397,25 +397,6 @@ export function ProfilePage() {
             )}
           </article>
 
-          <article className="toggle-card toggle-card--soon">
-            <div>
-              <h3>Criptografia E2E <span className="toggle-card__badge">Em breve</span></h3>
-              <p>
-                Criptografia ponta a ponta entre dispositivos. Disponível em versão futura do Leaf.
-              </p>
-            </div>
-            <button
-              type="button"
-              className="switch"
-              role="switch"
-              aria-checked={false}
-              disabled
-              title="Indisponível nesta versão"
-            >
-              <span />
-            </button>
-          </article>
-
           <div className="profile-page__actions-row">
             <button
               type="button"

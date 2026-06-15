@@ -71,7 +71,9 @@ export function useGroupMessagesQuery(groupId?: string, enabled = true) {
       return allPages.flat().length;
     },
     enabled: enabled && Boolean(accessToken) && Boolean(groupId),
-    staleTime: 5_000,
+    staleTime: 2_000,
+    refetchInterval: 3_000,
+    refetchOnWindowFocus: true,
   });
 
   // páginas chegam da mais recente p/ mais antiga → inverte as páginas e achata

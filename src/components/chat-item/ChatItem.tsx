@@ -10,6 +10,16 @@ import { useAuth } from '../../lib/auth/use-auth';
 import { useLongPress } from '../../hooks/useLongPress';
 import type { LeafChatSummary, LeafUser } from '../../lib/api/contracts';
 
+// Durações de silenciamento (minutos). null = para sempre.
+const MUTE_OPTIONS: { label: string; minutes: number | null }[] = [
+  { label: '1 hora', minutes: 60 },
+  { label: '8 horas', minutes: 480 },
+  { label: '1 dia', minutes: 1440 },
+  { label: '1 semana', minutes: 10080 },
+  { label: '1 mês', minutes: 43200 },
+  { label: 'Para sempre', minutes: null },
+];
+
 // Indicador de mídia (ícone outline + texto) quando a última mensagem não tem texto.
 const MEDIA_PREVIEW: Record<string, { icon: typeof ImageIcon; label: string }> = {
   image: { icon: ImageIcon, label: 'Foto' },
@@ -85,6 +95,7 @@ export function ChatItem({
   const { accessToken } = useAuth();
   const queryClient = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [muteSub, setMuteSub] = useState(false);
   const invalidate = () => queryClient.invalidateQueries({ queryKey: queryKeys.chats.mine });
 
   const archiveMutation = useMutation({
@@ -181,40 +192,57 @@ export function ChatItem({
         <>
           <div
             className="chat-item__menu-backdrop"
-            onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}
+            onClick={(e) => { e.stopPropagation(); setMenuOpen(false); setMuteSub(false); }}
           />
           <div className="chat-item__menu" role="menu" onClick={(e) => e.stopPropagation()}>
-            {onTogglePin && (
-              <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); onTogglePin(); }}>
-                <Pin size={15} strokeWidth={2} /> {chat.pinned ? 'Desafixar' : 'Fixar'}
-              </button>
-            )}
-            {chat.muted ? (
-              <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); muteMutation.mutate({ unmute: true }); }}>
-                <Bell size={15} strokeWidth={2} /> Reativar notificações
-              </button>
+            {muteSub ? (
+              <>
+                {MUTE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => { setMenuOpen(false); setMuteSub(false); muteMutation.mutate({ mute_minutes: opt.minutes }); }}
+                  >
+                    <BellOff size={15} strokeWidth={2} /> {opt.label}
+                  </button>
+                ))}
+              </>
             ) : (
-              <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); muteMutation.mutate({ mute_minutes: null }); }}>
-                <BellOff size={15} strokeWidth={2} /> Silenciar
-              </button>
+              <>
+                {onTogglePin && (
+                  <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); onTogglePin(); }}>
+                    <Pin size={15} strokeWidth={2} /> {chat.pinned ? 'Desafixar' : 'Fixar'}
+                  </button>
+                )}
+                {chat.muted ? (
+                  <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); muteMutation.mutate({ unmute: true }); }}>
+                    <Bell size={15} strokeWidth={2} /> Reativar notificações
+                  </button>
+                ) : (
+                  <button type="button" role="menuitem" onClick={() => setMuteSub(true)}>
+                    <BellOff size={15} strokeWidth={2} /> Silenciar por…
+                  </button>
+                )}
+                <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); archiveMutation.mutate(); }}>
+                  {chat.archived ? <ArchiveRestore size={15} strokeWidth={2} /> : <Archive size={15} strokeWidth={2} />}
+                  {chat.archived ? 'Desarquivar' : 'Arquivar'}
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="chat-item__menu-danger"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    const msg = isGroup ? 'Sair deste grupo?' : 'Apagar esta conversa? (só para você)';
+                    if (window.confirm(msg)) deleteMutation.mutate();
+                  }}
+                >
+                  {isGroup ? <LogOut size={15} strokeWidth={2} /> : <Trash2 size={15} strokeWidth={2} />}
+                  {isGroup ? 'Sair do grupo' : 'Apagar conversa'}
+                </button>
+              </>
             )}
-            <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); archiveMutation.mutate(); }}>
-              {chat.archived ? <ArchiveRestore size={15} strokeWidth={2} /> : <Archive size={15} strokeWidth={2} />}
-              {chat.archived ? 'Desarquivar' : 'Arquivar'}
-            </button>
-            <button
-              type="button"
-              role="menuitem"
-              className="chat-item__menu-danger"
-              onClick={() => {
-                setMenuOpen(false);
-                const msg = isGroup ? 'Sair deste grupo?' : 'Apagar esta conversa? (só para você)';
-                if (window.confirm(msg)) deleteMutation.mutate();
-              }}
-            >
-              {isGroup ? <LogOut size={15} strokeWidth={2} /> : <Trash2 size={15} strokeWidth={2} />}
-              {isGroup ? 'Sair do grupo' : 'Apagar conversa'}
-            </button>
           </div>
         </>
       )}

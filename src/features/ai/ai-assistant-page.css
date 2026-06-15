@@ -680,12 +680,13 @@
 }
 
 @media (max-width: 767px) {
-  /* Account for fixed mobile bottom nav (112px) so composer stays visible.
-     dvh desconta a barra de URL do navegador mobile. */
+  /* Altura real (VisualViewport) menos a barra inferior fixa (112px) → o
+     composer do Humberto acompanha o teclado, sem vão. */
   .ai-assistant-page {
     height: calc(100vh - 112px);
     height: calc(100dvh - 112px);
-    padding: 14px 14px 10px;
+    height: calc(var(--app-height, 100dvh) - 112px);
+    padding: max(14px, env(safe-area-inset-top)) 14px 10px;
   }
 
   .ai-assistant-page__title h1 {

@@ -138,6 +138,10 @@ export const usersApi = {
   blocked({ token }: AuthedRequest) {
     return apiRequest<LeafUser[]>('/users/blocked', { token });
   },
+
+  heartbeat({ token }: AuthedRequest) {
+    return apiRequest<{ ok: boolean }>('/users/heartbeat', { method: 'POST', token });
+  },
 };
 
 export const chatsApi = {
