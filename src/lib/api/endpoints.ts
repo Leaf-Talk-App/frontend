@@ -2,6 +2,7 @@ import { apiRequest } from './http';
 import type {
   AddMemberRequest,
   AiChatRequest,
+  AiActionCard,
   AiChatResponse,
   AiHistoryMessage,
   ApiMessageResponse,
@@ -382,6 +383,17 @@ export const aiApi = {
 
   confirm(taskId: string, { token }: AuthedRequest) {
     return apiRequest<ApiMessageResponse>(`/ai/confirm/${encodeURIComponent(taskId)}`, {
+      method: 'POST',
+      token,
+    });
+  },
+
+  pending({ token }: AuthedRequest) {
+    return apiRequest<AiActionCard[]>('/ai/pending', { token });
+  },
+
+  cancel(taskId: string, { token }: AuthedRequest) {
+    return apiRequest<ApiMessageResponse>(`/ai/cancel/${encodeURIComponent(taskId)}`, {
       method: 'POST',
       token,
     });

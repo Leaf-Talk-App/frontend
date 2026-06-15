@@ -5,6 +5,7 @@ import { Check, CheckCheck, FileText, Star } from 'lucide-react';
 import { AudioPlayer } from '../audio-player/AudioPlayer';
 import { MediaViewer } from '../media-viewer/MediaViewer';
 import { renderMarkdown } from '../../lib/markdown';
+import { env } from '../../config/env';
 
 interface MessageBubbleProps {
   content: string;
@@ -79,46 +80,20 @@ function fileNameFromUrl(url?: string | null): string {
 }
 
 /**
- * Insere o flag fl_attachment do Cloudinary → o servidor responde com
- * Content-Disposition: attachment, forçando o navegador a BAIXAR (não abrir um
- * visualizador que falhava em PDF). Mantém o nome original no download.
+ * Baixa o arquivo pelo PROXY do backend, que devolve com Content-Disposition:
+ * attachment → o navegador abre o "salvar como" e nunca tenta renderizar inline
+ * (corrige PDF/zip que davam erro 400 / abriam no Cloudinary). Mesmo fluxo do
+ * Word, para qualquer tipo.
  */
-function withCloudinaryAttachment(url: string, name: string): string {
-  if (url.includes('/upload/')) {
-    const safe = (name || 'arquivo').replace(/[^\w.\-]+/g, '_');
-    return url.replace('/upload/', `/upload/fl_attachment:${encodeURIComponent(safe)}/`);
-  }
-  return url;
-}
-
-/**
- * Baixa o arquivo. 1º tenta blob local (preserva nome/extensão quando o CORS
- * permite); se falhar, usa a URL com fl_attachment que força o download direto
- * — nunca mais abre o PDF dentro do navegador/leaf antes de baixar.
- */
-async function downloadFile(url: string, name: string) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(String(res.status));
-    const blob = await res.blob();
-    const objUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = objUrl;
-    a.download = name || 'arquivo';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(objUrl);
-  } catch {
-    // fallback robusto: força o download pelo Cloudinary (sem abrir viewer)
-    const a = document.createElement('a');
-    a.href = withCloudinaryAttachment(url, name);
-    a.download = name || 'arquivo';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
+function downloadFile(url: string, name: string) {
+  const proxy = `${env.apiBaseUrl}/upload/download?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name || 'arquivo')}`;
+  const a = document.createElement('a');
+  a.href = proxy;
+  a.download = name || 'arquivo';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 export function MessageBubble({

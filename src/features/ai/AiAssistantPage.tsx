@@ -15,7 +15,7 @@ import { HumbertoAvatar } from '../../components/humberto/HumbertoAvatar';
 import { ImagePreviewModal } from '../../components/image-preview-modal/ImagePreviewModal';
 import { CameraCaptureModal } from '../../components/camera-capture-modal/CameraCaptureModal';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth/use-auth';
 import { DictationButton } from '../../components/dictation/DictationButton';
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis';
@@ -78,7 +78,7 @@ const WELCOME_MESSAGE: ChatMessage = {
   timestamp: new Date(),
 };
 
-function ActionCardBlock({ action }: { action: ActionCard }) {
+function ActionCardBlock({ action, onResolved }: { action: ActionCard; onResolved?: () => void }) {
   const { accessToken } = useAuth();
   const [dismissed, setDismissed] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -86,9 +86,17 @@ function ActionCardBlock({ action }: { action: ActionCard }) {
 
   const confirmMutation = useMutation({
     mutationFn: () => aiApi.confirm(action.task_id!, { token: accessToken! }),
-    onSuccess: () => setConfirmed(true),
+    onSuccess: () => { setConfirmed(true); onResolved?.(); },
     onError: () => setError('Não consegui confirmar agora. Tente de novo.'),
   });
+
+  const handleCancel = async () => {
+    setDismissed(true);
+    if (action.task_id) {
+      try { await aiApi.cancel(action.task_id, { token: accessToken! }); } catch { /* ignora */ }
+    }
+    onResolved?.();
+  };
 
   if (dismissed) return null;
 
@@ -129,8 +137,8 @@ function ActionCardBlock({ action }: { action: ActionCard }) {
             >
               {confirmMutation.isPending ? 'CONFIRMANDO…' : 'CONFIRMAR'}
             </button>
-            <button type="button" className="ai-action-card__cancel" onClick={() => setDismissed(true)}>
-              CANCELAR
+            <button type="button" className="ai-action-card__cancel" onClick={handleCancel}>
+              NÃO ENVIAR
             </button>
           </div>
           {error ? <p className="ai-action-card__error">{error}</p> : null}
@@ -181,6 +189,17 @@ export function AiAssistantPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const threadRef = useRef<HTMLElement>(null);
+  const queryClient = useQueryClient();
+
+  // Ações pendentes (cards de confirmar enviar/agendar) — persistem mesmo se o
+  // usuário sair da tela e voltar (antes o card sumia).
+  const { data: pendingCards } = useQuery({
+    queryKey: ['ai', 'pending'],
+    queryFn: () => aiApi.pending({ token: accessToken! }),
+    enabled: Boolean(accessToken),
+    staleTime: 0,
+  });
+  const refetchPending = () => queryClient.invalidateQueries({ queryKey: ['ai', 'pending'] });
 
   // Hidrata o thread com o histórico persistido no backend (uma única vez).
   // Antes, as mensagens viviam só em estado local e sumiam ao sair da tela.
@@ -252,9 +271,10 @@ export function AiAssistantPage() {
         content: parsed.content,
         isUser: false,
         timestamp: new Date(),
-        action: parsed.action,
       };
       setMessages((prev) => [...prev, aiMessage]);
+      // o card de confirmar vem da lista de pendências (persiste ao sair/voltar)
+      if (parsed.action) refetchPending();
     } catch (error) {
       console.error('[Humberto] Failed to get response:', error);
       const errorMessage: ChatMessage = {
@@ -494,6 +514,14 @@ export function AiAssistantPage() {
           })}
         </div>
       ) : null}
+
+      {pendingCards && pendingCards.length > 0 && (
+        <div className="ai-assistant-page__pending">
+          {pendingCards.map((c) => (
+            <ActionCardBlock key={c.task_id} action={c as ActionCard} onResolved={refetchPending} />
+          ))}
+        </div>
+      )}
 
       <footer className="ai-assistant-page__composer-wrap">
         <form className="ai-composer" onSubmit={handleSubmit} noValidate>

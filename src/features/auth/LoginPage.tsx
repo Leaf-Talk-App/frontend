@@ -133,7 +133,7 @@ export function LoginPage() {
           </button>
           <a
             className="login-page__icon-button"
-            href="https://wa.me/5534933888856"
+            href="https://wa.me/553493388856"
             target="_blank"
             rel="noreferrer"
             aria-label="Ajuda no WhatsApp"

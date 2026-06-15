@@ -27,10 +27,12 @@
      (padrão WhatsApp/Telegram). break-word quebra só palavras/URLs longas
      demais (não break-all); NÃO reduz o min-content a 1 char. */
   max-width: min(640px, 82%);
+  min-width: 0;
   padding: 8px 12px 6px;
   border-radius: 18px;
-  overflow-wrap: break-word;
-  word-break: normal;
+  /* quebra palavras/URLs longas em qualquer resolução, sem estourar o balão */
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .message-bubble--sender .message-bubble__body {

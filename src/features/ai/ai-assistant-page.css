@@ -573,6 +573,13 @@
   color: #4f7a16;
 }
 
+.ai-assistant-page__pending {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0 0;
+}
+
 .ai-assistant-page__composer-wrap {
   padding-top: 12px;
 }

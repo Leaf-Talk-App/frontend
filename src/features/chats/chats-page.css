@@ -306,13 +306,20 @@
 }
 
 .chats-page__head-btn:hover {
-  background: #f3f6ec;
+  background: #e6ecd7;
 }
 
 .chats-page__head-btn--primary {
   background: linear-gradient(90deg, #487711, #7da23f);
   color: #fff;
   border-color: transparent;
+}
+
+/* hover do botão primário (Novo grupo): escurece o verde — antes herdava o
+   hover claro e "sumia" no fundo branco do light mode */
+.chats-page__head-btn--primary:hover {
+  background: linear-gradient(90deg, #3c620e, #6b9235);
+  filter: none;
 }
 
 /* ── Filtros (chips combináveis) ─────────────────────────────────────────── */

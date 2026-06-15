@@ -61,7 +61,9 @@ export function useLogout() {
 
   return useCallback(() => {
     clearAccessToken();
-    queryClient.removeQueries({ queryKey: queryKeys.auth.all });
+    // Limpa TODO o cache (conversas, mensagens, usuários…) — senão a próxima
+    // conta vê por um instante os dados da sessão anterior (a "piscada").
+    queryClient.clear();
   }, [clearAccessToken, queryClient]);
 }
 
