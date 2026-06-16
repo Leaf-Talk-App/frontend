@@ -4,7 +4,7 @@ import { ApiError } from '../../lib/api/errors';
 import { authApi, usersApi } from '../../lib/api/endpoints';
 import { queryKeys } from '../../lib/api/query-keys';
 import { useAuth } from '../../lib/auth/use-auth';
-import type { UpdateProfileRequest, VerifyEmailRequest } from '../../lib/api/contracts';
+import type { UpdateProfileRequest } from '../../lib/api/contracts';
 
 type CurrentUserQueryOptions = {
   enabled?: boolean;

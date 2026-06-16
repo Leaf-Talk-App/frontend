@@ -159,38 +159,6 @@
   color: #7da23f;
 }
 
-/* botão de fixar — aparece no hover (e sempre se já fixada) */
-.chat-item__pin-btn {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  background: transparent;
-  border: 0;
-  border-radius: 999px;
-  color: #9aa091;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
-}
-
-.chat-item:hover .chat-item__pin-btn {
-  opacity: 1;
-}
-
-.chat-item__pin-btn:hover {
-  background: #e6ebdc;
-  color: #5d7a2e;
-}
-
-.chat-item__pin-btn--on {
-  opacity: 1;
-  color: #5d8d22;
-}
-
 /* ── Menu de contexto (toque longo / clique-direito) ─────────────────────── */
 .chat-item__menu-backdrop {
   position: fixed;

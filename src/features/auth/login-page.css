@@ -177,8 +177,7 @@
   display: grid;
   min-height: 100vh;
   place-items: center end;
-  /* topo respeita a topbar fixa (72px); rodapé deixa espaço p/ a faixa de
-     criptografia (fixed bottom:16px) sem sobrepor o card.
+  /* topo respeita a topbar fixa (72px); rodapé com folga.
      SEM overflow-y:auto — o scroll é um só, o da página. */
   padding: 80px 96px 48px 56vw;
   pointer-events: none;

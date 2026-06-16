@@ -269,25 +269,6 @@ html { transition: background-color 280ms ease, color 200ms ease; }
   border-color: rgb(142 187 72 / 55%);
   color: #b6e06a;
 }
-[data-theme='dark'] .ai-message__action {
-  background: #1c2119;
-  border-color: rgb(110 150 65 / 12%);
-  color: #a8b49e;
-}
-[data-theme='dark'] .ai-message__chip {
-  background: #1c2119;
-  border-color: rgb(142 187 72 / 28%);
-  color: #a2d155;
-}
-[data-theme='dark'] .ai-message__chip:hover:not(:disabled) {
-  background: #243515;
-  border-color: rgb(142 187 72 / 50%);
-}
-[data-theme='dark'] .ai-message__chip--muted {
-  background: transparent;
-  border-color: rgb(110 150 65 / 14%);
-  color: #5e6857;
-}
 [data-theme='dark'] .ai-action-card {
   background: #171c14;
   border-color: rgb(142 187 72 / 25%);
@@ -528,6 +509,3 @@ html { transition: background-color 280ms ease, color 200ms ease; }
 }
 [data-theme='dark'] .chat-item__group-badge { border-color: #131811; }
 [data-theme='dark'] .chat-item__pin-icon { color: #8ebb48; }
-[data-theme='dark'] .chat-item__pin-btn { color: #6b7563; }
-[data-theme='dark'] .chat-item__pin-btn:hover { background: #232b1e; color: #a2d155; }
-[data-theme='dark'] .chat-item__pin-btn--on { color: #8ebb48; }
