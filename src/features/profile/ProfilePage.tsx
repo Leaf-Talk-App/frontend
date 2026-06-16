@@ -3,6 +3,7 @@ import {
   Camera,
   Check,
   Fingerprint,
+  HelpCircle,
   Info,
   Loader,
   LogOut,
@@ -258,6 +259,23 @@ export function ProfilePage() {
               <strong>{memberSince}</strong>
             </div>
           </article>
+
+          <button
+            type="button"
+            className="logout-card"
+            onClick={() => {
+              const text = encodeURIComponent('Olá Alan, preciso de ajuda com o Leaf.');
+              window.open(`https://wa.me/553493388856?text=${text}`, '_blank', 'noopener,noreferrer');
+            }}
+          >
+            <span className="logout-card__icon" aria-hidden="true">
+              <HelpCircle size={18} strokeWidth={2.2} />
+            </span>
+            <span className="logout-card__text">
+              <strong>Ajuda e suporte</strong>
+              <small>Falar com a equipe no WhatsApp</small>
+            </span>
+          </button>
 
           <button type="button" className="logout-card" onClick={handleLogout}>
             <span className="logout-card__icon" aria-hidden="true">

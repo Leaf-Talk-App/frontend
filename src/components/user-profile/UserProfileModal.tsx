@@ -20,11 +20,12 @@ export function UserProfileModal({ userId, onClose, allowChat = true }: Props) {
   const { accessToken } = useAuth();
   const navigate = useNavigate();
 
-  const { data: u, isLoading } = useQuery({
+  const { data: u, isLoading, isError } = useQuery({
     queryKey: ['users', 'id', userId],
     queryFn: () => usersApi.getById(userId, { token: accessToken! }),
     enabled: Boolean(accessToken && userId),
     staleTime: 60_000,
+    retry: 1,
   });
 
   const user = u as LeafUser | undefined;
@@ -50,6 +51,14 @@ export function UserProfileModal({ userId, onClose, allowChat = true }: Props) {
         </button>
         {isLoading ? (
           <p className="chat-modal__empty">Carregando perfil…</p>
+        ) : isError && !user ? (
+          <>
+            <div className="chat-modal__contact-head">
+              <Avatar initials="?" size="lg" />
+              <h3 className="chat-modal__name">Perfil indisponível</h3>
+              <p className="chat-modal__online-status">Não foi possível carregar este perfil.</p>
+            </div>
+          </>
         ) : (
           <>
             <div className="chat-modal__contact-head">

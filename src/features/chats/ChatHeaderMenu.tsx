@@ -225,6 +225,18 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
     }
   };
 
+  // Fecha o modal e rola até a mensagem (com destaque temporário).
+  const scrollToMessage = (id: string) => {
+    setModal(null);
+    window.setTimeout(() => {
+      const el = document.getElementById(`msg-${id}`);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('msg-highlight');
+      window.setTimeout(() => el.classList.remove('msg-highlight'), 2200);
+    }, 80);
+  };
+
   return (
     <div className="chat-menu" ref={wrapRef}>
       <button
@@ -487,9 +499,15 @@ export const ChatHeaderMenu = forwardRef<ChatHeaderMenuHandle, ChatHeaderMenuPro
               {favorites.length ? (
                 <ul className="chat-modal__fav-list">
                   {favorites.map((m) => (
-                    <li key={m._id} className="chat-modal__fav-item">
-                      <Star size={14} strokeWidth={2.2} />
-                      <span>{(m.content || '').trim() || (m.type === 'image' ? '📷 Foto' : m.type === 'audio' ? '🎤 Áudio' : '📄 Arquivo')}</span>
+                    <li key={m._id}>
+                      <button
+                        type="button"
+                        className="chat-modal__fav-item chat-modal__fav-item--btn"
+                        onClick={() => scrollToMessage(m._id)}
+                      >
+                        <Star size={14} strokeWidth={2.2} />
+                        <span>{(m.content || '').trim() || (m.type === 'image' ? '📷 Foto' : m.type === 'audio' ? '🎤 Áudio' : '📄 Arquivo')}</span>
+                      </button>
                     </li>
                   ))}
                 </ul>

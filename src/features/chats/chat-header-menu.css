@@ -215,6 +215,17 @@
   color: var(--leaf-color-text, #1f2520);
 }
 
+.chat-modal__fav-item--btn {
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.chat-modal__fav-item--btn:hover {
+  background: var(--leaf-color-secondary, rgb(125 162 63 / 18%));
+}
+
 .chat-modal__fav-item svg {
   flex-shrink: 0;
   color: var(--leaf-color-primary-dark, #4b760f);

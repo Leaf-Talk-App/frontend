@@ -633,7 +633,10 @@ function MessageRow({
   const replyText = rp ? replyPreviewText(rp) : undefined;
 
   return (
-    <div className={`chat-window-page__row${isOwn ? ' chat-window-page__row--own' : ''}`}>
+    <div
+      id={`msg-${message._id}`}
+      className={`chat-window-page__row${isOwn ? ' chat-window-page__row--own' : ''}`}
+    >
       <div className="message-row__wrap" {...longPress}>
         {isHumberto && (
           <span className="message-row__humberto">

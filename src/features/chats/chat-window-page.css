@@ -169,6 +169,13 @@
 .chat-window-page__row {
   display: flex;
   width: 100%;
+  border-radius: 14px;
+  transition: background 0.3s ease;
+}
+
+/* destaque temporário ao navegar até uma mensagem favoritada */
+.chat-window-page__row.msg-highlight {
+  background: rgb(125 162 63 / 22%);
 }
 
 .chat-window-page__row--own {
@@ -524,13 +531,23 @@
 }
 
 @media (max-width: 767px) {
-  /* Altura REAL visível (VisualViewport via --app-height): acompanha o teclado
-     no mobile (composer cola acima dele, sem vão) e nunca estoura a tela.
-     Fallbacks: 100dvh → 100vh. */
+  /* Layout TRAVADO no mobile: o container é fixo cobrindo o viewport, então o
+     body não rola junto (some o "tremor"). Só a área de mensagens rola.
+     Altura real via --app-height (VisualViewport) acompanha o teclado. */
   .chat-window-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 100vh;
     height: 100dvh;
     height: var(--app-height, 100dvh);
+    overflow: hidden;
+  }
+
+  .chat-window-page__messages {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* respeita a barra de status (hora/bateria) com safe-area */
