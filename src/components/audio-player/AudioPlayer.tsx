@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pause, Play } from 'lucide-react';
 import './audio-player.css';
 
@@ -41,10 +41,38 @@ export function AudioPlayer({ src, variant = 'receiver' }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const waveRef = useRef<HTMLDivElement>(null);
   const fixingRef = useRef(false); // durante o hack de duração, ignora timeupdate
+  const decodedRef = useRef(false); // duração já resolvida pelo Web Audio (confiável)
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
   const bars = useMemo(() => seededBars(src, BAR_COUNT), [src]);
+
+  // Duração CONFIÁVEL via Web Audio: o webm do MediaRecorder não grava a
+  // duração no header, e no mobile o elemento <audio> reporta valor-lixo
+  // (ex.: "284:30" pra um áudio de 2s). Decodificar lê as amostras reais.
+  // Se falhar (CORS/sem suporte), cai no fallback do elemento (seek-hack).
+  useEffect(() => {
+    decodedRef.current = false;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(src);
+        const buf = await res.arrayBuffer();
+        const Ctx = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (!Ctx) return;
+        const ctx = new Ctx();
+        const decoded = await ctx.decodeAudioData(buf);
+        void ctx.close();
+        if (!cancelled && Number.isFinite(decoded.duration) && decoded.duration > 0) {
+          decodedRef.current = true;
+          setDuration(decoded.duration);
+        }
+      } catch {
+        /* usa o fallback do elemento (handleLoadedMetadata) */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [src]);
 
   const toggle = useCallback(() => {
     const el = audioRef.current;
@@ -59,6 +87,7 @@ export function AudioPlayer({ src, variant = 'receiver' }: AudioPlayerProps) {
   // (era o bug do "331:15"). Duração absurda (>24h) é tratada como desconhecida.
   const SANE_MAX = 86400; // 24h
   const handleLoadedMetadata = useCallback(() => {
+    if (decodedRef.current) return; // Web Audio já deu a duração real
     const el = audioRef.current;
     if (!el) return;
     const d = el.duration;
@@ -70,6 +99,7 @@ export function AudioPlayer({ src, variant = 'receiver' }: AudioPlayerProps) {
         el.currentTime = 0;
         fixingRef.current = false;
         setCurrent(0);
+        if (decodedRef.current) return; // o Web Audio resolveu durante o seek
         setDuration(Number.isFinite(real) && real <= SANE_MAX ? real : 0);
       };
       el.addEventListener('timeupdate', fix);

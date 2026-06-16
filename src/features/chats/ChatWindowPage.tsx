@@ -1,4 +1,4 @@
-import { ArrowLeft, Camera, ChevronDown, Copy, Forward, Image, Mic, MicOff, Paperclip, Pencil, Plus, Reply, Search, Send, Smile, Sprout, Star, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Camera, ChevronDown, Copy, Forward, Image, Mic, Paperclip, Pencil, Plus, Reply, Search, Send, Smile, Sprout, Star, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ChatHeaderMenuHandle } from './ChatHeaderMenu';
 import { EmojiPicker } from '../../components/emoji-picker/EmojiPicker';
@@ -775,6 +775,10 @@ interface MessageComposerProps {
 }
 
 function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, onSendAudio, isLoading = false }: MessageComposerProps) {
+  // Só o primeiro nome no placeholder — o nome inteiro estourava p/ 2 linhas e
+  // cortava no <textarea rows={1}> (ex.: "Mensagem para Pedro / Santos").
+  const firstName = recipientName.trim().split(/\s+/)[0] || recipientName.trim();
+  const placeholderName = firstName.length > 14 ? firstName.slice(0, 14).trimEnd() + '…' : firstName;
   const [message, setMessage] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
@@ -968,7 +972,7 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
         onChange={(event) => setMessage(event.target.value)}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
-        placeholder={`Mensagem para ${recipientName.length > 18 ? recipientName.slice(0, 18).trimEnd() + '…' : recipientName}`}
+        placeholder={`Mensagem para ${placeholderName}`}
         aria-label="Escreva uma mensagem"
         autoComplete="off"
         spellCheck

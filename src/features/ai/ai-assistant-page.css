@@ -25,17 +25,6 @@
   gap: 12px;
 }
 
-.ai-assistant-page__title-mark {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
-  background: linear-gradient(135deg, #5d8d22, #87b047);
-  color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 8px 18px rgb(72 119 17 / 22%);
-}
-
 .ai-assistant-page__title h1 {
   margin: 0;
   font-family: var(--leaf-font-heading);
@@ -253,59 +242,6 @@
 @keyframes ai-speak-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgb(72 119 17 / 35%); }
   50% { box-shadow: 0 0 0 4px rgb(72 119 17 / 0%); }
-}
-
-.ai-message__action {
-  margin: 6px 0 0;
-  padding: 10px 12px;
-  background: #f1f3ec;
-  border: 1px solid #e6e9df;
-  border-radius: 10px;
-  color: #3d4439;
-  font-size: 12px;
-  font-family: 'SFMono-Regular', Consolas, monospace;
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-width: 100%;
-}
-
-/* Inline suggestion chips after AI message */
-.ai-message__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.ai-message__chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 7px 14px;
-  background: #ffffff;
-  border: 1.5px solid #c5d4a4;
-  border-radius: 999px;
-  color: #2a4d0f;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.14s ease, border-color 0.14s ease, transform 0.12s ease;
-}
-
-.ai-message__chip:hover:not(:disabled) {
-  background: #eef3e1;
-  border-color: #87b047;
-  transform: translateY(-1px);
-}
-
-.ai-message__chip:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.ai-message__chip--muted {
-  background: transparent;
-  border-color: #dde1d8;
-  color: #8a9183;
 }
 
 /* Action card — structured confirm/cancel block */
@@ -694,6 +630,12 @@
     height: calc(100dvh - 112px);
     height: calc(var(--app-height, 100dvh) - 112px);
     padding: max(14px, env(safe-area-inset-top)) 14px 10px;
+  }
+
+  /* Teclado aberto → a barra inferior some (fica atrás do teclado), então o
+     composer usa a altura toda e cola no teclado, sem o vão de 112px. */
+  html[data-keyboard='open'] .ai-assistant-page {
+    height: var(--app-height, 100dvh);
   }
 
   .ai-assistant-page__title h1 {

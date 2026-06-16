@@ -15,6 +15,11 @@ function useAppHeightVar() {
     const set = () => {
       const h = vv?.height ?? window.innerHeight;
       document.documentElement.style.setProperty('--app-height', `${Math.round(h)}px`);
+      // Teclado aberto (mobile): o visualViewport encolhe bem abaixo da janela.
+      // Marca no <html> p/ a UI esconder a barra inferior fixa e o composer
+      // colar no teclado (sem o vão de ~112px que ficava no chat do Humberto).
+      const keyboardOpen = window.innerHeight - h > 140;
+      document.documentElement.setAttribute('data-keyboard', keyboardOpen ? 'open' : 'closed');
     };
     set();
     vv?.addEventListener('resize', set);

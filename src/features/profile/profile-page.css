@@ -16,6 +16,9 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+  /* reserva a coluna do ThemeToggle fixo (top-right: 40px + 16px) p/ o sino de
+     notificações nunca ficar embaixo dele */
+  padding-right: 52px;
 }
 
 .profile-page__topbar h1 {
@@ -36,8 +39,6 @@
   border: 1px solid var(--leaf-color-border, rgb(69 92 42 / 10%));
   border-radius: var(--leaf-radius-pill);
   cursor: pointer;
-  /* Offset do ThemeToggle fixo (top-right) — evita sobreposição */
-  margin-right: 52px;
 }
 
 .profile-page__notif-btn:hover {

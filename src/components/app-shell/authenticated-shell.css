@@ -153,6 +153,12 @@
   line-height: 1;
 }
 
+/* Teclado aberto (mobile): a barra fica atrás do teclado e criava um vão entre
+   o composer e o teclado. Some enquanto o teclado está aberto. */
+html[data-keyboard='open'] .mobile-bottom-nav {
+  display: none;
+}
+
 .mobile-bottom-nav__link--active {
   color: var(--leaf-color-surface);
   background: linear-gradient(

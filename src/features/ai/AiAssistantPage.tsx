@@ -40,8 +40,6 @@ interface ChatMessage {
   content: string;
   isUser: boolean;
   timestamp: Date;
-  action?: ActionCard | unknown;
-  chips?: { label: string; prompt: string }[];
   attachmentUrl?: string;
   attachmentMime?: string;
 }
@@ -86,7 +84,13 @@ function ActionCardBlock({ action, onResolved }: { action: ActionCard; onResolve
 
   const confirmMutation = useMutation({
     mutationFn: () => aiApi.confirm(action.task_id!, { token: accessToken! }),
-    onSuccess: () => { setConfirmed(true); onResolved?.(); },
+    // Mostra o ✓ de confirmação no card e só depois (2,5s) recarrega as
+    // pendências — antes o refetch removia o card na hora e o usuário não via
+    // nenhum retorno de que agendou/enviou.
+    onSuccess: () => {
+      setConfirmed(true);
+      window.setTimeout(() => onResolved?.(), 2500);
+    },
     onError: () => setError('Não consegui confirmar agora. Tente de novo.'),
   });
 
@@ -101,7 +105,7 @@ function ActionCardBlock({ action, onResolved }: { action: ActionCard; onResolve
   if (dismissed) return null;
 
   const isSchedule = action.type === 'schedule';
-  const confirmedLabel = isSchedule ? 'Agendado' : 'Enviado';
+  const confirmedLabel = isSchedule ? 'Mensagem agendada!' : 'Mensagem enviada!';
 
   return (
     <div className="ai-action-card">
@@ -304,11 +308,6 @@ export function AiAssistantPage() {
     composerRef.current?.focus();
   };
 
-  const handleChipClick = (chip: { label: string; prompt: string }) => {
-    if (!chip.prompt) return;
-    sendPrompt(chip.prompt);
-  };
-
   // Imagem/vídeo → pré-visualização com legenda (W8). PDF/doc → envia direto.
   const handleAttachment = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -326,8 +325,8 @@ export function AiAssistantPage() {
     if (!accessToken || aiChat.isPending || uploading) return;
     const isImage = file.type.startsWith('image/');
     setUploading(true);
+    let url: string;
     try {
-      let url: string;
       if (isImage) {
         const form = new FormData();
         form.append('file', file);
@@ -335,9 +334,8 @@ export function AiAssistantPage() {
       } else {
         ({ url } = await uploadsApi.file(file, accessToken));
       }
-      await sendPrompt(caption, { url, mime: file.type });
-      setPendingFile(null);
     } catch {
+      setUploading(false);
       setMessages((prev) => [
         ...prev,
         {
@@ -347,9 +345,14 @@ export function AiAssistantPage() {
           timestamp: new Date(),
         },
       ]);
-    } finally {
-      setUploading(false);
+      return;
     }
+    // Upload concluído → tira a mídia da tela na hora (antes o preview ficava
+    // aberto até a IA responder; o usuário tinha que fechar no X). A resposta do
+    // Humberto aparece com o indicador "digitando" no thread.
+    setUploading(false);
+    setPendingFile(null);
+    await sendPrompt(caption, { url, mime: file.type });
   };
 
   return (
@@ -404,29 +407,6 @@ export function AiAssistantPage() {
                   className="ai-message__bubble ai-message__bubble--ai md-body"
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
                 />
-                {/* JSON cru de ação nunca aparece como texto — vira card abaixo */}
-                {message.action && typeof message.action === 'object' && 'type' in (message.action as object) ? (
-                  <ActionCardBlock action={message.action as ActionCard} />
-                ) : message.action ? (
-                  <pre className="ai-message__action">
-                    {JSON.stringify(message.action, null, 2)}
-                  </pre>
-                ) : null}
-                {message.chips && message.chips.length > 0 ? (
-                  <div className="ai-message__chips">
-                    {message.chips.map((chip) => (
-                      <button
-                        key={chip.label}
-                        type="button"
-                        className={`ai-message__chip${!chip.prompt ? ' ai-message__chip--muted' : ''}`}
-                        onClick={() => handleChipClick(chip)}
-                        disabled={aiChat.isPending || !chip.prompt}
-                      >
-                        {chip.label}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
                 <small className="ai-message__meta">
                   HUMBERTO · {formatTime(message.timestamp)}
                   {tts.supported && message.content.trim() ? (
