@@ -56,6 +56,14 @@ export const authApi = {
     });
   },
 
+  logout(token: string) {
+    // Invalida o token no backend (token_version). Best-effort no logout.
+    return apiRequest<ApiMessageResponse>('/auth/logout', {
+      method: 'POST',
+      token,
+    });
+  },
+
   verifyEmail(data: VerifyEmailRequest) {
     return apiRequest<ApiMessageResponse>('/auth/verify-email', {
       method: 'POST',

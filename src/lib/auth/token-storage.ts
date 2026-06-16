@@ -1,3 +1,12 @@
+/**
+ * RISCO CONHECIDO: o access token fica em localStorage, que é legível por JS —
+ * logo, um XSS conseguiria roubá-lo. Mitigações já aplicadas como compensação:
+ *  - todo conteúdo de mensagem/IA passa por renderMarkdown, que escapa HTML
+ *    (incl. aspas) antes de qualquer dangerouslySetInnerHTML → fecha o XSS;
+ *  - logout invalida o token no backend (token_version), reduzindo a janela.
+ * EVOLUÇÃO RECOMENDADA (fora do escopo atual por exigir refactor grande):
+ * mover para cookie httpOnly + refresh token com rotação e proteção CSRF.
+ */
 const TOKEN_STORAGE_KEY = 'leaf.accessToken';
 
 export const tokenStorage = {

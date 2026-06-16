@@ -57,14 +57,17 @@ export function useCurrentUserQuery({ enabled = true }: CurrentUserQueryOptions 
 
 export function useLogout() {
   const queryClient = useQueryClient();
-  const { clearAccessToken } = useAuth();
+  const { accessToken, clearAccessToken } = useAuth();
 
   return useCallback(() => {
+    // Invalida o token no backend (token_version++) — best-effort, não trava o
+    // logout se a rede falhar.
+    if (accessToken) void authApi.logout(accessToken).catch(() => {});
     clearAccessToken();
     // Limpa TODO o cache (conversas, mensagens, usuários…) — senão a próxima
     // conta vê por um instante os dados da sessão anterior (a "piscada").
     queryClient.clear();
-  }, [clearAccessToken, queryClient]);
+  }, [accessToken, clearAccessToken, queryClient]);
 }
 
 export function useUpdateProfileMutation() {
