@@ -6,11 +6,14 @@
 export function renderMarkdown(src: string): string {
   if (!src) return '';
 
-  // 1) escapa HTML
+  // 1) escapa HTML — inclui aspas, senão um link [x](http://a"onmouseover=...)
+  // conseguia quebrar o atributo href e injetar um handler (XSS).
   let s = src
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
   // 2) títulos markdown (# / ## ...) → vira negrito, sem mostrar os "#"
   s = s.replace(/^\s*#{1,6}\s*(.*)$/gm, (_m, t) => (t ? `<strong>${t}</strong>` : ''));
