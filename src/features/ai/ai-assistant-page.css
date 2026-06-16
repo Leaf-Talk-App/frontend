@@ -625,7 +625,14 @@
 @media (max-width: 767px) {
   /* Altura real (VisualViewport) menos a barra inferior fixa (112px) → o
      composer do Humberto acompanha o teclado, sem vão. */
+  /* Trava a tela (igual ao chat): SEM position:fixed o documento rolava pra
+     cima quando o input focava ("o site subia"). Fixa → só o thread rola. */
   .ai-assistant-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
     height: calc(100vh - 112px);
     height: calc(100dvh - 112px);
     height: calc(var(--app-height, 100dvh) - 112px);
