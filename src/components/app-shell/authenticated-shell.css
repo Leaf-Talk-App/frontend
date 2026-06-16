@@ -118,7 +118,7 @@
 .mobile-bottom-nav {
   position: fixed;
   right: 16px;
-  bottom: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
   left: 16px;
   z-index: 30;
   display: grid;
@@ -178,7 +178,7 @@
 
 @media (max-width: 767px) {
   .authenticated-shell__main {
-    padding-bottom: 112px;
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
   }
 
   /* Telas imersivas (chat/grupo) não têm a barra inferior → sem folga extra. */

@@ -46,6 +46,18 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  /* nunca rolar na horizontal (evita "vazamento" de layout no celular) */
+  overflow-x: hidden;
+}
+
+/* No celular, inputs/textareas com fonte < 16px fazem o iOS dar ZOOM ao focar
+   (e o layout "salta"). Força 16px só no mobile. */
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }
 
 a {
