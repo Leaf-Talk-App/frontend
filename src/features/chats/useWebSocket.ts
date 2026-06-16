@@ -3,6 +3,7 @@ import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { queryKeys } from '../../lib/api/query-keys';
 import type { LeafMessage } from '../../lib/api/contracts';
 import { env } from '../../config/env';
+import { useAuth } from '../../lib/auth/use-auth';
 
 interface UseWebSocketOptions {
   userId?: string;
@@ -19,19 +20,21 @@ export function useWebSocket({
 }: UseWebSocketOptions) {
   const wsRef = useRef<WebSocket | null>(null);
   const queryClient = useQueryClient();
+  const { accessToken } = useAuth();
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartbeatRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intentionalCloseRef = useRef(false);
 
   const connect = useCallback(() => {
-    if (!enabled || !userId) {
-      console.log('[WebSocket] Skipped: disabled or no userId');
+    if (!enabled || !userId || !accessToken) {
+      console.log('[WebSocket] Skipped: disabled, no userId or no token');
       return;
     }
 
     intentionalCloseRef.current = false;
 
-    const wsEndpoint = `${env.wsBaseUrl}/ws/${userId}`;
+    // token no query string → o backend autentica o socket (sub == userId).
+    const wsEndpoint = `${env.wsBaseUrl}/ws/${userId}?token=${encodeURIComponent(accessToken)}`;
 
     console.log(`[WebSocket] Connecting to ${wsEndpoint}`);
 
@@ -130,10 +133,10 @@ export function useWebSocket({
     } catch (error) {
       console.error('[WebSocket] Failed to create connection:', error);
     }
-  }, [enabled, userId, chatId, queryClient, onMessage]);
+  }, [enabled, userId, accessToken, chatId, queryClient, onMessage]);
 
   useEffect(() => {
-    if (enabled && userId) {
+    if (enabled && userId && accessToken) {
       connect();
     }
 
@@ -157,7 +160,7 @@ export function useWebSocket({
         clearInterval(heartbeatRef.current);
       }
     };
-  }, [enabled, userId, connect]);
+  }, [enabled, userId, accessToken, connect]);
 
   const send = useCallback(
     (message: any) => {
