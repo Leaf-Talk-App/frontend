@@ -184,6 +184,24 @@ export function GroupChatPage() {
     if (atBottomRef.current) toBottom();
   }, [messages, groupId, sendMutation.isPending]);
 
+  // Teclado: o fim da conversa acompanha o teclado (visualViewport encolhe).
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      if (!atBottomRef.current) return;
+      const el = messagesContainerRef.current;
+      if (!el) return;
+      const toBottom = () => { el.scrollTop = el.scrollHeight; };
+      toBottom();
+      requestAnimationFrame(toBottom);
+      window.setTimeout(toBottom, 120);
+      window.setTimeout(toBottom, 320);
+    };
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
+  }, []);
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     const content = input.trim();
@@ -533,7 +551,7 @@ export function GroupChatPage() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Mensagem… (chame a IA com @Humberto)"
+                placeholder="Mensagem…"
                 className="group-composer__input"
                 aria-label="Mensagem para o grupo"
               />

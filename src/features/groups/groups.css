@@ -335,14 +335,25 @@
 .group-msg-row {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  max-width: 78%;
+  /* largura total (igual ao chat 1:1) — o MessageBubble cuida do max-width e do
+     alinhamento. Antes max-width:78% + larguras "auto" deixavam o reply-preview
+     (nowrap) estourar e cortar a mensagem. */
+  width: 100%;
+  min-width: 0;
+}
+
+.group-msg-row .message-row__wrap {
+  width: 100%;
+}
+
+.group-msg-row__author {
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .group-msg-row--own {
   align-items: flex-end;
-  align-self: flex-end;
-  margin-left: auto;
 }
 
 .group-msg-row__author {

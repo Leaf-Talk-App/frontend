@@ -219,6 +219,27 @@ export function ChatWindowPage() {
     if (atBottomRef.current) toBottom();
   }, [messages, chatId]);
 
+  // ── Teclado: o fim da conversa acompanha o teclado ────────────────────────
+  // Quando o teclado abre, o visualViewport encolhe; sem isto o teclado tapava
+  // as últimas mensagens e o usuário tinha que rolar de novo. Se ele já estava
+  // no fim, reposiciona no fim (várias vezes p/ o layout assentar).
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      if (!atBottomRef.current) return;
+      const el = messagesContainerRef.current;
+      if (!el) return;
+      const toBottom = () => { el.scrollTop = el.scrollHeight; };
+      toBottom();
+      requestAnimationFrame(toBottom);
+      window.setTimeout(toBottom, 120);
+      window.setTimeout(toBottom, 320);
+    };
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
+  }, []);
+
   // ── Read receipts: marca recebidas como lidas ao abrir / ao chegar novas ──
   useEffect(() => {
     if (!chatId || !accessToken || !currentUser || !messages?.length) return;
