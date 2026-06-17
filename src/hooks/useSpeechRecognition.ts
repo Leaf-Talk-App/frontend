@@ -43,8 +43,9 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
   const [state, setState] = useState<SpeechState>('idle');
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const finalRef = useRef('');
-  const holdRef = useRef(false);     // modo "segurar para falar" (push-to-talk)
-  const stoppingRef = useRef(false); // usuário soltou → não reinicia
+  const holdRef = useRef(false);       // modo "segurar para falar" (push-to-talk)
+  const continuousRef = useRef(false); // contínuo: só para por stop() explícito
+  const stoppingRef = useRef(false);   // usuário parou → não reinicia
 
   // callbacks em refs → os handlers (criados uma vez) sempre chamam a versão atual
   const cbRef = useRef(options);
@@ -61,10 +62,13 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     const rec = new Ctor();
     rec.lang = lang;
     rec.interimResults = true;
-    // em hold (push-to-talk) fica contínuo e NÃO encerra na pausa
-    rec.continuous = holdRef.current;
+    // contínuo (hold ou toggle de ditado) → NÃO encerra na pausa; só para no stop()
+    rec.continuous = continuousRef.current;
 
     rec.onresult = (event: any) => {
+      // ignora resultados que cheguem depois do stop/abort (senão repopulava o
+      // campo com a mensagem anterior após o envio)
+      if (stoppingRef.current) return;
       let interim = '';
       let finalChunk = '';
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
@@ -79,15 +83,16 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
 
     rec.onerror = (event: any) => {
       const err = event?.error ?? 'error';
-      // segurando o botão: silêncio/abort não são erro — o onend reinicia
-      if (holdRef.current && (err === 'no-speech' || err === 'aborted')) return;
+      // gravando contínuo: silêncio/abort não são erro — o onend reinicia
+      if (continuousRef.current && (err === 'no-speech' || err === 'aborted')) return;
       cbRef.current.onError?.(err);
     };
 
     rec.onend = () => {
       recognitionRef.current = null;
-      // ainda segurando → reinicia para continuar ouvindo (Chrome encerra na pausa)
-      if (holdRef.current && !stoppingRef.current) {
+      // contínuo e sem stop() → reinicia para continuar ouvindo (o Chrome
+      // encerra a sessão na pausa de silêncio)
+      if (continuousRef.current && !stoppingRef.current) {
         spawn();
         return;
       }
@@ -95,6 +100,7 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
       const text = finalRef.current.trim();
       finalRef.current = '';
       holdRef.current = false;
+      continuousRef.current = false;
       if (text) cbRef.current.onFinal?.(text);
     };
 
@@ -110,19 +116,34 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
   }, [lang]);
 
   const start = useCallback(
-    (opts?: { hold?: boolean }) => {
+    (opts?: { hold?: boolean; continuous?: boolean }) => {
       if (recognitionRef.current) return; // já gravando
       finalRef.current = '';
       stoppingRef.current = false;
       holdRef.current = Boolean(opts?.hold);
+      // hold é sempre contínuo; o toggle de ditado pode pedir contínuo também
+      continuousRef.current = Boolean(opts?.continuous) || Boolean(opts?.hold);
       spawn();
     },
     [spawn],
   );
 
   const stop = useCallback(() => {
-    stoppingRef.current = true; // evita o auto-restart do hold
-    recognitionRef.current?.stop();
+    // Parada DETERMINÍSTICA: abort() encerra na hora e não dispara onresult
+    // tardio; zerar a ref + stoppingRef impede o auto-restart do modo contínuo
+    // (era isso que fazia "continuar captando e repetir a mensagem" após enviar).
+    stoppingRef.current = true;
+    holdRef.current = false;
+    continuousRef.current = false;
+    finalRef.current = '';
+    const rec = recognitionRef.current;
+    recognitionRef.current = null;
+    setState('idle');
+    try {
+      rec?.abort();
+    } catch {
+      /* ok */
+    }
   }, []);
 
   // limpa ao desmontar

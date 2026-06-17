@@ -219,6 +219,8 @@ export function AiAssistantPage() {
           content: m.content,
           isUser: m.role === 'user',
           timestamp: m.created_at ? new Date(m.created_at) : new Date(),
+          attachmentUrl: m.attachment_url ?? undefined,
+          attachmentMime: m.attachment_mime ?? undefined,
         })),
       );
     }
@@ -547,17 +549,17 @@ export function AiAssistantPage() {
             aria-label="Mensagem para o Humberto"
           />
 
-          {/* Falar com o Humberto — SEGURE para gravar, solte para parar
-              (não para sozinho na pausa). Transcreve no campo, não envia. */}
+          {/* Falar com o Humberto — TOQUE para começar, toque de novo (ou
+              enviar) para parar. Transcreve no campo; não envia sozinho. */}
           <DictationButton
             currentText={input}
             onTranscript={setInput}
             disabled={aiChat.isPending || uploading}
             size={20}
             className="ai-composer__icon ai-composer__mic"
-            label="Segure para falar com o Humberto"
+            label="Falar com o Humberto"
             icon="mic"
-            hold
+            continuous
             controlRef={dictationControl}
           />
 

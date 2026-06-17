@@ -512,6 +512,9 @@
 
 .ai-composer__input {
   flex: 1;
+  /* sem isto o input (flex-item) não encolhe abaixo do conteúdo e em telas
+     estreitas empurra o botão de enviar pra FORA da pílula do composer */
+  min-width: 0;
   height: 38px;
   padding: 0 8px;
   background: transparent;

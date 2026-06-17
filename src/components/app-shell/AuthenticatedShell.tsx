@@ -109,11 +109,28 @@ function useIsImmersive(): boolean {
   return IMMERSIVE_ROUTES.some((p) => matchPath(p, pathname) !== null);
 }
 
+/**
+ * Reseta o scroll ao trocar de aba/rota. Sem isto, a posição rolada de uma aba
+ * (ex.: Buscar) persistia no container compartilhado e a próxima página (ex.:
+ * Conversas) abria "cortada no meio".
+ */
+function ScrollReset() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document
+      .querySelector('.authenticated-shell__main')
+      ?.scrollTo({ top: 0, left: 0 });
+  }, [pathname]);
+  return null;
+}
+
 export function AuthenticatedShell() {
   const immersive = useIsImmersive();
   return (
     <div className="authenticated-shell">
       <GlobalPresence />
+      <ScrollReset />
       <DesktopSidebar />
       <main className={`authenticated-shell__main${immersive ? ' authenticated-shell__main--immersive' : ''}`}>
         <Outlet />

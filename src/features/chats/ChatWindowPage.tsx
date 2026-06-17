@@ -566,14 +566,19 @@ export function ChatWindowPage() {
             setSendingImage(true);
             const reply = replyingTo;
             try {
+              const isVideo = pendingFile.type.startsWith('video/');
               const form = new FormData();
               form.append('file', pendingFile);
-              const { url } = await uploadsApi.image(form, accessToken);
+              // vídeo → /upload/video (resource_type=video no Cloudinary);
+              // imagem → /upload/image
+              const { url } = isVideo
+                ? await uploadsApi.video(form, accessToken)
+                : await uploadsApi.image(form, accessToken);
               await sendMutation.mutateAsync({
                 chat_id: chatId,
                 content: caption.trim(),
                 receiver_id: otherParticipantId,
-                type: 'image',
+                type: isVideo ? 'video' : 'image',
                 file_url: url,
                 reply_to: reply?._id ?? null,
                 reply_preview: reply
@@ -677,6 +682,7 @@ function MessageRow({
           replyAuthor={replyAuthor}
           replyText={replyText}
           favorited={message.favorited}
+          isForwarded={message.is_forwarded}
           markdown={isHumberto}
         />
 
@@ -820,7 +826,11 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Enter envia; Shift+Enter quebra linha (comportamento padrão do textarea)
+    // Mobile (touch): Enter quebra linha — o envio é só pelo botão (estilo
+    // WhatsApp). Desktop: Enter envia; Shift+Enter quebra linha.
+    const isTouch =
+      typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+    if (isTouch) return;
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       const trimmed = message.trim();
@@ -837,11 +847,12 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
     event.target.value = '';
   };
 
-  // Anexo genérico: imagem → fluxo de preview; qualquer outro → documento
+  // Anexo genérico: imagem/vídeo → fluxo de preview; qualquer outro → documento
   const handleDocChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.type.startsWith('image/') && onPickFile) onPickFile(file);
+      const isMedia = file.type.startsWith('image/') || file.type.startsWith('video/');
+      if (isMedia && onPickFile) onPickFile(file);
       else if (onPickDocument) onPickDocument(file);
     }
     event.target.value = '';
@@ -873,11 +884,15 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
     const end   = input.selectionEnd   ?? message.length;
     const next = message.slice(0, start) + emoji + message.slice(end);
     setMessage(next);
-    // Reposiciona cursor após o emoji inserido
+    // No mobile com o picker aberto, NÃO refoca o input — focar reabriria o
+    // teclado e esconderia o picker. Assim dá pra escolher vários emojis
+    // seguidos (estilo WhatsApp). O cursor é reposicionado mesmo sem foco.
+    const isTouch =
+      typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
     requestAnimationFrame(() => {
       const pos = start + emoji.length;
       input.setSelectionRange(pos, pos);
-      input.focus();
+      if (!isTouch) input.focus();
     });
   }, [message]);
 
@@ -1008,7 +1023,16 @@ function MessageComposer({ recipientName, onSend, onPickFile, onPickDocument, on
           aria-label="Inserir emoji"
           aria-expanded={showEmoji}
           disabled={isLoading}
-          onClick={() => setShowEmoji((v) => !v)}
+          onClick={() =>
+            setShowEmoji((v) => {
+              const next = !v;
+              // abre o picker → tira o foco do input (esconde o teclado mobile
+              // que cobriria o picker); fecha → devolve o foco (volta o teclado)
+              if (next) inputRef.current?.blur();
+              else requestAnimationFrame(() => inputRef.current?.focus());
+              return next;
+            })
+          }
         >
           <Smile size={18} strokeWidth={2.2} />
         </button>

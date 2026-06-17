@@ -181,11 +181,42 @@
 
 .message-bubble__media-btn {
   display: block;
+  position: relative;
   padding: 0;
   margin: 0;
   border: 0;
   background: none;
   cursor: zoom-in;
+}
+
+/* Ícone de play sobreposto na miniatura de vídeo */
+.message-bubble__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding-left: 4px;
+  border-radius: 50%;
+  background: rgba(0 0 0 / 0.55);
+  color: #ffffff;
+  font-size: 20px;
+  pointer-events: none;
+}
+
+/* Rótulo "Encaminhada" no topo do balão (estilo WhatsApp) */
+.message-bubble__forwarded {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 3px;
+  font-size: 12px;
+  font-style: italic;
+  opacity: 0.7;
 }
 
 .message-bubble__image {
