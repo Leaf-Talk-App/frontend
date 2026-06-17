@@ -545,15 +545,17 @@ export function AiAssistantPage() {
             aria-label="Mensagem para o Humberto"
           />
 
-          {/* Falar com o Humberto — ditado por voz (transcreve no campo, não envia) */}
+          {/* Falar com o Humberto — SEGURE para gravar, solte para parar
+              (não para sozinho na pausa). Transcreve no campo, não envia. */}
           <DictationButton
             currentText={input}
             onTranscript={setInput}
             disabled={aiChat.isPending || uploading}
             size={16}
             className="ai-composer__icon"
-            label="Falar com o Humberto"
+            label="Segure para falar com o Humberto"
             icon="mic"
+            hold
           />
 
           <button

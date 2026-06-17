@@ -15,6 +15,8 @@ interface DictationButtonProps {
   label?: string;
   /** "captions" (texto, padrão) ou "mic" (fala — mais claro p/ o Humberto) */
   icon?: 'captions' | 'mic';
+  /** segurar para falar (push-to-talk): grava enquanto pressiona, para ao soltar */
+  hold?: boolean;
 }
 
 /**
@@ -30,8 +32,10 @@ export function DictationButton({
   className = 'message-composer__icon',
   label = 'Ditar mensagem por voz',
   icon = 'captions',
+  hold = false,
 }: DictationButtonProps) {
   const baseRef = useRef('');
+  const heldRef = useRef(false);
   const [error, setError] = useState(false);
 
   const merge = (transcript: string) => {
@@ -49,6 +53,47 @@ export function DictationButton({
   if (!speech.supported) return null;
 
   const listening = speech.state === 'listening';
+
+  // ── Segurar para falar (push-to-talk) ──────────────────────────────────────
+  if (hold) {
+    const begin = () => {
+      if (heldRef.current || disabled) return;
+      heldRef.current = true;
+      baseRef.current = currentText;
+      setError(false);
+      speech.start({ hold: true });
+    };
+    const end = () => {
+      if (!heldRef.current) return;
+      heldRef.current = false;
+      speech.stop();
+    };
+    const holdLabel = listening ? 'Gravando… solte para enviar' : 'Segure para falar';
+    return (
+      <button
+        type="button"
+        className={`${className}${listening ? ' dictation--on' : ''}${error ? ' dictation--error' : ''}`}
+        aria-label={holdLabel}
+        aria-pressed={listening}
+        title={holdLabel}
+        disabled={disabled}
+        style={{ touchAction: 'none' }}
+        onPointerDown={(e) => { e.preventDefault(); begin(); }}
+        onPointerUp={(e) => { e.preventDefault(); end(); }}
+        onPointerLeave={end}
+        onPointerCancel={end}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        {icon === 'mic' ? (
+          listening ? <MicOff size={size} strokeWidth={2.2} /> : <Mic size={size} strokeWidth={2.2} />
+        ) : listening ? (
+          <CaptionsOff size={size} strokeWidth={2.2} />
+        ) : (
+          <Captions size={size} strokeWidth={2.2} />
+        )}
+      </button>
+    );
+  }
 
   return (
     <button

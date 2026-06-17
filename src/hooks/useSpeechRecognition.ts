@@ -43,6 +43,8 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
   const [state, setState] = useState<SpeechState>('idle');
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const finalRef = useRef('');
+  const holdRef = useRef(false);     // modo "segurar para falar" (push-to-talk)
+  const stoppingRef = useRef(false); // usuário soltou → não reinicia
 
   // callbacks em refs → os handlers (criados uma vez) sempre chamam a versão atual
   const cbRef = useRef(options);
@@ -50,24 +52,17 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
 
   const supported = useRef<boolean>(Boolean(getRecognitionCtor())).current;
 
-  const stop = useCallback(() => {
-    recognitionRef.current?.stop();
-  }, []);
-
-  const start = useCallback(() => {
+  const spawn = useCallback(() => {
     const Ctor = getRecognitionCtor();
     if (!Ctor) {
       cbRef.current.onError?.('unsupported');
       return;
     }
-    // já gravando → ignora
-    if (recognitionRef.current) return;
-
     const rec = new Ctor();
     rec.lang = lang;
     rec.interimResults = true;
-    rec.continuous = false; // para sozinho após uma pausa → bom p/ comandos
-    finalRef.current = '';
+    // em hold (push-to-talk) fica contínuo e NÃO encerra na pausa
+    rec.continuous = holdRef.current;
 
     rec.onresult = (event: any) => {
       let interim = '';
@@ -83,14 +78,23 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     };
 
     rec.onerror = (event: any) => {
-      cbRef.current.onError?.(event?.error ?? 'error');
+      const err = event?.error ?? 'error';
+      // segurando o botão: silêncio/abort não são erro — o onend reinicia
+      if (holdRef.current && (err === 'no-speech' || err === 'aborted')) return;
+      cbRef.current.onError?.(err);
     };
 
     rec.onend = () => {
       recognitionRef.current = null;
+      // ainda segurando → reinicia para continuar ouvindo (Chrome encerra na pausa)
+      if (holdRef.current && !stoppingRef.current) {
+        spawn();
+        return;
+      }
       setState('idle');
       const text = finalRef.current.trim();
       finalRef.current = '';
+      holdRef.current = false;
       if (text) cbRef.current.onFinal?.(text);
     };
 
@@ -105,9 +109,26 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     }
   }, [lang]);
 
+  const start = useCallback(
+    (opts?: { hold?: boolean }) => {
+      if (recognitionRef.current) return; // já gravando
+      finalRef.current = '';
+      stoppingRef.current = false;
+      holdRef.current = Boolean(opts?.hold);
+      spawn();
+    },
+    [spawn],
+  );
+
+  const stop = useCallback(() => {
+    stoppingRef.current = true; // evita o auto-restart do hold
+    recognitionRef.current?.stop();
+  }, []);
+
   // limpa ao desmontar
   useEffect(() => {
     return () => {
+      stoppingRef.current = true;
       recognitionRef.current?.abort();
       recognitionRef.current = null;
     };
