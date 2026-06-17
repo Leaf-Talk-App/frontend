@@ -34,7 +34,7 @@ export async function fetchQuestions(): Promise<{ questions: QuizQuestion[]; tot
 
 export async function submitQuiz(payload: {
   name: string;
-  answers: number[];
+  responses: { id: number; answer: number }[];
   duration_ms: number;
 }): Promise<QuizResult> {
   const r = await fetch(`${base}/quiz/submit`, {

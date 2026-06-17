@@ -76,10 +76,12 @@ export function QuizPage() {
   const finish = async (finalAnswers: number[]) => {
     setStatus('submitting');
     const duration = Date.now() - startRef.current;
+    // monta as respostas por id (cada device recebeu um sorteio diferente)
+    const responses = questions.map((q, i) => ({ id: q.id, answer: finalAnswers[i] ?? -1 }));
     try {
       const res = await submitQuiz({
         name: name.trim(),
-        answers: finalAnswers,
+        responses,
         duration_ms: duration,
       });
       setResult(res);
