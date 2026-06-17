@@ -5,15 +5,14 @@ import './theme-toggle.css';
 
 /**
  * Botão flutuante de alternância de tema (sol/lua).
- * Fica fixo no canto superior direito, visível em todas as telas — EXCETO o
- * Quiz, que tem identidade visual própria (verde sobre fundo escuro) e não
- * acompanha o tema do app (o botão só confundia, parecendo não funcionar).
+ * Fica fixo no canto superior direito, visível em todas as telas — exceto o
+ * ranking do Quiz (`/quiz/ranking`), onde o canto já tem o QR Code.
  */
 export function ThemeToggle() {
   const { isDark, toggle } = useTheme();
   const { pathname } = useLocation();
 
-  if (pathname.startsWith('/quiz')) return null;
+  if (pathname.startsWith('/quiz/ranking')) return null;
 
   return (
     <button
