@@ -1,7 +1,8 @@
 .media-viewer {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  /* acima do modal de perfil/contato (z 1100) — senão a foto abria ATRÁS dele */
+  z-index: 1300;
   display: grid;
   place-items: center;
   padding: 56px 24px 24px;
