@@ -13,6 +13,8 @@ import { GroupChatPage } from '../features/groups/GroupChatPage';
 import { SearchPage } from '../features/search/SearchPage';
 import { ProfilePage } from '../features/profile/ProfilePage';
 import { AiAssistantPage } from '../features/ai/AiAssistantPage';
+import { QuizPage } from '../features/quiz/QuizPage';
+import { QuizRankingPage } from '../features/quiz/QuizRankingPage';
 import { useAuth } from '../lib/auth/use-auth';
 import { routePaths } from './paths';
 
@@ -27,6 +29,9 @@ export function AppRouter() {
       <Route path={routePaths.googleCallback} element={<GoogleCallbackPage />} />
       <Route path={routePaths.forgotPassword} element={<ForgotPasswordPage />} />
       <Route path={routePaths.resetPassword} element={<ResetPasswordPage />} />
+      {/* Quiz — público (alunos respondem sem conta na apresentação) */}
+      <Route path={routePaths.quizRanking} element={<QuizRankingPage />} />
+      <Route path={routePaths.quiz} element={<QuizPage />} />
       <Route element={<RequireAuth />}>
         <Route element={<AuthenticatedShell />}>
           <Route path={routePaths.chats} element={<ChatsPage />} />

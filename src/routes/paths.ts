@@ -13,4 +13,6 @@ export const routePaths = {
   search: '/search',
   assistant: '/ai',
   profile: '/profile',
+  quiz: '/quiz',
+  quizRanking: '/quiz/ranking',
 } as const;
