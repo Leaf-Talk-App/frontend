@@ -17,3 +17,26 @@
 [data-theme='dark'] .dictation--error {
   color: #ff8a85 !important;
 }
+
+/* ── Segurar para falar: wrapper + dica flutuante ───────────────────────────── */
+.dictation-hold {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dictation-hold__hint {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  white-space: nowrap;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgb(15 20 12 / 92%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 25%);
+  pointer-events: none;
+  animation: dictation-pulse 1.4s ease-in-out infinite;
+}

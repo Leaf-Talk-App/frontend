@@ -190,6 +190,7 @@ export function AiAssistantPage() {
   const [showCamera, setShowCamera] = useState(false);
   const tts = useSpeechSynthesis({ lang: 'pt-BR' });
   const composerRef = useRef<HTMLInputElement>(null);
+  const dictationControl = useRef<{ stop: () => void } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const threadRef = useRef<HTMLElement>(null);
@@ -294,6 +295,7 @@ export function AiAssistantPage() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    dictationControl.current?.stop(); // para a gravação travada ao enviar
     sendPrompt(input);
     // mantém o foco no campo após enviar (input não é mais desabilitado)
     composerRef.current?.focus();
@@ -540,7 +542,7 @@ export function AiAssistantPage() {
             type="text"
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder="Escreva, ou fale tocando no microfone…"
+            placeholder="Mensagem…"
             className="ai-composer__input"
             aria-label="Mensagem para o Humberto"
           />
@@ -551,11 +553,12 @@ export function AiAssistantPage() {
             currentText={input}
             onTranscript={setInput}
             disabled={aiChat.isPending || uploading}
-            size={16}
-            className="ai-composer__icon"
+            size={20}
+            className="ai-composer__icon ai-composer__mic"
             label="Segure para falar com o Humberto"
             icon="mic"
             hold
+            controlRef={dictationControl}
           />
 
           <button

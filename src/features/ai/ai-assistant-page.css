@@ -555,6 +555,23 @@
   cursor: not-allowed;
 }
 
+/* Microfone do Humberto — maior e destacado (segurar para falar) */
+.ai-composer__mic {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #5d8d22, #87b047);
+  color: #fff;
+  box-shadow: 0 6px 14px rgb(72 119 17 / 26%);
+}
+.ai-composer__mic:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5d8d22, #9ad14a);
+  color: #fff;
+}
+.ai-composer__mic.dictation--on {
+  background: var(--leaf-color-danger, #c9171d) !important;
+  color: #fff !important;
+}
+
 .ai-composer__input {
   flex: 1;
   height: 38px;
