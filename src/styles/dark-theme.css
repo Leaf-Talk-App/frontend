@@ -60,8 +60,7 @@
   --shadow-xl: 0 20px 48px rgb(0 0 0 / 65%);
 }
 
-[data-theme='dark'] body,
-[data-theme='dark'] .app-root {
+[data-theme='dark'] body {
   background: #0f1310;
   color: #dfe6d4;
 }
@@ -83,13 +82,6 @@ html { transition: background-color 280ms ease, color 200ms ease; }
 [data-theme='dark'] .verify-email-page__topbar {
   background: rgb(14 19 16 / 82%);
   box-shadow: 0 1px 0 rgb(110 150 65 / 8%);
-}
-[data-theme='dark'] .login-page__footer,
-[data-theme='dark'] .verify-email-page__footer {
-  /* rodapé é uma faixa transparente fixa — sem fundo/borda nos dois temas */
-  background: transparent;
-  border-top-color: transparent;
-  color: #8ebb48;
 }
 /* cartões de auth (alguns hardcoded em white) */
 [data-theme='dark'] .verify-email-card,
@@ -258,17 +250,6 @@ html { transition: background-color 280ms ease, color 200ms ease; }
   background: #8ebb48;
   color: #10160b;
 }
-[data-theme='dark'] .ai-assistant-page__autospeak {
-  background: #1c2119;
-  border-color: rgb(142 187 72 / 28%);
-  color: #a2d155;
-}
-[data-theme='dark'] .ai-assistant-page__autospeak:hover { background: #243515; }
-[data-theme='dark'] .ai-assistant-page__autospeak--on {
-  background: #243515;
-  border-color: rgb(142 187 72 / 55%);
-  color: #b6e06a;
-}
 [data-theme='dark'] .ai-action-card {
   background: #171c14;
   border-color: rgb(142 187 72 / 25%);
@@ -300,15 +281,6 @@ html { transition: background-color 280ms ease, color 200ms ease; }
   border-color: rgb(142 187 72 / 30%);
 }
 [data-theme='dark'] .sidekick-card__chip svg { color: #8ebb48; }
-[data-theme='dark'] .sidekick-card--insight p,
-[data-theme='dark'] .sidekick-card--collab .sidekick-card__collab-sub { color: #a8b49e; }
-[data-theme='dark'] .sidekick-card--insight strong { color: #8ebb48; }
-[data-theme='dark'] .sidekick-card--collab .sidekick-card__collab-note {
-  background: #1c2119;
-  border-color: rgb(110 150 65 / 12%);
-  color: #a8b49e;
-}
-[data-theme='dark'] .sidekick-card--collab strong { color: #dfe6d4; }
 [data-theme='dark'] .ai-assistant-page__suggestion {
   background: #1c2119;
   border-color: rgb(110 150 65 / 12%);
@@ -338,7 +310,6 @@ html { transition: background-color 280ms ease, color 200ms ease; }
   color: #dfe6d4;
 }
 [data-theme='dark'] .profile-page__topbar h1 { color: #8ebb48; }
-[data-theme='dark'] .profile-page__topbar-actions { color: #8f9b85; }
 [data-theme='dark'] .profile-card,
 [data-theme='dark'] .overview-card,
 [data-theme='dark'] .panel-card,

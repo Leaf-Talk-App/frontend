@@ -200,27 +200,6 @@
   }
 }
 
-.verify-email-page__footer {
-  /* Igual ao rodapé do login: fixo, transparente, itálico, sob o card. */
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 16px;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 13px;
-  font-style: italic;
-  color: var(--leaf-color-primary-dark);
-  pointer-events: none;
-
-  svg {
-    flex-shrink: 0;
-  }
-}
-
 @media (max-width: 768px) {
   .verify-email-page__content {
     padding: 16px;

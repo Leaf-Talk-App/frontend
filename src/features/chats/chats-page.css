@@ -230,15 +230,6 @@
   line-height: 1.45;
 }
 
-.chats-page__welcome-foot {
-  margin-top: 4px;
-  color: #8a9183;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
 @media (max-width: 1024px) {
   .chats-page {
     grid-template-columns: 320px 1fr;

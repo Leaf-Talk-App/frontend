@@ -137,38 +137,3 @@ select {
   padding: 0 var(--spacing-md);
 }
 
-.text-primary {
-  color: var(--color-text-primary);
-}
-
-.text-secondary {
-  color: var(--color-text-secondary);
-}
-
-.text-light {
-  color: var(--color-text-light);
-}
-
-.text-error {
-  color: var(--color-error);
-}
-
-.text-success {
-  color: var(--color-success);
-}
-
-.bg-primary {
-  background-color: var(--color-primary);
-}
-
-.rounded {
-  border-radius: var(--radius-md);
-}
-
-.rounded-lg {
-  border-radius: var(--radius-lg);
-}
-
-.rounded-full {
-  border-radius: var(--radius-full);
-}

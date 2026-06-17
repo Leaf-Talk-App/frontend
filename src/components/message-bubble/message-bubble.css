@@ -233,19 +233,6 @@
   /* footer herda a cor por lado (--sender branco / --receiver cinza) das regras base */
 }
 
-/* ── Áudio ────────────────────────────────────────────────────────────────── */
-.message-bubble__audio {
-  display: block;
-  width: 220px;
-  height: 36px;
-  margin-bottom: 4px;
-  accent-color: #6b923a;
-}
-
-.message-bubble--receiver .message-bubble__audio {
-  accent-color: #4b760f;
-}
-
 /* ── Dark mode ────────────────────────────────────────────────────────────── */
 [data-theme='dark'] .message-bubble--sender .message-bubble__body {
   background: #2b4c1a;
