@@ -769,6 +769,38 @@
   letter-spacing: 0.03em;
 }
 
+/* Foto do grupo (ver/trocar) */
+.group-settings__photo {
+  position: relative;
+  width: fit-content;
+  margin: 6px auto 16px;
+}
+.group-settings__photo-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+  line-height: 0;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.group-settings__photo-btn:hover { transform: scale(1.04); }
+.group-settings__photo-edit {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--leaf-color-surface, #fff);
+  background: var(--leaf-color-primary-dark, #4b760f);
+  color: #fff;
+  cursor: pointer;
+}
+.group-settings__photo-edit:disabled { opacity: 0.6; cursor: default; }
+
 .group-settings__input,
 .group-settings__textarea {
   width: 100%;

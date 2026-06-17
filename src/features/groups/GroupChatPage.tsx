@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, ChevronDown, Copy, Forward, Lock, LogOut, Mic, MoreVertical, Paperclip, Reply, Send, Settings2, Sprout, Star, Trash2, UserMinus, UserPlus, Users, X } from 'lucide-react';
 import { Avatar } from '../../components/avatar/Avatar';
+import { MediaViewer } from '../../components/media-viewer/MediaViewer';
 import { MessageBubble } from '../../components/message-bubble/MessageBubble';
 import { DictationButton } from '../../components/dictation/DictationButton';
 import { HumbertoMentionHint, mentionsHumberto } from '../../components/humberto/HumbertoMentionHint';
@@ -69,6 +70,7 @@ export function GroupChatPage() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
+  const [photoViewer, setPhotoViewer] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [showInvite, setShowInvite] = useState(false);
   const removeMemberMutation = useRemoveMemberMutation(groupId);
@@ -286,7 +288,15 @@ export function GroupChatPage() {
         </button>
 
         <div className="chat-window-page__user-info">
-          <Avatar src={group?.photo ?? undefined} initials={initialsOf(groupName || 'G')} size="sm" />
+          <button
+            type="button"
+            className="chat-modal__avatar-btn"
+            onClick={() => group?.photo && setPhotoViewer(true)}
+            aria-label={group?.photo ? 'Ver foto do grupo' : 'Grupo sem foto'}
+            disabled={!group?.photo}
+          >
+            <Avatar src={group?.photo ?? undefined} initials={initialsOf(groupName || 'G')} size="sm" />
+          </button>
           <div className="chat-window-page__user-meta">
             <h2 className="chat-window-page__name">
               {groupLoading ? <span className="chat-window-page__name-skeleton" /> : groupName}
@@ -602,6 +612,10 @@ export function GroupChatPage() {
           onClose={() => setShowSettings(false)}
         />
       )}
+
+      {photoViewer && group?.photo ? (
+        <MediaViewer open onClose={() => setPhotoViewer(false)} url={group.photo} kind="image" name={groupName} />
+      ) : null}
 
       {showMembers && group && (
         <div className="chat-modal" role="dialog" aria-modal="true" onClick={() => setShowMembers(false)}>

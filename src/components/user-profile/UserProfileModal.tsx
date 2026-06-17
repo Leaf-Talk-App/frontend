@@ -1,8 +1,10 @@
 import { createPortal } from 'react-dom';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { MessageSquare, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar } from '../avatar/Avatar';
+import { MediaViewer } from '../media-viewer/MediaViewer';
 import { usersApi, chatsApi } from '../../lib/api/endpoints';
 import { useAuth } from '../../lib/auth/use-auth';
 import type { LeafUser } from '../../lib/api/contracts';
@@ -19,6 +21,7 @@ interface Props {
 export function UserProfileModal({ userId, onClose, allowChat = true }: Props) {
   const { accessToken } = useAuth();
   const navigate = useNavigate();
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   const { data: u, isLoading, isError } = useQuery({
     queryKey: ['users', 'id', userId],
@@ -62,7 +65,15 @@ export function UserProfileModal({ userId, onClose, allowChat = true }: Props) {
         ) : (
           <>
             <div className="chat-modal__contact-head">
-              <Avatar src={user?.avatar} initials={initials} size="lg" online={user?.online} />
+              <button
+                type="button"
+                className="chat-modal__avatar-btn"
+                onClick={() => user?.avatar && setViewerOpen(true)}
+                aria-label={user?.avatar ? 'Ver foto de perfil' : 'Sem foto de perfil'}
+                disabled={!user?.avatar}
+              >
+                <Avatar src={user?.avatar} initials={initials} size="lg" online={user?.online} />
+              </button>
               <h3 className="chat-modal__name">{name}</h3>
               {user?.username ? <p className="chat-modal__handle">@{user.username}</p> : null}
               <p className={`chat-modal__online-status${user?.online ? ' chat-modal__online-status--on' : ''}`}>
@@ -84,6 +95,10 @@ export function UserProfileModal({ userId, onClose, allowChat = true }: Props) {
           </>
         )}
       </div>
+
+      {viewerOpen && user?.avatar ? (
+        <MediaViewer open onClose={() => setViewerOpen(false)} url={user.avatar} kind="image" name={name} />
+      ) : null}
     </div>,
     document.body,
   );

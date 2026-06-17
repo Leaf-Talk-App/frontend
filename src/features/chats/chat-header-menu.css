@@ -113,6 +113,19 @@
   margin-bottom: 18px;
 }
 
+/* avatar clicável (abre a foto em tela cheia) — perfil de usuário e header */
+.chat-modal__avatar-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+  line-height: 0;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.chat-modal__avatar-btn:not(:disabled):hover { transform: scale(1.04); }
+.chat-modal__avatar-btn:disabled { cursor: default; }
+
 .chat-modal__name {
   margin: 0;
   font-family: var(--leaf-font-heading, inherit);

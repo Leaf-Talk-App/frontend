@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Crown, Lock, Settings2, ShieldCheck, X } from 'lucide-react';
+import { Camera, Crown, Loader, Lock, Settings2, ShieldCheck, X } from 'lucide-react';
 import { Avatar } from '../../components/avatar/Avatar';
+import { MediaViewer } from '../../components/media-viewer/MediaViewer';
 import { useSetAdminMutation, useUpdateGroupMutation } from './groups-hooks';
+import { useAuth } from '../../lib/auth/use-auth';
+import { uploadsApi } from '../../lib/api/endpoints';
 import type { LeafGroup } from '../../lib/api/contracts';
 import './groups.css';
 
@@ -18,15 +21,41 @@ interface GroupSettingsModalProps {
 export function GroupSettingsModal({ group, nameById, currentUserId, onClose }: GroupSettingsModalProps) {
   const update = useUpdateGroupMutation(group._id);
   const setAdmin = useSetAdminMutation(group._id);
+  const { accessToken } = useAuth();
 
   const [name, setName] = useState(group.name ?? '');
   const [description, setDescription] = useState(group.description ?? '');
   const [onlyAdmins, setOnlyAdmins] = useState(Boolean(group.only_admins_can_send));
+  const [photo, setPhoto] = useState(group.photo ?? '');
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
 
   const admins = new Set(group.admins ?? []);
   const createdBy = group.created_by;
+  const isAdmin = admins.has(currentUserId);
+
+  const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || !accessToken) return;
+    setError('');
+    setPhotoUploading(true);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const { url } = await uploadsApi.avatar(form, accessToken);
+      setPhoto(url);
+      // salva já a foto (sem precisar clicar em SALVAR)
+      await update.mutateAsync({ photo: url });
+    } catch {
+      setError('Não foi possível enviar a foto. Tente uma imagem menor (até 5 MB).');
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     const trimmed = name.trim();
@@ -66,6 +95,37 @@ export function GroupSettingsModal({ group, nameById, currentUserId, onClose }: 
         <h3 className="chat-modal__name">
           <Settings2 size={18} strokeWidth={2.2} aria-hidden="true" /> Editar grupo
         </h3>
+
+        <div className="group-settings__photo">
+          <button
+            type="button"
+            className="group-settings__photo-btn"
+            onClick={() => (photo ? setViewerOpen(true) : isAdmin && photoInputRef.current?.click())}
+            aria-label={photo ? 'Ver foto do grupo' : 'Adicionar foto do grupo'}
+          >
+            <Avatar src={photo || undefined} initials={(name[0] || 'G').toUpperCase()} size="lg" />
+          </button>
+          {isAdmin ? (
+            <>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                style={{ display: 'none' }}
+                onChange={handlePhotoChange}
+              />
+              <button
+                type="button"
+                className="group-settings__photo-edit"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={photoUploading}
+                aria-label="Trocar foto do grupo"
+              >
+                {photoUploading ? <Loader size={14} className="spin" /> : <Camera size={14} strokeWidth={2.4} />}
+              </button>
+            </>
+          ) : null}
+        </div>
 
         <label className="group-settings__label" htmlFor="grp-name">Nome</label>
         <input
@@ -159,6 +219,10 @@ export function GroupSettingsModal({ group, nameById, currentUserId, onClose }: 
           {saved ? 'SALVO' : update.isPending ? 'SALVANDO…' : 'SALVAR'}
         </button>
       </div>
+
+      {viewerOpen && photo ? (
+        <MediaViewer open onClose={() => setViewerOpen(false)} url={photo} kind="image" name={name} />
+      ) : null}
     </div>,
     document.body,
   );

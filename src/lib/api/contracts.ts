@@ -241,6 +241,7 @@ export type UpdateGroupRequest = {
   name?: string;
   description?: string;
   only_admins_can_send?: boolean;
+  photo?: string;
 };
 
 export type SetAdminRequest = {
