@@ -247,6 +247,17 @@
   .message-row__menu-btn {
     opacity: 0.6;
   }
+  /* afasta o botão de opções do texto: sobe um pouco acima da bolha e recua
+     para a borda, criando um respiro entre a setinha e a mensagem */
+  .message-row__menu-wrap {
+    top: -10px;
+  }
+  .chat-window-page__row--own .message-row__menu-wrap {
+    right: -2px;
+  }
+  .chat-window-page__row:not(.chat-window-page__row--own) .message-row__menu-wrap {
+    left: -2px;
+  }
 }
 
 [data-theme='dark'] .message-row__menu-btn {

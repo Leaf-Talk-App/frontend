@@ -65,6 +65,7 @@ export function ForwardModal({ message, onClose }: ForwardModalProps) {
           content: message.content,
           type: message.type ?? 'text',
           file_url: message.file_url ?? null,
+          is_forwarded: true,
         },
         { token: accessToken! },
       ),

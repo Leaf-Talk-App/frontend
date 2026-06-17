@@ -434,6 +434,10 @@ export const uploadsApi = {
     return apiRequest<UploadFileResponse>('/upload/image', { method: 'POST', body: form, token });
   },
 
+  video(form: FormData, token: string) {
+    return apiRequest<UploadFileResponse>('/upload/video', { method: 'POST', body: form, token });
+  },
+
   audio(form: FormData, token: string) {
     return apiRequest<UploadFileResponse>('/upload/audio', { method: 'POST', body: form, token });
   },

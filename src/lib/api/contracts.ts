@@ -129,6 +129,7 @@ export type SendMessageRequest = {
   type?: 'text' | 'file' | string;
   file_url?: string | null;
   reply_to?: string | null;
+  is_forwarded?: boolean;
 };
 
 export type SendMessageResponse = {
@@ -144,6 +145,7 @@ export type SendMessageResponse = {
   file_url?: string | null;
   reply_to?: string | null;
   reply_preview?: ReplyPreview | null;
+  is_forwarded?: boolean;
   created_at?: string;
   read?: boolean;
   edited?: boolean;
@@ -154,7 +156,7 @@ export type EditMessageRequest = {
   content: string;
 };
 
-export type MessageType = 'text' | 'image' | 'audio' | 'file';
+export type MessageType = 'text' | 'image' | 'video' | 'audio' | 'file';
 
 export type LeafMessage = {
   _id: string;
@@ -176,6 +178,8 @@ export type LeafMessage = {
   reply_to?: string | null;
   /** prévia denormalizada da mensagem citada (montada pelo backend no envio) */
   reply_preview?: ReplyPreview | null;
+  /** mensagem encaminhada → exibe o rótulo "Encaminhada" no balão */
+  is_forwarded?: boolean;
   /** favoritada pelo usuário atual */
   favorited?: boolean;
 };
@@ -290,6 +294,8 @@ export type AiChatResponse =
 export type AiHistoryMessage = {
   role: 'user' | 'assistant';
   content: string;
+  attachment_url?: string | null;
+  attachment_mime?: string | null;
   created_at?: string | null;
 };
 

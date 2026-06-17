@@ -17,6 +17,9 @@ interface DictationButtonProps {
   icon?: 'captions' | 'mic';
   /** segurar para falar (push-to-talk): grava enquanto pressiona; deslize ↑ trava */
   hold?: boolean;
+  /** modo toggle contínuo: toca p/ começar, toca de novo (ou enviar) p/ parar;
+      não encerra sozinho na pausa de silêncio */
+  continuous?: boolean;
   /** o pai recebe um `stop()` para parar a gravação (ex.: ao enviar a mensagem) */
   controlRef?: React.MutableRefObject<{ stop: () => void } | null>;
 }
@@ -39,6 +42,7 @@ export function DictationButton({
   label = 'Ditar mensagem por voz',
   icon = 'captions',
   hold = false,
+  continuous = false,
   controlRef,
 }: DictationButtonProps) {
   const baseRef = useRef('');
@@ -161,7 +165,7 @@ export function DictationButton({
         } else {
           baseRef.current = currentText; // preserva o que já foi digitado
           setError(false);
-          speech.start();
+          speech.start({ continuous });
         }
       }}
     >

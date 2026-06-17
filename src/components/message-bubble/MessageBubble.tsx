@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './message-bubble.css';
 import type { MessageStatus, MessageType } from '../../lib/api/contracts';
-import { Check, CheckCheck, FileText, Star } from 'lucide-react';
+import { Check, CheckCheck, FileText, Forward, Star } from 'lucide-react';
 import { AudioPlayer } from '../audio-player/AudioPlayer';
 import { MediaViewer } from '../media-viewer/MediaViewer';
 import { renderMarkdown } from '../../lib/markdown';
@@ -23,8 +23,21 @@ interface MessageBubbleProps {
   replyText?: string;
   /** favoritada pelo usuário atual → mostra ★ no rodapé */
   favorited?: boolean;
+  /** mensagem encaminhada → mostra o rótulo "Encaminhada" no topo do balão */
+  isForwarded?: boolean;
   /** renderiza markdown (negrito/itálico/código) — usado p/ o Humberto */
   markdown?: boolean;
+}
+
+/** Rótulo "Encaminhada" exibido no topo do balão (estilo WhatsApp). */
+function ForwardedTag({ show }: { show?: boolean }) {
+  if (!show) return null;
+  return (
+    <span className="message-bubble__forwarded">
+      <Forward size={12} strokeWidth={2} />
+      Encaminhada
+    </span>
+  );
 }
 
 /** Bloco de citação exibido no topo do balão quando a mensagem é uma resposta. */
@@ -109,6 +122,7 @@ export function MessageBubble({
   replyAuthor,
   replyText,
   favorited,
+  isForwarded,
   markdown,
 }: MessageBubbleProps) {
   const senderCls = isSender ? 'message-bubble--sender' : 'message-bubble--receiver';
@@ -119,6 +133,7 @@ export function MessageBubble({
     suppressReadReceipt && status === 'read' ? 'delivered' : status;
 
   const isImage = type === 'image' && fileUrl && !deleted;
+  const isVideo = type === 'video' && fileUrl && !deleted;
   const isAudio = type === 'audio' && fileUrl && !deleted;
   const isFile = type === 'file' && fileUrl && !deleted;
 
@@ -127,6 +142,7 @@ export function MessageBubble({
     return (
       <div className={`message-bubble message-bubble--image ${senderCls}`}>
         <div className="message-bubble__body">
+          <ForwardedTag show={isForwarded} />
           <ReplyQuote author={replyAuthor} text={replyText} />
           <button
             type="button"
@@ -152,11 +168,42 @@ export function MessageBubble({
     );
   }
 
+  /* ── Vídeo ─────────────────────────────────────────────────────────────── */
+  if (isVideo) {
+    return (
+      <div className={`message-bubble message-bubble--image ${senderCls}`}>
+        <div className="message-bubble__body">
+          <ForwardedTag show={isForwarded} />
+          <ReplyQuote author={replyAuthor} text={replyText} />
+          <button
+            type="button"
+            className="message-bubble__media-btn"
+            onClick={() => setViewerOpen(true)}
+            aria-label="Abrir vídeo"
+          >
+            <video
+              src={fileUrl}
+              className="message-bubble__image"
+              preload="metadata"
+              muted
+              playsInline
+            />
+            <span className="message-bubble__play" aria-hidden="true">▶</span>
+          </button>
+          {content?.trim() ? <p className="message-bubble__caption">{content}</p> : null}
+          <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} favorited={favorited} />
+        </div>
+        <MediaViewer open={viewerOpen} onClose={() => setViewerOpen(false)} url={fileUrl} kind="video" />
+      </div>
+    );
+  }
+
   /* ── Áudio ─────────────────────────────────────────────────────────────── */
   if (isAudio) {
     return (
       <div className={`message-bubble ${senderCls}`}>
         <div className="message-bubble__body">
+          <ForwardedTag show={isForwarded} />
           <AudioPlayer src={fileUrl} variant={variant} />
           <Footer timestamp={timestamp} status={shownStatus} edited={edited} isSender={isSender} favorited={favorited} />
         </div>
@@ -174,6 +221,7 @@ export function MessageBubble({
     return (
       <div className={`message-bubble ${senderCls}`}>
         <div className="message-bubble__body">
+          <ForwardedTag show={isForwarded} />
           <button
             type="button"
             className="message-bubble__file"
@@ -194,6 +242,7 @@ export function MessageBubble({
     <div className={`message-bubble ${senderCls}`}>
       <div className="message-bubble__body">
         <div className="message-bubble__inner">
+          {!deleted && <ForwardedTag show={isForwarded} />}
           {!deleted && <ReplyQuote author={replyAuthor} text={replyText} />}
           {deleted ? (
             <p className="message-bubble__deleted">Mensagem apagada</p>
